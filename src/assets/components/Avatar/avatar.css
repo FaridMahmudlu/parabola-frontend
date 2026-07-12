@@ -1,0 +1,12 @@
+.avatar-wrapper {
+  display: inline-block;
+  background: #1a1a1a; 
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.avatar-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}

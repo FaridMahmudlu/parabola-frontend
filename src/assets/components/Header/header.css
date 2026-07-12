@@ -1,0 +1,226 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
+*{
+    margin: 0;
+    padding: 0;
+}
+.Topcontainer{
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+.headercontainer{
+    width: 100%;
+    background-color: black;
+    display: flex;
+    padding: 30px 50px;
+  
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #2a2a2a;
+}
+.parabolalogo h1{
+    color: #c9a96e;
+    letter-spacing: 17px;
+    font-weight: 100;
+    padding: 10px;
+}
+.parabolanavigation nav ul{
+    display: flex;
+    font-family: 'Montserrat', sans-serif;
+    list-style-type: none;
+    gap: 50px;
+    font-size: 18px;
+  
+  
+}
+.parabolanavigation nav ul li{
+    color: #c9a96e;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    transition:transform  0.6s ease;
+    cursor: pointer;
+  
+}
+.parabolanavigation nav ul a {
+     color: #c9a96e;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    text-decoration: none;
+}
+.parabolanavigation nav ul li:hover{
+   transform: scale(1.2);
+   color: rgb(214, 213, 213);
+  
+}
+.menuicon{
+    display: none;
+    color: white;
+}
+@media (max-width:1300px){
+.Topcontainer{
+    display: flex;
+ 
+   
+    background-color: blue;
+   
+}
+.headercontainer{
+    width: 100%;
+    background-color: rgb(189, 1, 1);
+    display: flex;
+justify-content: space-between;
+    border-bottom: 1px solid #2a2a2a;
+}
+.parabolalogo h1{
+    color: #c9a96e;
+    letter-spacing: 14px;
+    font-weight: 100;
+    padding: 7px;
+    font-size: 18px;
+}
+
+.parabolanavigation nav ul{
+    display: flex;
+    font-family: 'Montserrat', sans-serif;
+    list-style-type: none;
+    font-size: 14px;
+  
+  
+}
+.parabolanavigation nav ul a {
+     color: #c9a96e;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+
+}
+@media (max-width:992px){
+    .headercontainer{
+    width: 100%;
+    background-color: black;
+    display: flex;
+    padding: 20px 30px;
+    
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #2a2a2a;
+}
+    .parabolalogo h1{
+    color: #c9a96e;
+    letter-spacing: 16px;
+    font-weight: 100;
+    padding: 8px;
+}
+.parabolanavigation nav ul{
+    display: flex;
+    font-family: 'Montserrat', sans-serif;
+    list-style-type: none;
+    gap: 30px;
+    font-size: 16px;
+  
+  
+}
+.parabolanavigation nav ul li{
+    color: #c9a96e;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    transition:transform  0.6s ease;
+    cursor: pointer;
+  
+}
+.parabolanavigation nav ul a {
+     color: #c9a96e;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    text-decoration: none;
+}
+}
+@media (max-width:768px){
+    .Topcontainer{
+        position: relative;
+    }
+    .parabolanavigation nav{
+        
+        display: none;
+    }
+    .menuicon{
+        position: absolute;
+        top: 29px;
+        right: 38px;
+        z-index: 999;
+        color: white;
+        display: block;
+    }
+    .parabolanavigation nav.active{
+        display: block;
+    }
+
+  #menyu ul{
+    display: flex;
+    flex-direction: column;
+   
+
+  }
+  #menyu  ul a{
+ color: #000;
+
+  }
+  #menyu  ul a:hover{
+   color: #2a2a2a;
+  }
+  #menyu{
+    position: absolute;
+    background-color: #c9a96e;
+    padding: 30px 20px ;
+   
+    width: 200px;
+    right: 1px;
+    top: 11px;
+  }
+
+}
+@media(max-width:576px){
+    #menyu{
+    position: absolute;
+    background-color: #c9a96e;
+    padding: 30px 20px ;
+   
+    width: 150px;
+    right: 1px;
+    top: 22px;
+  }
+   .menuicon{
+        position: absolute;
+        top: 29px;
+        right: 7px;
+        z-index: 999;
+        color: white;
+        display: block;
+    }
+    .parabolalogo h1{
+    color: #c9a96e;
+    letter-spacing: 13px;
+    font-weight: 100;
+    padding: 8px;
+    font-size: 14px;
+}
+
+}
+
+.parabolanavigation nav ul button {
+    background: none;
+    border: none;
+    color: #c9a96e;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    cursor: pointer;
+    transition: transform 0.6s ease;
+    padding: 0;
+}
+.parabolanavigation nav ul button:hover {
+    transform: scale(1.2);
+    color: rgb(214, 213, 213);
+}

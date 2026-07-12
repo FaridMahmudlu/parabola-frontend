@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond&display=swap');
+
+.profilecontainer {
+    background-color: black;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 0;
+    gap: 80px;
+
+}
+
+.ProfileTextContainer {
+    color: white;
+    width: 530px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.ProfileTextContainer h2 {
+    font-size: 42px;
+    letter-spacing: 3px;
+    font-weight: 300;
+    color: #f0ece4;
+    font-family: 'Cormorant Garamond', serif;
+}
+
+.ProfileTextContainer p {
+    font-size: 22px;
+    color: #aca9a6;
+    font-family: 'Cormorant Garamond', serif;
+}
+
+.profileform {
+    border: none;
+}
+
+.profilelabel label {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #7a7570;
+}
+
+.profilelabel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.profilelabel select, .profilelabel input {
+    background: #161616;
+    border: 1px solid #2a2a2a;
+    color: #f0ece4;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.3s;
+    appearance: none;
+    padding: 19px;
+    width: 530px;
+    box-sizing: border-box;
+}
+
+.profilelabel select:hover, .profilelabel input:hover {
+    border: 1px solid #c9a96e;
+}
+
+.profilelabel select optgroup {
+    background-color: black;
+    color: white;
+}
+
+.profilebtn button {
+    width: 529px;
+    padding: 20px;
+}
+
+.user-infos {
+    border: 1px solid #77716c;
+    width: 531px;
+    padding: 20px 15px;
+    color: rgb(109, 106, 106);
+    height: 306px;
+    display: flex;
+    flex-direction: column;
+    background-color: #0e0e0e;
+    gap: 50px;
+
+}
+
+.user-info h3 {
+    font-size: 15px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #c9a96e
+}
+
+.user-info-text {
+    display: flex;
+    justify-content: space-between;
+    width: 260px;
+    font-size: 20px;
+}
+
+.infotextone {
+    display: flex;
+    flex-direction: column;
+    gap: 50px;
+}
+
+.sizetext {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sizetext p:nth-child(2) {
+    color: white;
+}
+
+.sizetext p:nth-child(1) {
+    color: #7a7570;
+}
