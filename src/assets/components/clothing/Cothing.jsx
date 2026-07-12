@@ -66,7 +66,7 @@ function Clothing() {
     })
   }, [])
 
-  if (!user) {
+  if (!isSignedIn) {
     return (
       <div className="login-prompt-container">
         <h2>Geyimləri və Ağıllı Ölçü Analizini Görmək Üçün Giriş Edin</h2>
