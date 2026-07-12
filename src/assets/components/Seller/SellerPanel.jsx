@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./seller.css";
 import Header from "../Header/Header";
+import CustomSelect from "../CustomSelect/CustomSelect";
 import { Navigate } from "react-router-dom";
 import { BASE_URL } from "../../pages/config";
 import { notification } from "antd";
@@ -18,13 +19,13 @@ const SellerPanel = () => {
   const [contactLink, setContactLink] = useState("");
   const [file, setFile] = useState(null);
 
-  const [selectedSizes, setSelectedSizes] = useState({
-    S: { checked: false, clothingFit: "", modelBodyType: "" },
-    M: { checked: false, clothingFit: "", modelBodyType: "" },
-    L: { checked: false, clothingFit: "", modelBodyType: "" },
-    XL: { checked: false, clothingFit: "", modelBodyType: "" },
-    XXL: { checked: false, clothingFit: "", modelBodyType: "" },
-  });
+  // New fields from the screenshot
+  const [gender, setGender] = useState("");
+  const [sizeName, setSizeName] = useState("");
+  const [clothingFit, setClothingFit] = useState("");
+  const [color, setColor] = useState("");
+  const [style, setStyle] = useState("");
+  const [description, setDescription] = useState("");
 
   const [status, setStatus] = useState({ loading: false, error: null, ok: false });
   const [products, setProducts] = useState([]);
@@ -56,44 +57,14 @@ const SellerPanel = () => {
     return <Navigate to="/" />;
   }
 
-  const handleSizeCheck = (sizeKey) => {
-    setSelectedSizes((prev) => ({
-      ...prev,
-      [sizeKey]: {
-        ...prev[sizeKey],
-        checked: !prev[sizeKey].checked,
-      },
-    }));
-  };
-
-  const handleSizeValChange = (sizeKey, field, val) => {
-    setSelectedSizes((prev) => ({
-      ...prev,
-      [sizeKey]: {
-        ...prev[sizeKey],
-        [field]: val,
-      },
-    }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus({ loading: true, error: null, ok: false });
 
-    // Validate size selection
-    const activeSizes = Object.keys(selectedSizes).filter(key => selectedSizes[key].checked);
-    if (activeSizes.length === 0) {
-      setStatus({ loading: false, error: "Zəhmət olmasa ən azı bir ölçü variantı seçin.", ok: false });
+    // Validate selections
+    if (!gender || !sizeName || !clothingFit || !color || !style) {
+      setStatus({ loading: false, error: "Zəhmət olmasa bütün vacib seçimləri daxil edin.", ok: false });
       return;
-    }
-
-    // Validate size dimensions
-    for (let key of activeSizes) {
-      const s = selectedSizes[key];
-      if (!s.clothingFit || !s.modelBodyType) {
-        setStatus({ loading: false, error: `Seçilmiş ${key} ölçüsü üçün Geyim (Fit) və Manken - Ölçü tipi parametrlərini seçin!`, ok: false });
-        return;
-      }
     }
 
     if (!file) {
@@ -101,11 +72,11 @@ const SellerPanel = () => {
       return;
     }
 
-    const sizesList = activeSizes.map(key => ({
-      sizeName: key,
-      clothingFit: selectedSizes[key].clothingFit,
-      modelBodyType: selectedSizes[key].modelBodyType
-    }));
+    const sizesList = [{
+      sizeName: sizeName,
+      clothingFit: clothingFit,
+      modelBodyType: "" // Will be derived from clothingFit on the backend
+    }];
 
     const productPayload = {
       name,
@@ -113,6 +84,10 @@ const SellerPanel = () => {
       category,
       price: parseFloat(price),
       contactLink,
+      gender,
+      color,
+      style,
+      description,
       sizes: sizesList
     };
 
@@ -142,13 +117,13 @@ const SellerPanel = () => {
       setPrice("");
       setContactLink("");
       setFile(null);
-      setSelectedSizes({
-        S: { checked: false, clothingFit: "", modelBodyType: "" },
-        M: { checked: false, clothingFit: "", modelBodyType: "" },
-        L: { checked: false, clothingFit: "", modelBodyType: "" },
-        XL: { checked: false, clothingFit: "", modelBodyType: "" },
-        XXL: { checked: false, clothingFit: "", modelBodyType: "" },
-      });
+      setGender("");
+      setSizeName("");
+      setClothingFit("");
+      setColor("");
+      setStyle("");
+      setDescription("");
+      
       // Clear file input manually
       document.getElementById("image").value = "";
 
@@ -169,11 +144,13 @@ const SellerPanel = () => {
       <div className="panel-wrapper">
         <header className="panel-header">
           <h1 className="panel-title">Satıcı Paneli</h1>
-          <p className="panel-subtitle">Yeni geyim əlavə edin və ölçü limitlərini təyin edin.</p>
+          <p className="panel-subtitle">Yeni geyim əlavə edin.</p>
         </header>
         <div className="panel-card">
           <form className="panel-form" onSubmit={handleSubmit}>
             <div className="form-grid">
+              
+              {/* Row 1 */}
               <div className="form-field">
                 <label htmlFor="name">Geyim adı</label>
                 <input
@@ -186,6 +163,93 @@ const SellerPanel = () => {
                 />
               </div>
 
+              <div className="form-field">
+                <label>Cins</label>
+                <CustomSelect
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                  options={[
+                    { value: "Kişi", label: "Kişi" },
+                    { value: "Qadın", label: "Qadın" },
+                    { value: "Unisex", label: "Unisex" }
+                  ]}
+                  placeholder="Seçin"
+                />
+              </div>
+
+              {/* Row 2 */}
+              <div className="form-field">
+                <label>Ölçü</label>
+                <CustomSelect
+                  value={sizeName}
+                  onChange={(e) => setSizeName(e.target.value)}
+                  options={[
+                    { value: "S", label: "S" },
+                    { value: "M", label: "M" },
+                    { value: "L", label: "L" },
+                    { value: "XL", label: "XL" },
+                    { value: "XXL", label: "XXL" }
+                  ]}
+                  placeholder="Seçin"
+                />
+              </div>
+
+              <div className="form-field">
+                <label>Uyğunlaşma Ölçüsü (Fit)</label>
+                <CustomSelect
+                  value={clothingFit}
+                  onChange={(e) => setClothingFit(e.target.value)}
+                  options={[
+                    { value: "Kiçik", label: "Kiçik" },
+                    { value: "Orta kiçik", label: "Orta kiçik" },
+                    { value: "Orta", label: "Orta" },
+                    { value: "Orta geniş", label: "Orta geniş" },
+                    { value: "Geniş", label: "Geniş" }
+                  ]}
+                  placeholder="Seçin"
+                />
+              </div>
+
+              {/* Row 3 */}
+              <div className="form-field">
+                <label>Rəng</label>
+                <CustomSelect
+                  value={color}
+                  onChange={(e) => setColor(e.target.value)}
+                  options={[
+                    { value: "Qara", label: "Qara" },
+                    { value: "Ağ", label: "Ağ" },
+                    { value: "Mavi", label: "Mavi" },
+                    { value: "Qırmızı", label: "Qırmızı" },
+                    { value: "Yaşıl", label: "Yaşıl" },
+                    { value: "Sarı", label: "Sarı" },
+                    { value: "Boz", label: "Boz" },
+                    { value: "Qəhvəyi", label: "Qəhvəyi" },
+                    { value: "Bej", label: "Bej" },
+                    { value: "Krem", label: "Krem" }
+                  ]}
+                  placeholder="Seçin"
+                />
+              </div>
+
+              <div className="form-field">
+                <label>Stil</label>
+                <CustomSelect
+                  value={style}
+                  onChange={(e) => setStyle(e.target.value)}
+                  options={[
+                    { value: "Klassik", label: "Klassik" },
+                    { value: "İdman", label: "İdman" },
+                    { value: "Gündəlik", label: "Gündəlik" },
+                    { value: "Ziyafət", label: "Ziyafət" },
+                    { value: "Minimalist", label: "Minimalist" },
+                    { value: "Küçə stili", label: "Küçə stili" }
+                  ]}
+                  placeholder="Seçin"
+                />
+              </div>
+
+              {/* Row 4: Backend required properties */}
               <div className="form-field">
                 <label htmlFor="brand">Brend</label>
                 <input
@@ -210,6 +274,7 @@ const SellerPanel = () => {
                 />
               </div>
 
+              {/* Row 5 */}
               <div className="form-field">
                 <label htmlFor="price">Qiymət (AZN)</label>
                 <input
@@ -235,7 +300,8 @@ const SellerPanel = () => {
                 />
               </div>
 
-              <div className="form-field">
+              {/* Row 6: Image upload */}
+              <div className="form-field form-field--full">
                 <label htmlFor="image">Məhsulun Real Şəkli</label>
                 <input
                   id="image"
@@ -243,67 +309,22 @@ const SellerPanel = () => {
                   accept="image/*"
                   onChange={(e) => setFile(e.target.files[0])}
                   required
+                  style={{ padding: "14px" }}
                 />
               </div>
-            </div>
 
-            <div className="sizes-section" style={{ marginTop: "30px", borderTop: "1px solid #2a2a2a", paddingTop: "20px" }}>
-              <h3 style={{ color: "#c9a96e", marginBottom: "15px", fontWeight: "300" }}>Ölçü Variantları və Fiziki Ölçüləri</h3>
-              <p style={{ color: "#8c8c8c", fontSize: "14px", marginBottom: "20px" }}>
-                Ağıllı tövsiyə sisteminin işləməsi üçün ən azı bir geyim ölçüsü seçib onun uyğunluq parametrlərini daxil edin.
-              </p>
+              {/* Description textarea */}
+              <div className="form-field form-field--full">
+                <label htmlFor="description">Geyim haqqında qısa məlumat (İstəyə bağlı)</label>
+                <textarea
+                  id="description"
+                  placeholder="Geyimin xüsusiyyətləri..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows="4"
+                />
+              </div>
 
-              {Object.keys(selectedSizes).map((sizeKey) => (
-                <div key={sizeKey} className="size-row" style={{ marginBottom: "20px", background: "#0c0c0c", padding: "15px", borderRadius: "6px", border: "1px solid #1a1a1a" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-                    <input
-                      type="checkbox"
-                      id={`check-${sizeKey}`}
-                      checked={selectedSizes[sizeKey].checked}
-                      onChange={() => handleSizeCheck(sizeKey)}
-                      style={{ width: "20px", height: "20px", cursor: "pointer" }}
-                    />
-                    <label htmlFor={`check-${sizeKey}`} style={{ color: "#c9a96e", fontSize: "18px", fontWeight: "bold", cursor: "pointer" }}>
-                      {sizeKey} Ölçüsü
-                    </label>
-                  </div>
-
-                  {selectedSizes[sizeKey].checked && (
-                    <div className="size-inputs-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
-                      <div className="form-field">
-                        <label>Geyim (Fit)</label>
-                        <select
-                          value={selectedSizes[sizeKey].clothingFit}
-                          onChange={(e) => handleSizeValChange(sizeKey, "clothingFit", e.target.value)}
-                          required
-                        >
-                          <option value="">Seçin</option>
-                          <option value="Kiçik">Kiçik</option>
-                          <option value="Orta kiçik">Orta kiçik</option>
-                          <option value="Orta">Orta</option>
-                          <option value="Orta geniş">Orta geniş</option>
-                          <option value="Geniş">Geniş</option>
-                        </select>
-                      </div>
-                      <div className="form-field">
-                        <label>Manken - Ölçü tipi</label>
-                        <select
-                          value={selectedSizes[sizeKey].modelBodyType}
-                          onChange={(e) => handleSizeValChange(sizeKey, "modelBodyType", e.target.value)}
-                          required
-                        >
-                          <option value="">Seçin</option>
-                          <option value="Daha arıq">Daha arıq</option>
-                          <option value="Arıq">Arıq</option>
-                          <option value="Orta">Orta</option>
-                          <option value="Orta iri">Orta iri</option>
-                          <option value="İri">İri</option>
-                        </select>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
             </div>
 
             {status.error && (
@@ -314,7 +335,7 @@ const SellerPanel = () => {
             )}
 
             <button type="submit" className="submit-btn" disabled={status.loading} style={{ marginTop: "30px", width: "100%" }}>
-              {status.loading ? "Göndərilir..." : "Geyimi əlavə et"}
+              {status.loading ? "Göndərilir..." : "Kataloqa Əlavə Et"}
             </button>
           </form>
         </div>

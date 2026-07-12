@@ -2,6 +2,7 @@ import { notification } from 'antd'
 import React, { useState, useEffect } from 'react'
 import { Navigate } from 'react-router-dom'
 import Header from '../../components/Header/Header'
+import CustomSelect from '../../components/CustomSelect/CustomSelect'
 import "./profile.css"
 import axios from 'axios'
 import { BASE_URL } from '../config'
@@ -115,49 +116,46 @@ const Profile = () => {
 
         <form className='profileform' onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
           <div className="profilelabel">
-            <label htmlFor="gender">CİNS</label>
-            <select
-              id="gender"
+            <label>CİNS</label>
+            <CustomSelect
               value={gender}
               onChange={(e) => setGender(e.target.value)}
-              required
-            >
-              <option value="">Seçin</option>
-              <option value="Kişi">Kişi</option>
-              <option value="Qadın">Qadın</option>
-            </select>
+              options={[
+                { value: "Kişi", label: "Kişi" },
+                { value: "Qadın", label: "Qadın" }
+              ]}
+              placeholder="Seçin"
+            />
           </div>
 
           <div className="profilelabel">
-            <label htmlFor="clothingSize">GEYİM ÖLÇÜSÜ</label>
-            <select
-              id="clothingSize"
+            <label>GEYİM ÖLÇÜSÜ</label>
+            <CustomSelect
               value={clothingSize}
               onChange={(e) => setClothingSize(e.target.value)}
-              required
-            >
-              <option value="">Seçin</option>
-              <option value="S">S</option>
-              <option value="M">M</option>
-              <option value="L">L</option>
-              <option value="XL">XL</option>
-            </select>
+              options={[
+                { value: "S", label: "S" },
+                { value: "M", label: "M" },
+                { value: "L", label: "L" },
+                { value: "XL", label: "XL" }
+              ]}
+              placeholder="Seçin"
+            />
           </div>
 
           <div className="profilelabel">
-            <label htmlFor="bodyType">BƏDƏN TİPİ</label>
-            <select
-              id="bodyType"
+            <label>BƏDƏN TİPİ</label>
+            <CustomSelect
               value={bodyType}
               onChange={(e) => setBodyType(e.target.value)}
-              required
-            >
-              <option value="">Seçin</option>
-              <option value="Arıq">Arıq</option>
-              <option value="Normal">Normal</option>
-              <option value="İdmançı">İdmançı</option>
-              <option value="Kilolu">Kilolu</option>
-            </select>
+              options={[
+                { value: "Arıq", label: "Arıq" },
+                { value: "Normal", label: "Normal" },
+                { value: "İdmançı", label: "İdmançı" },
+                { value: "Kilolu", label: "Kilolu" }
+              ]}
+              placeholder="Seçin"
+            />
           </div>
 
           <div className="profilebtn">

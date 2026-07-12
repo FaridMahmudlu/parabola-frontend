@@ -1,0 +1,84 @@
+.custom-select-container {
+    position: relative;
+    width: 100%;
+}
+
+.custom-select-trigger {
+    background: #0e0e0e;
+    border: 1px solid #1f1f1f;
+    color: #f0ece4;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    padding: 16px 20px;
+    width: 100%;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    user-select: none;
+}
+
+.custom-select-trigger:hover,
+.custom-select-trigger.open {
+    border-color: #c9a96e;
+    box-shadow: 0 0 10px rgba(201, 169, 110, 0.1);
+}
+
+.custom-select-arrow {
+    font-size: 16px;
+    color: #7a7570;
+    transition: transform 0.3s ease;
+}
+
+.custom-select-trigger.open .custom-select-arrow {
+    transform: rotate(180deg);
+    color: #c9a96e;
+}
+
+.custom-select-options {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 100%;
+    background: #0e0e0e;
+    border: 1px solid #1f1f1f;
+    border-radius: 4px;
+    z-index: 100;
+    max-height: 250px;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.custom-select-option {
+    padding: 14px 20px;
+    color: #aca9a6;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.custom-select-option:hover {
+    background: rgba(201, 169, 110, 0.1);
+    color: #c9a96e;
+}
+
+.custom-select-option.selected {
+    background: #c9a96e;
+    color: black;
+    font-weight: 500;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
