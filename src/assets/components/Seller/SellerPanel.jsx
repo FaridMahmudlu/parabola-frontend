@@ -2,13 +2,14 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./seller.css";
 import Header from "../Header/Header";
-import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
 import { BASE_URL } from "../../pages/config";
 import { notification } from "antd";
+import { useUser, useAuth } from "@clerk/clerk-react";
 
 const SellerPanel = () => {
-  const { user } = useSelector((state) => state.auth);
+  const { isLoaded, isSignedIn, user } = useUser();
+  const { getToken } = useAuth();
 
   const [name, setName] = useState("");
   const [brand, setBrand] = useState("");
@@ -28,10 +29,11 @@ const SellerPanel = () => {
   const [products, setProducts] = useState([]);
 
   const fetchProducts = async () => {
-    if (!user || !user.token) return;
+    if (!isSignedIn) return;
     try {
+      const token = await getToken();
       const res = await axios.get(`${BASE_URL}/api/v1/products`, {
-        headers: { Authorization: `Bearer ${user.token}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       setProducts(res.data);
     } catch (err) {
@@ -40,10 +42,16 @@ const SellerPanel = () => {
   };
 
   useEffect(() => {
-    fetchProducts();
-  }, [user]);
+    if (isSignedIn) {
+      fetchProducts();
+    }
+  }, [isSignedIn, getToken]);
 
-  if (!user || user.role !== "ROLE_SELLER") {
+  if (!isLoaded) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#c9a96e' }}>Yüklənir...</div>;
+  }
+
+  if (!isSignedIn || user?.publicMetadata?.role !== "ROLE_SELLER") {
     return <Navigate to="/" />;
   }
 
@@ -114,10 +122,11 @@ const SellerPanel = () => {
     formData.append("image", file);
 
     try {
+      const token = await getToken();
       await axios.post(`${BASE_URL}/api/v1/products`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${user.token}`
+          Authorization: `Bearer ${token}`
         }
       });
 

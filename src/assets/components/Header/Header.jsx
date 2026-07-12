@@ -1,22 +1,14 @@
 import React from 'react'
 import { IoMdMenu } from "react-icons/io";
 import "./header.css"
-import { Link, useNavigate } from 'react-router-dom'
-import { useDispatch, useSelector } from 'react-redux'
-import { logout } from '../../../features/Auth/authSlice'
+import { Link } from 'react-router-dom'
+import { useUser, UserButton } from '@clerk/clerk-react'
 
 function Header() {
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
-  const { user } = useSelector((state) => state.auth)
+  const { isSignedIn, user } = useUser()
 
   function menutoggle() {
     document.getElementById("menyu").classList.toggle("active")
-  }
-
-  const handleLogout = () => {
-    dispatch(logout())
-    navigate("/login")
   }
 
   return (
@@ -27,18 +19,20 @@ function Header() {
             <h1>PARABOLA</h1>
           </Link>
         </div>
-        <div className="parabolanavigation">
+        <div className="parabolanavigation" style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
           <IoMdMenu onClick={menutoggle} className='menuicon' />
           <nav id='menyu'>
-            <ul>
+            <ul style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
               <Link to="/">Katalog</Link>
-              {user ? (
+              {isSignedIn ? (
                 <>
                   <Link to="/profile">Profil</Link>
-                  {user.role === 'ROLE_SELLER' && (
+                  {user?.publicMetadata?.role === 'ROLE_SELLER' && (
                     <Link to="/seller">Satıcı Paneli</Link>
                   )}
-                  <button onClick={handleLogout}>Çıxış</button>
+                  <div style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <UserButton afterSignOutUrl="/login" />
+                  </div>
                 </>
               ) : (
                 <>

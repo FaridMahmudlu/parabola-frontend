@@ -1,14 +1,15 @@
 import { notification } from 'antd'
 import React, { useState, useEffect } from 'react'
-import { useSelector } from 'react-redux'
 import { Navigate } from 'react-router-dom'
 import Header from '../../components/Header/Header'
 import "./profile.css"
 import axios from 'axios'
 import { BASE_URL } from '../config'
+import { useUser, useAuth } from '@clerk/clerk-react'
 
 const Profile = () => {
-  const { user } = useSelector((state) => state.auth)
+  const { isLoaded, isSignedIn, user } = useUser()
+  const { getToken } = useAuth()
 
   const [height, setHeight] = useState("")
   const [weight, setWeight] = useState("")
@@ -21,11 +22,12 @@ const Profile = () => {
   const [savedData, setSavedData] = useState(null)
 
   useEffect(() => {
-    if (user && user.token) {
+    if (isSignedIn) {
       const fetchProfile = async () => {
         try {
+          const token = await getToken()
           const { data } = await axios.get(`${BASE_URL}/api/v1/users/profile`, {
-            headers: { Authorization: `Bearer ${user.token}` }
+            headers: { Authorization: `Bearer ${token}` }
           })
           if (data) {
             setHeight(data.height || "")
@@ -45,9 +47,13 @@ const Profile = () => {
       }
       fetchProfile()
     }
-  }, [user])
+  }, [isSignedIn, getToken])
 
-  if (!user) {
+  if (!isLoaded) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#c9a96e' }}>Yüklənir...</div>
+  }
+
+  if (!isSignedIn) {
     return <Navigate to="/login" />
   }
 
@@ -65,10 +71,11 @@ const Profile = () => {
     }
 
     try {
+      const token = await getToken()
       const { data } = await axios.put(
         `${BASE_URL}/api/v1/users/profile`,
         payload,
-        { headers: { Authorization: `Bearer ${user.token}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       )
       setSavedData(payload)
       notification.success({

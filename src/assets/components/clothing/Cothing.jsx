@@ -3,10 +3,10 @@ import { GoArrowRight } from "react-icons/go"
 import axios from "axios"
 import "./clothing.css"
 import AOS from "aos"
-import { useSelector } from "react-redux"
 import "aos/dist/aos.css"
 import Avatar from '../Avatar/Avatar'
 import { BASE_URL } from '../../pages/config'
+import { useUser, useAuth } from '@clerk/clerk-react'
 
 function Clothing() {
   const [products, setProducts] = useState([])
@@ -15,14 +15,16 @@ function Clothing() {
   const [recommendation, setRecommendation] = useState(null)
   const [loadingRecommendation, setLoadingRecommendation] = useState(false)
 
-  const { user } = useSelector((state) => state.auth) 
+  const { isSignedIn } = useUser()
+  const { getToken } = useAuth()
 
   useEffect(() => {
     async function getProducts() {
-      if (!user || !user.token) return;
+      if (!isSignedIn) return;
       try {
+        const token = await getToken()
         const { data } = await axios.get(`${BASE_URL}/api/v1/products`, {
-          headers: { Authorization: `Bearer ${user.token}` }
+          headers: { Authorization: `Bearer ${token}` }
         })
         setProducts(data)
       } catch (error) {
@@ -30,7 +32,7 @@ function Clothing() {
       }
     }
     getProducts()
-  }, [user])
+  }, [isSignedIn, getToken])
 
   const handleTryOn = async (item) => {
     setSelectedProduct(item)
@@ -38,16 +40,16 @@ function Clothing() {
     setRecommendation(null)
     setLoadingRecommendation(true)
 
-    if (!user || !user.token) {
+    if (!isSignedIn) {
       setLoadingRecommendation(false)
       return
     }
 
     try {
+      const token = await getToken()
       const { data } = await axios.get(`${BASE_URL}/api/v1/products/${item.id}`, {
-        headers: { Authorization: `Bearer ${user.token}` }
+        headers: { Authorization: `Bearer ${token}` }
       })
-      // Returns: { product, sizeRecommendation: { recommendedSize, matchPercentage, feedbackMessage } }
       setRecommendation(data.sizeRecommendation)
     } catch (error) {
       console.error("Ölçü tövsiyəsi alınarkən xəta:", error)
