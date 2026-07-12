@@ -11,12 +11,9 @@ const Profile = () => {
   const { isLoaded, isSignedIn, user } = useUser()
   const { getToken } = useAuth()
 
-  const [height, setHeight] = useState("")
-  const [weight, setWeight] = useState("")
-  const [chest, setChest] = useState("")
-  const [armLength, setArmLength] = useState("")
-  const [waist, setWaist] = useState("")
-  const [shoulder, setShoulder] = useState("")
+  const [gender, setGender] = useState("")
+  const [clothingSize, setClothingSize] = useState("")
+  const [bodyType, setBodyType] = useState("")
   
   const [loading, setLoading] = useState(false)
   const [savedData, setSavedData] = useState(null)
@@ -30,14 +27,11 @@ const Profile = () => {
             headers: { Authorization: `Bearer ${token}` }
           })
           if (data) {
-            setHeight(data.height || "")
-            setWeight(data.weight || "")
-            setChest(data.chest || "")
-            setArmLength(data.armLength || "")
-            setWaist(data.waist || "")
-            setShoulder(data.shoulder || "")
+            setGender(data.gender || "")
+            setClothingSize(data.clothingSize || "")
+            setBodyType(data.bodyType || "")
             
-            if (data.height && data.weight && data.chest) {
+            if (data.gender && data.clothingSize && data.bodyType) {
               setSavedData(data)
             }
           }
@@ -62,12 +56,9 @@ const Profile = () => {
     setLoading(true)
 
     const payload = {
-      height: parseFloat(height),
-      weight: parseFloat(weight),
-      chest: parseFloat(chest),
-      armLength: parseFloat(armLength),
-      waist: parseFloat(waist),
-      shoulder: parseFloat(shoulder)
+      gender,
+      clothingSize,
+      bodyType
     }
 
     try {
@@ -80,13 +71,13 @@ const Profile = () => {
       setSavedData(payload)
       notification.success({
         message: "Məlumat yadda saxlanıldı",
-        description: data || "Profil bədən ölçüləriniz uğurla yeniləndi!"
+        description: data || "Profil seçimləriniz uğurla yeniləndi!"
       })
     } catch (error) {
       const errMsg = error.response?.data?.message || error.response?.data || error.message;
       notification.error({
         message: "Xəta baş verdi",
-        description: typeof errMsg === 'string' ? errMsg : "Ölçülər yenilənə bilmədi. Zəhmət olmasa parametrləri düzgün daxil edin!"
+        description: typeof errMsg === 'string' ? errMsg : "Ölçülər yenilənə bilmədi. Zəhmət olmasa seçimlərinizi yoxlayın!"
       })
     } finally {
       setLoading(false)
@@ -98,127 +89,79 @@ const Profile = () => {
       <Header />
       <div className='profilecontainer'>
         <div className="ProfileTextContainer">
-          <h2>Profilim və Bədən Ölçülərim</h2>
-          <p>Məlumatlarınız ağıllı ölçü uyğunluğu alqoritmində istifadə edilir.</p>
+          <h2>Profilim</h2>
+          <p>Məlumatlarınız uyğunluq hesablamasında istifadə edilir.</p>
         </div>
 
         {savedData && (
-          <div className="user-infos">
-            <h3>Saxlanılmış ölçülər</h3>
-            <div className="user-info-text">
-              <div className="infotextone">
-                <div className="sizetext">
-                  <p>Boy</p>
-                  <p>{savedData.height} sm</p>
-                </div>
-                <div className="sizetext">
-                  <p>Çəki</p>
-                  <p>{savedData.weight} kq</p>
-                </div>
-                <div className="sizetext">
-                  <p>Sinə</p>
-                  <p>{savedData.chest} sm</p>
-                </div>
+          <div className="user-infos" style={{ height: 'auto', gap: '30px' }}>
+            <h3 style={{ fontSize: '14px', letterSpacing: '2px', textTransform: 'uppercase', color: '#c9a96e', margin: 0 }}>Saxlanılmış məlumatlar</h3>
+            <div className="user-info-text" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px', fontSize: '18px', fontFamily: 'Cormorant Garamond, serif' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #1a1a1a', paddingBottom: '10px' }}>
+                <span style={{ color: '#7a7570' }}>CİNS</span>
+                <span style={{ color: 'white' }}>{savedData.gender}</span>
               </div>
-              <div className="infotextone">
-                <div className="sizetext">
-                  <p>Qol uzunluğu</p>
-                  <p>{savedData.armLength} sm</p>
-                </div>
-                <div className="sizetext">
-                  <p>Bel</p>
-                  <p>{savedData.waist} sm</p>
-                </div>
-                <div className="sizetext">
-                  <p>Çiyin</p>
-                  <p>{savedData.shoulder} sm</p>
-                </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #1a1a1a', paddingBottom: '10px' }}>
+                <span style={{ color: '#7a7570' }}>GEYİM ÖLÇÜSÜ</span>
+                <span style={{ color: 'white' }}>{savedData.clothingSize}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '10px' }}>
+                <span style={{ color: '#7a7570' }}>BƏDƏN TİPİ</span>
+                <span style={{ color: 'white' }}>{savedData.bodyType}</span>
               </div>
             </div>
           </div>
         )}
 
-        <form className='profileform' onSubmit={handleSubmit}>
+        <form className='profileform' onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
           <div className="profilelabel">
-            <label htmlFor="height">Boy (sm)</label>
-            <input 
-              type="number" 
-              id="height" 
-              value={height} 
-              onChange={(e) => setHeight(e.target.value)} 
-              placeholder="Boyunuzu daxil edin (sm)" 
-              min="50"
-              required 
-            />
+            <label htmlFor="gender">CİNS</label>
+            <select
+              id="gender"
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+              required
+            >
+              <option value="">Seçin</option>
+              <option value="Kişi">Kişi</option>
+              <option value="Qadın">Qadın</option>
+            </select>
           </div>
 
           <div className="profilelabel">
-            <label htmlFor="weight">Çəki (kq)</label>
-            <input 
-              type="number" 
-              id="weight" 
-              value={weight} 
-              onChange={(e) => setWeight(e.target.value)} 
-              placeholder="Çəkinizi daxil edin (kq)" 
-              min="30"
-              required 
-            />
+            <label htmlFor="clothingSize">GEYİM ÖLÇÜSÜ</label>
+            <select
+              id="clothingSize"
+              value={clothingSize}
+              onChange={(e) => setClothingSize(e.target.value)}
+              required
+            >
+              <option value="">Seçin</option>
+              <option value="S">S</option>
+              <option value="M">M</option>
+              <option value="L">L</option>
+              <option value="XL">XL</option>
+            </select>
           </div>
 
           <div className="profilelabel">
-            <label htmlFor="chest">Sinə genişliyi (sm)</label>
-            <input 
-              type="number" 
-              id="chest" 
-              value={chest} 
-              onChange={(e) => setChest(e.target.value)} 
-              placeholder="Sinə ölçünüzü daxil edin (sm)" 
-              min="40"
-              required 
-            />
-          </div>
-
-          <div className="profilelabel">
-            <label htmlFor="armLength">Qol uzunluğu (sm)</label>
-            <input 
-              type="number" 
-              id="armLength" 
-              value={armLength} 
-              onChange={(e) => setArmLength(e.target.value)} 
-              placeholder="Qol uzunluğunuzu daxil edin (sm)" 
-              min="30"
-              required 
-            />
-          </div>
-
-          <div className="profilelabel">
-            <label htmlFor="waist">Bel ölçüsü (sm)</label>
-            <input 
-              type="number" 
-              id="waist" 
-              value={waist} 
-              onChange={(e) => setWaist(e.target.value)} 
-              placeholder="Bel ölçünüzü daxil edin (sm)" 
-              min="40"
-              required 
-            />
-          </div>
-
-          <div className="profilelabel">
-            <label htmlFor="shoulder">Çiyin genişliyi (sm)</label>
-            <input 
-              type="number" 
-              id="shoulder" 
-              value={shoulder} 
-              onChange={(e) => setShoulder(e.target.value)} 
-              placeholder="Çiyin genişliyinizi daxil edin (sm)" 
-              min="30"
-              required 
-            />
+            <label htmlFor="bodyType">BƏDƏN TİPİ</label>
+            <select
+              id="bodyType"
+              value={bodyType}
+              onChange={(e) => setBodyType(e.target.value)}
+              required
+            >
+              <option value="">Seçin</option>
+              <option value="Arıq">Arıq</option>
+              <option value="Normal">Normal</option>
+              <option value="İdmançı">İdmançı</option>
+              <option value="Kilolu">Kilolu</option>
+            </select>
           </div>
 
           <div className="profilebtn">
-            <button type='submit' disabled={loading}>
+            <button className="gold-btn-style" type='submit' disabled={loading} style={{ background: '#c9a96e', color: 'black', border: 'none', cursor: 'pointer', fontFamily: 'Montserrat, sans-serif', fontWeight: '500', letterSpacing: '1px', textTransform: 'uppercase', transition: 'background-color 0.3s' }}>
               {loading ? "Yadda saxlanılır..." : "Yadda Saxla"}
             </button>
           </div>
