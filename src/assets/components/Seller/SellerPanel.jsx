@@ -19,10 +19,11 @@ const SellerPanel = () => {
   const [file, setFile] = useState(null);
 
   const [selectedSizes, setSelectedSizes] = useState({
-    S: { checked: false, chest: "", armLength: "", shoulder: "", totalLength: "" },
-    M: { checked: false, chest: "", armLength: "", shoulder: "", totalLength: "" },
-    L: { checked: false, chest: "", armLength: "", shoulder: "", totalLength: "" },
-    XL: { checked: false, chest: "", armLength: "", shoulder: "", totalLength: "" },
+    S: { checked: false, clothingFit: "", modelBodyType: "" },
+    M: { checked: false, clothingFit: "", modelBodyType: "" },
+    L: { checked: false, clothingFit: "", modelBodyType: "" },
+    XL: { checked: false, clothingFit: "", modelBodyType: "" },
+    XXL: { checked: false, clothingFit: "", modelBodyType: "" },
   });
 
   const [status, setStatus] = useState({ loading: false, error: null, ok: false });
@@ -82,15 +83,15 @@ const SellerPanel = () => {
     // Validate size selection
     const activeSizes = Object.keys(selectedSizes).filter(key => selectedSizes[key].checked);
     if (activeSizes.length === 0) {
-      setStatus({ loading: false, error: "Zəhmət olmasa ən azı bir ölçü variantı seçin və parametrlərini daxil edin.", ok: false });
+      setStatus({ loading: false, error: "Zəhmət olmasa ən azı bir ölçü variantı seçin.", ok: false });
       return;
     }
 
     // Validate size dimensions
     for (let key of activeSizes) {
       const s = selectedSizes[key];
-      if (!s.chest || !s.armLength || !s.shoulder || !s.totalLength) {
-        setStatus({ loading: false, error: `Seçilmiş ${key} ölçüsü üçün bütün ölçü parametrlərini (sinə, qol, çiyin, uzunluq) daxil edin!`, ok: false });
+      if (!s.clothingFit || !s.modelBodyType) {
+        setStatus({ loading: false, error: `Seçilmiş ${key} ölçüsü üçün Geyim (Fit) və Manken - Ölçü tipi parametrlərini seçin!`, ok: false });
         return;
       }
     }
@@ -102,10 +103,8 @@ const SellerPanel = () => {
 
     const sizesList = activeSizes.map(key => ({
       sizeName: key,
-      chest: parseFloat(selectedSizes[key].chest),
-      armLength: parseFloat(selectedSizes[key].armLength),
-      shoulder: parseFloat(selectedSizes[key].shoulder),
-      totalLength: parseFloat(selectedSizes[key].totalLength)
+      clothingFit: selectedSizes[key].clothingFit,
+      modelBodyType: selectedSizes[key].modelBodyType
     }));
 
     const productPayload = {
@@ -144,10 +143,11 @@ const SellerPanel = () => {
       setContactLink("");
       setFile(null);
       setSelectedSizes({
-        S: { checked: false, chest: "", armLength: "", shoulder: "", totalLength: "" },
-        M: { checked: false, chest: "", armLength: "", shoulder: "", totalLength: "" },
-        L: { checked: false, chest: "", armLength: "", shoulder: "", totalLength: "" },
-        XL: { checked: false, chest: "", armLength: "", shoulder: "", totalLength: "" },
+        S: { checked: false, clothingFit: "", modelBodyType: "" },
+        M: { checked: false, clothingFit: "", modelBodyType: "" },
+        L: { checked: false, clothingFit: "", modelBodyType: "" },
+        XL: { checked: false, clothingFit: "", modelBodyType: "" },
+        XXL: { checked: false, clothingFit: "", modelBodyType: "" },
       });
       // Clear file input manually
       document.getElementById("image").value = "";
@@ -250,7 +250,7 @@ const SellerPanel = () => {
             <div className="sizes-section" style={{ marginTop: "30px", borderTop: "1px solid #2a2a2a", paddingTop: "20px" }}>
               <h3 style={{ color: "#c9a96e", marginBottom: "15px", fontWeight: "300" }}>Ölçü Variantları və Fiziki Ölçüləri</h3>
               <p style={{ color: "#8c8c8c", fontSize: "14px", marginBottom: "20px" }}>
-                Ağıllı tövsiyə sisteminin işləməsi üçün ən azı bir geyim ölçüsü seçib onun santimetrlərlə ölçü dəyərlərini daxil edin.
+                Ağıllı tövsiyə sisteminin işləməsi üçün ən azı bir geyim ölçüsü seçib onun uyğunluq parametrlərini daxil edin.
               </p>
 
               {Object.keys(selectedSizes).map((sizeKey) => (
@@ -269,46 +269,36 @@ const SellerPanel = () => {
                   </div>
 
                   {selectedSizes[sizeKey].checked && (
-                    <div className="size-inputs-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "15px" }}>
+                    <div className="size-inputs-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
                       <div className="form-field">
-                        <label>Sinə genişliyi (sm)</label>
-                        <input
-                          type="number"
-                          placeholder="sm"
-                          value={selectedSizes[sizeKey].chest}
-                          onChange={(e) => handleSizeValChange(sizeKey, "chest", e.target.value)}
+                        <label>Geyim (Fit)</label>
+                        <select
+                          value={selectedSizes[sizeKey].clothingFit}
+                          onChange={(e) => handleSizeValChange(sizeKey, "clothingFit", e.target.value)}
                           required
-                        />
+                        >
+                          <option value="">Seçin</option>
+                          <option value="Kiçik">Kiçik</option>
+                          <option value="Orta kiçik">Orta kiçik</option>
+                          <option value="Orta">Orta</option>
+                          <option value="Orta geniş">Orta geniş</option>
+                          <option value="Geniş">Geniş</option>
+                        </select>
                       </div>
                       <div className="form-field">
-                        <label>Çiyin genişliyi (sm)</label>
-                        <input
-                          type="number"
-                          placeholder="sm"
-                          value={selectedSizes[sizeKey].shoulder}
-                          onChange={(e) => handleSizeValChange(sizeKey, "shoulder", e.target.value)}
+                        <label>Manken - Ölçü tipi</label>
+                        <select
+                          value={selectedSizes[sizeKey].modelBodyType}
+                          onChange={(e) => handleSizeValChange(sizeKey, "modelBodyType", e.target.value)}
                           required
-                        />
-                      </div>
-                      <div className="form-field">
-                        <label>Qol uzunluğu (sm)</label>
-                        <input
-                          type="number"
-                          placeholder="sm"
-                          value={selectedSizes[sizeKey].armLength}
-                          onChange={(e) => handleSizeValChange(sizeKey, "armLength", e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="form-field">
-                        <label>Ümumi uzunluq (sm)</label>
-                        <input
-                          type="number"
-                          placeholder="sm"
-                          value={selectedSizes[sizeKey].totalLength}
-                          onChange={(e) => handleSizeValChange(sizeKey, "totalLength", e.target.value)}
-                          required
-                        />
+                        >
+                          <option value="">Seçin</option>
+                          <option value="Daha arıq">Daha arıq</option>
+                          <option value="Arıq">Arıq</option>
+                          <option value="Orta">Orta</option>
+                          <option value="Orta iri">Orta iri</option>
+                          <option value="İri">İri</option>
+                        </select>
                       </div>
                     </div>
                   )}
@@ -350,7 +340,7 @@ const SellerPanel = () => {
                       <div className="product-sizes-badges" style={{ marginTop: "10px" }}>
                         {p.sizes && p.sizes.map(s => (
                           <span key={s.id} style={{ background: "#2a2a2a", color: "#c9a96e", padding: "3px 8px", borderRadius: "4px", fontSize: "12px", marginRight: "5px" }}>
-                            {s.sizeName} (S:{s.chest}/Ç:{s.shoulder}/Q:{s.armLength}/U:{s.totalLength})
+                            {s.sizeName} {s.clothingFit && s.modelBodyType ? `(Fit: ${s.clothingFit} / Manken: ${s.modelBodyType})` : `(S:${s.chest}/Ç:${s.shoulder}/Q:${s.armLength}/U:${s.totalLength})`}
                           </span>
                         ))}
                       </div>
