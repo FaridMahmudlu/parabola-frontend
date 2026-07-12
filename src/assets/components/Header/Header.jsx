@@ -1,16 +1,20 @@
 import React, { useState } from 'react'
 import { CgMenuRight, CgClose } from "react-icons/cg";
+import { FiGrid, FiUser, FiSliders, FiLogIn, FiUserPlus } from "react-icons/fi";
 import "./header.css"
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useUser, UserButton } from '@clerk/clerk-react'
 
 function Header() {
   const { isSignedIn, user } = useUser()
   const [menuOpen, setMenuOpen] = useState(false)
+  const location = useLocation()
 
   function toggleMenu() {
     setMenuOpen(!menuOpen)
   }
+
+  const isActive = (path) => location.pathname === path
 
   return (
     <div className='Topcontainer'>
@@ -29,16 +33,37 @@ function Header() {
           <nav id='menyu' className={menuOpen ? 'active' : ''}>
             <ul>
               <li>
-                <Link to="/" onClick={() => setMenuOpen(false)}>Katalog</Link>
+                <Link 
+                  to="/" 
+                  className={isActive('/') ? 'active-link' : ''} 
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <FiGrid className="nav-icon" />
+                  <span>Katalog</span>
+                </Link>
               </li>
               {isSignedIn ? (
                 <>
                   <li>
-                    <Link to="/profile" onClick={() => setMenuOpen(false)}>Profil</Link>
+                    <Link 
+                      to="/profile" 
+                      className={isActive('/profile') ? 'active-link' : ''} 
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <FiUser className="nav-icon" />
+                      <span>Profil</span>
+                    </Link>
                   </li>
                   {user?.publicMetadata?.role === 'ROLE_SELLER' && (
                     <li>
-                      <Link to="/seller" onClick={() => setMenuOpen(false)}>Satıcı Paneli</Link>
+                      <Link 
+                        to="/seller" 
+                        className={isActive('/seller') ? 'active-link' : ''} 
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        <FiSliders className="nav-icon" />
+                        <span>Satıcı Paneli</span>
+                      </Link>
                     </li>
                   )}
                   <li className="user-btn-li">
@@ -48,10 +73,24 @@ function Header() {
               ) : (
                 <>
                   <li>
-                    <Link to="/login" onClick={() => setMenuOpen(false)}>Daxil Ol</Link>
+                    <Link 
+                      to="/login" 
+                      className={isActive('/login') ? 'active-link' : ''} 
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <FiLogIn className="nav-icon" />
+                      <span>Daxil Ol</span>
+                    </Link>
                   </li>
                   <li>
-                    <Link to="/register" onClick={() => setMenuOpen(false)}>Qeydiyyat</Link>
+                    <Link 
+                      to="/register" 
+                      className={isActive('/register') ? 'active-link' : ''} 
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <FiUserPlus className="nav-icon" />
+                      <span>Qeydiyyat</span>
+                    </Link>
                   </li>
                 </>
               )}
