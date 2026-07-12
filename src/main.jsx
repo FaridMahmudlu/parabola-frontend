@@ -6,12 +6,16 @@ import { BrowserRouter } from 'react-router-dom'
 import { ClerkProvider } from '@clerk/clerk-react'
 import { dark } from '@clerk/themes'
 import { azLocalization } from './assets/pages/clerk-localization.js'
+import { injectSpeedInsights } from '@vercel/speed-insights'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key")
 }
+
+// Initialize Vercel Speed Insights
+injectSpeedInsights()
 
 createRoot(document.getElementById('root')).render(
   <Provider store={store}>
