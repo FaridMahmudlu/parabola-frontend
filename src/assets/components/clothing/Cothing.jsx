@@ -69,8 +69,8 @@ function Clothing() {
   if (!isSignedIn) {
     return (
       <div className="login-prompt-container">
-        <h2>Geyimləri və Ağıllı Ölçü Analizini Görmək Üçün Giriş Edin</h2>
-        <p>Məhsullar kataloqu yalnız daxil olmuş istifadəçilər üçün aktivdir.</p>
+        <h2>Ağıllı Ölçü Analizi Üçün Giriş Edin</h2>
+        <p>Geyimlərin sizə uyğunluq dərəcəsini görmək üçün hesabınıza daxil olun.</p>
         <a href="/login" className="login-prompt-btn">Daxil Ol</a>
       </div>
     )

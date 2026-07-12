@@ -18,12 +18,11 @@ function Katalog() {
     <section id="catalog" className='CatalogContainer'>
       <div className="catalogcontainertext">
         <div className="TopText">
-          <p data-aos="fade-right">Ölçü tövsiyəsi platforması</p>
-          <h2 data-aos="fade-up">Sizə <span>uyğun</span></h2>
-          <h2 data-aos="zoom-in">geyimi tapın</h2>
-          <p data-aos="fade-left">
-            Profil məlumatlarınıza əsasən hər geyimin uyğunluq faizini görün. 
-            Mükəmməl olmağa yox, sadəcə olmağa fokuslanmışıq.
+          <p data-aos="fade-right" className="sub-tag">ÖLÇÜ UYĞUNLUĞU PLATFORMASI</p>
+          <h2 data-aos="fade-up">Sizə ən <span>uyğun</span> geyimi tapın</h2>
+          <p data-aos="fade-left" className="description-text">
+            Bədən tipinizə əsasən hər bir geyimin sizə uyğunluq faizini öyrənin. 
+            Dəqiq ölçü analizimiz sayəsində yanlış seçim etməkdən sığortalanın.
           </p>
         </div>
       </div>

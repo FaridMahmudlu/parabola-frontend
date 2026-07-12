@@ -25,8 +25,26 @@ export const azLocalization = {
     start: {
       title: "Hesab Parametrləri",
       subtitle: "Hesabınızı və təhlükəsizlik ayarlarını idarə edin"
+    },
+    navbar: {
+      title: "Hesab Parametrləri",
+      account: "Hesab",
+      security: "Təhlükəsizlik"
     }
   },
+  userButton: {
+    action__manageAccount: "Hesabı idarə et",
+    action__signOut: "Çıxış et"
+  },
+  formFieldLabel__emailAddress: "E-poçt ünvanı",
+  formFieldLabel__password: "Şifrə",
+  formFieldLabel__firstName: "Ad",
+  formFieldLabel__lastName: "Soyad",
+  formFieldInputPlaceholder__emailAddress: "E-poçt ünvanınızı daxil edin",
+  formFieldInputPlaceholder__password: "Şifrənizi daxil edin",
+  formFieldInputPlaceholder__firstName: "Adınız",
+  formFieldInputPlaceholder__lastName: "Soyadınız",
+  socialButtonsBlockButton: "{{provider}} ilə davam et",
   formButtonPrimary: "Davam et",
   dividerText: "və ya",
 };

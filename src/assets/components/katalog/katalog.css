@@ -1,181 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap');
+
 .CatalogContainer {
   display: flex;
   justify-content: center;   
   align-items: center;       
   background-color: black;
-  padding: 60px 0;
-  color: aliceblue;
-  
+  padding: 100px 40px;
+  color: #f0ece4;
+  width: 100%;
 }
 
 .catalogcontainertext {
-
-  padding: 20px;
-  width: 50%;
-  margin-left: -600px; 
-}
-.TopText{
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-  
-}
-.TopText p{
-  
-    font-size: 27px;
-      font-weight: 100;
-}
-.TopText h2{
-  
-    font-size: 80px;
-    font-weight: 100;
-}
-.TopText h2 span{
-    font-style: italic;
-    color:#c9a96e ;
-    font-weight: 100;
-}
-.TopText p:nth-child(1){
-    font-weight: 100;
-    color: #c9a96e;
-}
-.TopText p:nth-child(4){
-    font-weight: 100;
-    color:#7a7570;
-}
-@media(max-width:1300px){
-    .CatalogContainer {
-  display: flex;
-  justify-content: center;   
-  align-items: center;       
-  background-color: black;
-  padding: 50px 0;
   width: 100%;
-  color: aliceblue;
-  
+  max-width: 1400px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
 }
 
-.catalogcontainertext {
-
-  padding: 20px;
-  width: 50%;
-  margin-left: -400px; 
+.TopText {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 700px;
 }
-.TopText p{
-  
+
+.TopText .sub-tag {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 3px;
+  color: #c9a96e;
+  text-transform: uppercase;
+}
+
+.TopText h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 64px;
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: 1px;
+}
+
+.TopText h2 span {
+  font-style: italic;
+  color: #c9a96e;
+  font-weight: 300;
+}
+
+.TopText .description-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 300;
+  color: #aca9a6;
+  line-height: 1.5;
+}
+
+/* Responsive Rules */
+@media(max-width: 992px) {
+  .CatalogContainer {
+    padding: 80px 30px;
+  }
+  .TopText h2 {
+    font-size: 48px;
+  }
+  .TopText .description-text {
     font-size: 20px;
-      font-weight: 100;
-}
-.TopText h2{
-  
-    font-size: 30px;
-    font-weight: 100;
-}
-.TopText h2 span{
-    font-style: italic;
-    color:#c9a96e ;
-    font-weight: 100;
+  }
 }
 
-}
-
-@media(max-width:992px){
-    .CatalogContainer {
-  display: flex;
-  justify-content: center;   
-  align-items: center;       
-  background-color: black;
-  padding: 60px 0;
-  width: 100%;
-  color: aliceblue;
-  
-}
-    .TopText p{
-  
-    font-size: 20px;
-      font-weight: 100;
-}
-.TopText h2{
-  
-    font-size: 30px;
-    font-weight: 100;
-}
-    .catalogcontainertext {
-
-  padding: 20px;
-
-  width: 60%;
-  margin-left: -200px; 
-  
-}
-.TopText p:nth-child(4){
-    font-size: 10px;
-    font-weight: 100;
-    color:#7a7570;
-}
-@media(max-width:768px){
-    .CatalogContainer {
-  display: flex;
-  justify-content: center;   
-  align-items: center;       
-  background-color: black;
-  padding: 60px 0;
-  width: 100%;
-  color: aliceblue;
-  
-}
-    .catalogcontainertext {
-      
-
-  padding: 15px;
-  width: 60%;
-  margin-left: -140px; 
-}
-.TopText p{
-  
-    font-size: 20px;
-      font-weight: 100;
-}
-.TopText h2{
-  
-    font-size: 30px;
-    font-weight: 100;
-}
-
-
-}
-
-}
-@media(max-width:488px){
-      .CatalogContainer {
-  display: flex;
-  justify-content: center;   
-  align-items: center;       
-  background-color: black;
-  padding: 60px 0;
-  width: 100%;
-  color: aliceblue;
-  
-}
-    .catalogcontainertext {
-        
-
-  padding: 15px;
-  width: 60%;
-  margin-left: -100px; 
-}
-.TopText p{
-  
-    font-size: 17px;
-      font-weight: 100;
-}
-.TopText h2{
-  
-    font-size: 28px;
-    font-weight: 100;
-}
-
-
-
-
+@media(max-width: 768px) {
+  .catalogcontainertext {
+    justify-content: center;
+  }
+  .TopText {
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+  }
+  .TopText h2 {
+    font-size: 38px;
+  }
+  .TopText .description-text {
+    font-size: 18px;
+  }
 }

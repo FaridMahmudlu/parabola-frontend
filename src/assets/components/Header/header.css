@@ -1,226 +1,164 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
-*{
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500&display=swap');
+
+* {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
 }
-.Topcontainer{
+
+.Topcontainer {
     display: flex;
     width: 100%;
     justify-content: center;
     align-items: center;
+    background-color: black;
 }
-.headercontainer{
+
+.headercontainer {
     width: 100%;
+    max-width: 1400px;
     background-color: black;
     display: flex;
-    padding: 30px 50px;
-  
+    padding: 24px 40px;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #2a2a2a;
+    border-bottom: 1px solid #1a1a1a;
 }
-.parabolalogo h1{
+
+.parabolalogo h1 {
     color: #c9a96e;
-    letter-spacing: 17px;
-    font-weight: 100;
-    padding: 10px;
+    letter-spacing: 12px;
+    font-weight: 200;
+    font-size: 24px;
+    font-family: 'Cormorant Garamond', serif;
+    transition: color 0.3s;
 }
-.parabolanavigation nav ul{
+
+.parabolalogo h1:hover {
+    color: #f0ece4;
+}
+
+.parabolanavigation {
+    display: flex;
+    align-items: center;
+}
+
+.parabolanavigation nav ul {
     display: flex;
     font-family: 'Montserrat', sans-serif;
     list-style-type: none;
-    gap: 50px;
-    font-size: 18px;
-  
-  
+    gap: 40px;
+    align-items: center;
 }
-.parabolanavigation nav ul li{
-    color: #c9a96e;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 18px;
-    transition:transform  0.6s ease;
+
+.parabolanavigation nav ul li {
+    position: relative;
     cursor: pointer;
-  
 }
+
 .parabolanavigation nav ul a {
-     color: #c9a96e;
+    color: #aca9a6;
     font-family: 'Montserrat', sans-serif;
-    font-size: 18px;
+    font-size: 14px;
+    font-weight: 300;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
     text-decoration: none;
+    transition: color 0.3s, transform 0.3s;
+    display: inline-block;
 }
-.parabolanavigation nav ul li:hover{
-   transform: scale(1.2);
-   color: rgb(214, 213, 213);
-  
+
+.parabolanavigation nav ul a:hover {
+    color: #c9a96e;
 }
-.menuicon{
+
+.user-btn-li {
+    display: inline-flex;
+    align-items: center;
+}
+
+.menuicon {
     display: none;
-    color: white;
-}
-@media (max-width:1300px){
-.Topcontainer{
-    display: flex;
- 
-   
-    background-color: blue;
-   
-}
-.headercontainer{
-    width: 100%;
-    background-color: rgb(189, 1, 1);
-    display: flex;
-justify-content: space-between;
-    border-bottom: 1px solid #2a2a2a;
-}
-.parabolalogo h1{
     color: #c9a96e;
-    letter-spacing: 14px;
-    font-weight: 100;
-    padding: 7px;
-    font-size: 18px;
-}
-
-.parabolanavigation nav ul{
-    display: flex;
-    font-family: 'Montserrat', sans-serif;
-    list-style-type: none;
-    font-size: 14px;
-  
-  
-}
-.parabolanavigation nav ul a {
-     color: #c9a96e;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 14px;
-    text-decoration: none;
-}
-
-
-}
-@media (max-width:992px){
-    .headercontainer{
-    width: 100%;
-    background-color: black;
-    display: flex;
-    padding: 20px 30px;
-    
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #2a2a2a;
-}
-    .parabolalogo h1{
-    color: #c9a96e;
-    letter-spacing: 16px;
-    font-weight: 100;
-    padding: 8px;
-}
-.parabolanavigation nav ul{
-    display: flex;
-    font-family: 'Montserrat', sans-serif;
-    list-style-type: none;
-    gap: 30px;
-    font-size: 16px;
-  
-  
-}
-.parabolanavigation nav ul li{
-    color: #c9a96e;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 18px;
-    transition:transform  0.6s ease;
+    font-size: 28px;
     cursor: pointer;
-  
+    transition: color 0.3s, transform 0.2s;
 }
-.parabolanavigation nav ul a {
-     color: #c9a96e;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 16px;
-    text-decoration: none;
+
+.menuicon:hover {
+    color: #f0ece4;
+    transform: scale(1.05);
 }
-}
-@media (max-width:768px){
-    .Topcontainer{
-        position: relative;
+
+/* Responsive Layouts */
+@media (max-width: 1300px) {
+    .headercontainer {
+        padding: 20px 30px;
     }
-    .parabolanavigation nav{
-        
+    .parabolalogo h1 {
+        font-size: 22px;
+        letter-spacing: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .Topcontainer {
+        position: relative;
+        z-index: 1000;
+    }
+    
+    .menuicon {
+        display: block;
+        z-index: 1001;
+    }
+
+    .parabolanavigation nav {
         display: none;
     }
-    .menuicon{
+
+    .parabolanavigation nav.active {
+        display: block;
         position: absolute;
-        top: 29px;
-        right: 38px;
-        z-index: 999;
-        color: white;
-        display: block;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: rgba(10, 10, 10, 0.98);
+        border-bottom: 1px solid #1a1a1a;
+        backdrop-filter: blur(8px);
+        padding: 30px 40px;
+        animation: slideDown 0.3s ease-out forwards;
     }
-    .parabolanavigation nav.active{
-        display: block;
+
+    .parabolanavigation nav.active ul {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 24px;
+        width: 100%;
     }
 
-  #menyu ul{
-    display: flex;
-    flex-direction: column;
-   
-
-  }
-  #menyu  ul a{
- color: #000;
-
-  }
-  #menyu  ul a:hover{
-   color: #2a2a2a;
-  }
-  #menyu{
-    position: absolute;
-    background-color: #c9a96e;
-    padding: 30px 20px ;
-   
-    width: 200px;
-    right: 1px;
-    top: 11px;
-  }
-
-}
-@media(max-width:576px){
-    #menyu{
-    position: absolute;
-    background-color: #c9a96e;
-    padding: 30px 20px ;
-   
-    width: 150px;
-    right: 1px;
-    top: 22px;
-  }
-   .menuicon{
-        position: absolute;
-        top: 29px;
-        right: 7px;
-        z-index: 999;
-        color: white;
-        display: block;
+    .parabolanavigation nav.active ul li {
+        width: 100%;
     }
-    .parabolalogo h1{
-    color: #c9a96e;
-    letter-spacing: 13px;
-    font-weight: 100;
-    padding: 8px;
-    font-size: 14px;
+
+    .parabolanavigation nav.active ul a {
+        font-size: 16px;
+        width: 100%;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .parabolanavigation nav.active ul li:last-child a {
+        border-bottom: none;
+    }
 }
 
-}
-
-.parabolanavigation nav ul button {
-    background: none;
-    border: none;
-    color: #c9a96e;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 18px;
-    cursor: pointer;
-    transition: transform 0.6s ease;
-    padding: 0;
-}
-.parabolanavigation nav ul button:hover {
-    transform: scale(1.2);
-    color: rgb(214, 213, 213);
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

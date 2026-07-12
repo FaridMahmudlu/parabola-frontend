@@ -1,14 +1,15 @@
-import React from 'react'
-import { IoMdMenu } from "react-icons/io";
+import React, { useState } from 'react'
+import { CgMenuRight, CgClose } from "react-icons/cg";
 import "./header.css"
 import { Link } from 'react-router-dom'
 import { useUser, UserButton } from '@clerk/clerk-react'
 
 function Header() {
   const { isSignedIn, user } = useUser()
+  const [menuOpen, setMenuOpen] = useState(false)
 
-  function menutoggle() {
-    document.getElementById("menyu").classList.toggle("active")
+  function toggleMenu() {
+    setMenuOpen(!menuOpen)
   }
 
   return (
@@ -19,25 +20,39 @@ function Header() {
             <h1>PARABOLA</h1>
           </Link>
         </div>
-        <div className="parabolanavigation" style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
-          <IoMdMenu onClick={menutoggle} className='menuicon' />
-          <nav id='menyu'>
-            <ul style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
-              <Link to="/">Katalog</Link>
+        <div className="parabolanavigation">
+          {menuOpen ? (
+            <CgClose onClick={toggleMenu} className='menuicon' />
+          ) : (
+            <CgMenuRight onClick={toggleMenu} className='menuicon' />
+          )}
+          <nav id='menyu' className={menuOpen ? 'active' : ''}>
+            <ul>
+              <li>
+                <Link to="/" onClick={() => setMenuOpen(false)}>Katalog</Link>
+              </li>
               {isSignedIn ? (
                 <>
-                  <Link to="/profile">Profil</Link>
+                  <li>
+                    <Link to="/profile" onClick={() => setMenuOpen(false)}>Profil</Link>
+                  </li>
                   {user?.publicMetadata?.role === 'ROLE_SELLER' && (
-                    <Link to="/seller">Satıcı Paneli</Link>
+                    <li>
+                      <Link to="/seller" onClick={() => setMenuOpen(false)}>Satıcı Paneli</Link>
+                    </li>
                   )}
-                  <div style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <li className="user-btn-li">
                     <UserButton afterSignOutUrl="/login" />
-                  </div>
+                  </li>
                 </>
               ) : (
                 <>
-                  <Link to="/login">Daxil Ol</Link>
-                  <Link to="/register">Qeydiyyat</Link>
+                  <li>
+                    <Link to="/login" onClick={() => setMenuOpen(false)}>Daxil Ol</Link>
+                  </li>
+                  <li>
+                    <Link to="/register" onClick={() => setMenuOpen(false)}>Qeydiyyat</Link>
+                  </li>
                 </>
               )}
             </ul>
