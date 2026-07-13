@@ -277,16 +277,16 @@ function Clothing() {
                     </div>
                   </div>
 
-                  {/* Physical sizes mapping list */}
+                  {/* Geyim Kəsimi və Manken Uyğunluğu */}
                   {selectedProduct.sizes && selectedProduct.sizes.length > 0 && (
                     <div className="section" style={{ marginTop: '20px' }}>
-                      <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>ÖLÇÜ VƏ HƏCM DETALLARI</div>
+                      <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>GEYİM KƏSİMİ VƏ ÖLÇÜ DETALLARI</div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
                         {selectedProduct.sizes.map(s => (
                           <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', borderBottom: '1px solid #1a1a1a', paddingBottom: '6px' }}>
-                            <span style={{ color: '#c9a96e', fontWeight: '500' }}>{s.sizeName} {s.clothingFit ? `(${s.clothingFit})` : ''}</span>
+                            <span style={{ color: '#c9a96e', fontWeight: '500' }}>{s.sizeName} Ölçüsü</span>
                             <span style={{ color: '#888' }}>
-                              Sinə: {s.chest}sm • Çiyin: {s.shoulder}sm • Qol: {s.armLength}sm • Uzunluq: {s.totalLength}sm
+                              Kəsim (Fit): {s.clothingFit || 'Standart'} • Manken Tipi: {s.modelBodyType || 'Normal'}
                             </span>
                           </div>
                         ))}
