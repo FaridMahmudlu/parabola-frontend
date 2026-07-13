@@ -110,6 +110,15 @@
   color: #c9a96e;
 }
 
+.seller-text {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #5a5754;
+  margin-top: 6px;
+  text-transform: uppercase;
+}
+
 .cothingbtn {
   display: flex;
   flex-wrap: wrap;

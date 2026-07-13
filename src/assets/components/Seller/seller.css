@@ -270,6 +270,142 @@ body {
   cursor: not-allowed;
 }
 
+/* Edit banner */
+.edit-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(201, 169, 110, 0.1);
+  border: 1px solid #c9a96e;
+  border-radius: 4px;
+  padding: 14px 20px;
+  margin-bottom: 24px;
+  color: #c9a96e;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.cancel-edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: #e07b7b;
+  border: 1px solid #4d1f1f;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+.cancel-edit-btn:hover {
+  background: #2a0e0e;
+}
+
+/* Product actions */
+.product-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.edit-btn,
+.delete-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid #1a1a1a;
+  padding: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-btn {
+  color: #c9a96e;
+}
+
+.edit-btn:hover {
+  background: rgba(201, 169, 110, 0.1);
+  border-color: #c9a96e;
+}
+
+.delete-btn {
+  color: #7a7570;
+}
+
+.delete-btn:hover {
+  background: #2a0e0e;
+  color: #e07b7b;
+  border-color: #4d1f1f;
+}
+
+/* Delete confirmation */
+.delete-confirm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.confirm-yes-btn,
+.confirm-no-btn {
+  background: transparent;
+  border: 1px solid #1a1a1a;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+.confirm-yes-btn {
+  color: #e07b7b;
+  border-color: #4d1f1f;
+}
+
+.confirm-yes-btn:hover {
+  background: #2a0e0e;
+}
+
+.confirm-no-btn {
+  color: #7a7570;
+}
+
+.confirm-no-btn:hover {
+  background: #1a1a1a;
+  color: #e6e6e6;
+}
+
+/* Form alerts */
+.form-alert {
+  padding: 14px 20px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.form-alert--error {
+  background: rgba(224, 123, 123, 0.1);
+  border: 1px solid #4d1f1f;
+  color: #e07b7b;
+}
+
+.form-alert--ok {
+  background: rgba(110, 201, 131, 0.1);
+  border: 1px solid #1f4d2a;
+  color: #6ec983;
+}
+
 @media (max-width: 768px) {
   .form-grid {
     grid-template-columns: 1fr;
@@ -282,7 +418,13 @@ body {
     gap: 16px;
   }
 
-  .delete-btn {
-    align-self: flex-start;
+  .product-actions {
+    align-self: flex-end;
+  }
+
+  .edit-banner {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
   }
 }

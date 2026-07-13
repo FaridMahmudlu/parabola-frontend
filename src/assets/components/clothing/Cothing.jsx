@@ -95,6 +95,9 @@ function Clothing() {
                     <h3>{item.name}</h3>
                     <p className="brand-text">{item.brand}</p>
                     <p className="price-text">{item.price ? `${item.price} AZN` : "Qiymət təyin edilməyib"}</p>
+                    {item.sellerName && (
+                      <p className="seller-text">Satıcı: {item.sellerName}</p>
+                    )}
                   </div>
 
                   <div className="cothingbtn">
