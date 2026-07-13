@@ -365,8 +365,8 @@ const SellerPanel = () => {
                 {previews.length > 0 && (
                   <div className="image-previews-container" style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
                     {previews.map((src, index) => (
-                      <div key={index} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '4px', overflow: 'hidden', border: '1px solid #1a1a1a' }}>
-                        <img src={src} alt="Önbaxış" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <div key={index} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '4px', overflow: 'hidden', border: '1px solid #c9a96e', background: '#f0ece4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <img src={src} alt="Önbaxış" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                       </div>
                     ))}
                   </div>
