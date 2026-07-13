@@ -1,12 +1,12 @@
 import React from 'react'
 
 import{Routes,Route} from "react-router-dom"
-import Home from './assets/Home/Home'
-import Register from './assets/pages/register/Register'
-import Login from './assets/pages/login/Login'
-import Forgot from './assets/pages/forgotpassword/Forgot'
-import Profile from './assets/pages/profile/Profile'
-import SellerPanel from './assets/components/Seller/SellerPanel'
+import Home from './pages/Home/Home'
+import Register from './pages/register/Register'
+import Login from './pages/login/Login'
+import Forgot from './pages/forgotpassword/Forgot'
+import Profile from './pages/profile/Profile'
+import SellerPanel from './components/Seller/SellerPanel'
 
 
 
