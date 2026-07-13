@@ -19,7 +19,8 @@ const SellerPanel = () => {
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
   const [contactLink, setContactLink] = useState("");
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
+  const [previews, setPreviews] = useState([]);
   const [gender, setGender] = useState("");
   const [sizeName, setSizeName] = useState("");
   const [clothingFit, setClothingFit] = useState("");
@@ -69,7 +70,8 @@ const SellerPanel = () => {
     setCategory("");
     setPrice("");
     setContactLink("");
-    setFile(null);
+    setFiles([]);
+    setPreviews([]);
     setGender("");
     setSizeName("");
     setClothingFit("");
@@ -97,9 +99,38 @@ const SellerPanel = () => {
       setSizeName(product.sizes[0].sizeName || "");
       setClothingFit(product.sizes[0].clothingFit || "");
     }
-    setFile(null);
+    setFiles([]);
+    setPreviews(product.imageUrls || (product.imageUrl ? [product.imageUrl] : []));
     // Scroll to form
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    const validFiles = [];
+    const newPreviews = [];
+    
+    for (let f of selectedFiles) {
+      if (f.size > 5 * 1024 * 1024) {
+        notification.error({
+          message: "Xəta",
+          description: `${f.name} faylı 5MB-dan çoxdur!`
+        });
+        continue;
+      }
+      if (!f.type.startsWith("image/")) {
+        notification.error({
+          message: "Xəta",
+          description: `${f.name} şəkil formatında deyil!`
+        });
+        continue;
+      }
+      validFiles.push(f);
+      newPreviews.push(URL.createObjectURL(f));
+    }
+    
+    setFiles(validFiles);
+    setPreviews(newPreviews);
   };
 
   const handleDelete = async (id) => {
@@ -132,7 +163,7 @@ const SellerPanel = () => {
       return;
     }
 
-    if (!editingId && !file) {
+    if (!editingId && files.length === 0) {
       setStatus({ loading: false, error: "Zəhmət olmasa məhsulun real şəklini yükləyin.", ok: false });
       return;
     }
@@ -152,8 +183,15 @@ const SellerPanel = () => {
 
     const formData = new FormData();
     formData.append("product", JSON.stringify(productPayload));
-    if (file) {
-      formData.append("image", file);
+    
+    if (files && files.length > 0) {
+      files.forEach(f => {
+        formData.append("images", f);
+      });
+    } else if (editingId) {
+      // Send dummy empty file to satisfy @RequestPart
+      const blob = new Blob([""], { type: "application/octet-stream" });
+      formData.append("images", blob, "empty");
     }
 
     try {
@@ -161,12 +199,6 @@ const SellerPanel = () => {
 
       if (editingId) {
         // UPDATE
-        if (!file) {
-          // Keep existing image — need to send a dummy file or make image optional
-          // Since backend accepts optional image on PUT, send without image
-          const blob = new Blob([""], { type: "application/octet-stream" });
-          formData.set("image", blob, "empty");
-        }
         await axios.put(`${BASE_URL}/api/v1/products/${editingId}`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -323,13 +355,22 @@ const SellerPanel = () => {
 
               <div className="form-field form-field--full">
                 <label htmlFor="image">
-                  Məhsulun Real Şəkli {editingId && <span style={{color: '#7a7570', fontSize: '11px'}}>(dəyişmək istəmirsinizsə boş buraxın)</span>}
+                  Məhsulun Real Şəkilləri {editingId && <span style={{color: '#7a7570', fontSize: '11px'}}>(dəyişmək istəmirsinizsə boş buraxın)</span>}
                 </label>
-                <input id="image" type="file" accept="image/*"
-                  onChange={(e) => setFile(e.target.files[0])}
+                <input id="image" type="file" accept="image/*" multiple
+                  onChange={handleFileChange}
                   required={!editingId}
                   style={{ padding: "14px" }}
                 />
+                {previews.length > 0 && (
+                  <div className="image-previews-container" style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
+                    {previews.map((src, index) => (
+                      <div key={index} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '4px', overflow: 'hidden', border: '1px solid #1a1a1a' }}>
+                        <img src={src} alt="Önbaxış" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="form-field form-field--full">
@@ -363,23 +404,32 @@ const SellerPanel = () => {
               <ul className="products-list">
                 {products.map((p) => (
                   <li key={p.id} className={`product-item ${deletingId === p.id ? 'is-deleting' : ''}`}>
-                    <div className="product-info">
-                      <h3 className="product-name">{p.name}</h3>
-                      <div className="product-meta">
-                        <span>{p.brand}</span>
-                        <span>•</span>
-                        <span>{p.category}</span>
-                        <span>•</span>
-                        <span>{p.price ? `${p.price} AZN` : ""}</span>
-                        {p.gender && <><span>•</span><span>{p.gender}</span></>}
-                        {p.color && <><span>•</span><span>{p.color}</span></>}
+                    <div style={{ display: 'flex', gap: '15px', width: '100%', alignItems: 'center' }}>
+                      <div style={{ width: '60px', height: '60px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, border: '1px solid #1a1a1a' }}>
+                        <img 
+                          src={p.imageUrls && p.imageUrls.length > 0 ? p.imageUrls[0] : p.imageUrl || "https://gunnandmoore.playwiththebest.com/media/catalog/product/cache/ec4e4c8893a2305e77afd20d2909bacb/7/0/7047_teknik_slipover_white_1.png"} 
+                          alt={p.name} 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                        />
                       </div>
-                      <div className="product-sizes-badges" style={{ marginTop: "10px" }}>
-                        {p.sizes && p.sizes.map(s => (
-                          <span key={s.id} style={{ background: "#2a2a2a", color: "#c9a96e", padding: "3px 8px", borderRadius: "4px", fontSize: "12px", marginRight: "5px" }}>
-                            {s.sizeName} {s.clothingFit ? `(Fit: ${s.clothingFit})` : ""}
-                          </span>
-                        ))}
+                      <div className="product-info">
+                        <h3 className="product-name">{p.name}</h3>
+                        <div className="product-meta">
+                          <span>{p.brand}</span>
+                          <span>•</span>
+                          <span>{p.category}</span>
+                          <span>•</span>
+                          <span>{p.price ? `${p.price} AZN` : ""}</span>
+                          {p.gender && <><span>•</span><span>{p.gender}</span></>}
+                          {p.color && <><span>•</span><span>{p.color}</span></>}
+                        </div>
+                        <div className="product-sizes-badges" style={{ marginTop: "10px" }}>
+                          {p.sizes && p.sizes.map(s => (
+                            <span key={s.id} style={{ background: "#2a2a2a", color: "#c9a96e", padding: "3px 8px", borderRadius: "4px", fontSize: "12px", marginRight: "5px" }}>
+                              {s.sizeName} {s.clothingFit ? `(Fit: ${s.clothingFit})` : ""}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                     <div className="product-actions">

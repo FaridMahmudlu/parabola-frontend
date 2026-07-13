@@ -15,9 +15,12 @@ const Profile = () => {
   const [gender, setGender] = useState("")
   const [clothingSize, setClothingSize] = useState("")
   const [bodyType, setBodyType] = useState("")
+  const [shopName, setShopName] = useState("")
   
   const [loading, setLoading] = useState(false)
   const [savedData, setSavedData] = useState(null)
+
+  const isSeller = user?.publicMetadata?.role === "ROLE_SELLER"
 
   useEffect(() => {
     if (isSignedIn) {
@@ -31,6 +34,7 @@ const Profile = () => {
             setGender(data.gender || "")
             setClothingSize(data.clothingSize || "")
             setBodyType(data.bodyType || "")
+            setShopName(data.shopName || "")
             
             if (data.gender && data.clothingSize && data.bodyType) {
               setSavedData(data)
@@ -59,7 +63,8 @@ const Profile = () => {
     const payload = {
       gender,
       clothingSize,
-      bodyType
+      bodyType,
+      shopName: isSeller ? shopName : null
     }
 
     try {
@@ -106,15 +111,46 @@ const Profile = () => {
                 <span style={{ color: '#7a7570' }}>GEYİM ÖLÇÜSÜ</span>
                 <span style={{ color: 'white' }}>{savedData.clothingSize}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: isSeller && savedData.shopName ? '1px solid #1a1a1a' : 'none', paddingBottom: '10px' }}>
                 <span style={{ color: '#7a7570' }}>BƏDƏN TİPİ</span>
                 <span style={{ color: 'white' }}>{savedData.bodyType}</span>
               </div>
+              {isSeller && savedData.shopName && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '10px' }}>
+                  <span style={{ color: '#7a7570' }}>MAĞAZA ADI</span>
+                  <span style={{ color: 'white' }}>{savedData.shopName}</span>
+                </div>
+              )}
             </div>
           </div>
         )}
 
         <form className='profileform' onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+          {isSeller && (
+            <div className="profilelabel">
+              <label htmlFor="shopName">MAĞAZA ADI</label>
+              <input
+                id="shopName"
+                type="text"
+                placeholder="Mağazanızın adını daxil edin"
+                value={shopName}
+                onChange={(e) => setShopName(e.target.value)}
+                style={{
+                  width: '100%',
+                  background: '#0e0e0e',
+                  border: '1px solid #1f1f1f',
+                  color: '#f0ece4',
+                  fontFamily: 'Montserrat, sans-serif',
+                  fontSize: '14px',
+                  padding: '16px 20px',
+                  borderRadius: '4px',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+          )}
+
           <div className="profilelabel">
             <label>CİNS</label>
             <CustomSelect
