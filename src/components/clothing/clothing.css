@@ -608,6 +608,27 @@
   .price-text {
     font-size: 14px !important;
   }
+  .brand-text {
+    font-size: 9px !important;
+    letter-spacing: 1px !important;
+    margin-bottom: 4px !important;
+  }
+  .seller-text {
+    font-size: 9px !important;
+    margin-top: 4px !important;
+  }
+  .cothingbtn {
+    gap: 4px !important;
+  }
+  .cothingbtn button {
+    padding: 2px 6px !important;
+    font-size: 9px !important;
+  }
+  .cothingbutton button {
+    padding: 8px 12px !important;
+    font-size: 11px !important;
+    letter-spacing: 1px !important;
+  }
 }
 
 /* Smooth Slider Image Fading */
