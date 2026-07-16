@@ -4,7 +4,7 @@ import "./seller.css";
 import Header from "../Header/Header";
 import CustomSelect from "../CustomSelect/CustomSelect";
 import { Navigate } from "react-router-dom";
-import { BASE_URL } from "../../pages/config";
+import { BASE_URL, translateError } from "../../pages/config";
 import { notification } from "antd";
 import { useUser, useAuth } from "@clerk/clerk-react";
 import { FiEdit2, FiTrash2, FiX } from "react-icons/fi";
@@ -173,7 +173,7 @@ const SellerPanel = () => {
       const errMsg = err.response?.data?.message || err.message;
       notification.error({
         message: "Silinmə zamanı xəta",
-        description: typeof errMsg === "string" ? errMsg : "Məhsul silinə bilmədi."
+        description: translateError(errMsg)
       });
     }
   };
@@ -267,7 +267,7 @@ const SellerPanel = () => {
       const errMsg = err.response?.data?.message || err.response?.data || err.message;
       setStatus({
         loading: false,
-        error: typeof errMsg === "string" ? errMsg : "Əməliyyat uğursuz oldu.",
+        error: translateError(errMsg),
         ok: false,
       });
     }

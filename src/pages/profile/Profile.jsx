@@ -5,7 +5,7 @@ import Header from '../../components/Header/Header'
 import CustomSelect from '../../components/CustomSelect/CustomSelect'
 import "./profile.css"
 import axios from 'axios'
-import { BASE_URL } from '../config'
+import { BASE_URL, translateError } from '../config'
 import { useUser, useAuth } from '@clerk/clerk-react'
 
 const Profile = () => {
@@ -91,7 +91,7 @@ const Profile = () => {
       const errMsg = error.response?.data?.message || error.response?.data || error.message;
       notification.error({
         message: "Xəta baş verdi",
-        description: typeof errMsg === 'string' ? errMsg : "Ölçülər yenilənə bilmədi. Zəhmət olmasa seçimlərinizi yoxlayın!"
+        description: translateError(errMsg)
       })
     } finally {
       setLoading(false)
