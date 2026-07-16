@@ -1,4 +1,5 @@
 import React from 'react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 
 import{Routes,Route} from "react-router-dom"
 import Home from './pages/Home/Home'
@@ -22,6 +23,7 @@ const App = () => {
         <Route path='/profile' element={<Profile/>}/>
         <Route path='/seller' element={<SellerPanel/>}/>
       </Routes>
+      <SpeedInsights />
      
 
     
