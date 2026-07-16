@@ -318,8 +318,8 @@ function Clothing() {
                 </button>
               </div>
 
-              <div className="modal-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '30px', padding: '30px' }}>
-                <div className="modal-left" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', gap: '20px', paddingTop: '60px' }}>
+              <div className="modal-body">
+                <div className="modal-left">
                   {/* Image Viewer inside modal with Zoom and Slider */}
                   <div 
                     className="modal-image-viewer" 

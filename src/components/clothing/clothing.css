@@ -225,6 +225,8 @@
 .modal-body {
   display: grid;
   grid-template-columns: 1fr 1.2fr;
+  gap: 30px;
+  padding: 30px;
 }
 
 .modal-left {
@@ -234,6 +236,9 @@
   align-items: center;
   border-right: 1px solid #161616;
   background: #080808;
+  justify-content: flex-start;
+  gap: 20px;
+  padding-top: 60px;
 }
 
 .score {
@@ -628,6 +633,33 @@
     padding: 8px 12px !important;
     font-size: 11px !important;
     letter-spacing: 1px !important;
+  }
+
+  /* Modal Overrides for mobile viewports */
+  .modal-overlay {
+    padding: 10px !important;
+  }
+  .modal-container {
+    max-height: 95vh !important;
+    overflow-y: auto !important;
+    width: 95% !important;
+  }
+  .modal-body {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+    padding: 15px !important;
+  }
+  .modal-left {
+    padding: 20px !important;
+    border-right: none !important;
+    border-bottom: 1px solid #161616 !important;
+    padding-top: 20px !important;
+  }
+  .modal-right {
+    padding: 20px !important;
+  }
+  .modal-image-viewer {
+    height: 240px !important;
   }
 }
 
