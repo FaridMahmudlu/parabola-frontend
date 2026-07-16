@@ -7,7 +7,8 @@ import { Navigate } from "react-router-dom";
 import { BASE_URL, translateError } from "../../pages/config";
 import { notification } from "antd";
 import { useUser, useAuth } from "@clerk/clerk-react";
-import { FiEdit2, FiTrash2, FiX } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiX, FiUploadCloud } from "react-icons/fi";
+import { FaWhatsapp, FaInstagram } from "react-icons/fa";
 
 const SellerPanel = () => {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -24,7 +25,7 @@ const SellerPanel = () => {
   const [previews, setPreviews] = useState([]);
   const [gender, setGender] = useState("");
   const [selectedSizes, setSelectedSizes] = useState({}); // size -> fit
-  const [color, setColor] = useState("");
+  const [selectedColors, setSelectedColors] = useState({}); // colorName -> boolean
   const [style, setStyle] = useState("");
   const [description, setDescription] = useState("");
 
@@ -92,7 +93,7 @@ const SellerPanel = () => {
     setPreviews([]);
     setGender("");
     setSelectedSizes({});
-    setColor("");
+    setSelectedColors({});
     setStyle("");
     setDescription("");
     setEditingId(null);
@@ -109,7 +110,16 @@ const SellerPanel = () => {
     setContactLink(product.contactLink || "");
     setContactPhone(product.contactPhone || "");
     setGender(product.gender || "");
-    setColor(product.color || "");
+    
+    // Extract colors
+    const colorsObj = {};
+    if (product.color) {
+      product.color.split(",").forEach(c => {
+        colorsObj[c.trim()] = true;
+      });
+    }
+    setSelectedColors(colorsObj);
+
     setStyle(product.style || "");
     setDescription(product.description || "");
     
@@ -188,8 +198,14 @@ const SellerPanel = () => {
     e.preventDefault();
     setStatus({ loading: true, error: null, ok: false });
 
-    if (!gender || !color || !style || !name || !brand || !category || !price) {
+    if (!gender || !style || !name || !brand || !category || !price) {
       setStatus({ loading: false, error: "Zəhmət olmasa bütün vacib geyim məlumatlarını daxil edin.", ok: false });
+      return;
+    }
+
+    const colorString = Object.keys(selectedColors).filter(c => selectedColors[c]).join(", ");
+    if (!colorString) {
+      setStatus({ loading: false, error: "Zəhmət olmasa ən azı bir geyim rəngi seçin.", ok: false });
       return;
     }
 
@@ -219,7 +235,10 @@ const SellerPanel = () => {
       price: parseFloat(price),
       contactLink: contactLink.trim() || null,
       contactPhone: contactPhone.trim() || null,
-      gender, color, style, description,
+      gender, 
+      color: colorString, 
+      style, 
+      description,
       sizes: sizesList
     };
 
@@ -339,7 +358,7 @@ const SellerPanel = () => {
                     const isChecked = !!selectedSizes[size];
                     return (
                       <div key={size} style={{ display: 'flex', alignItems: 'center', gap: '20px', justifyContent: 'space-between', borderBottom: '1px solid #141414', paddingBottom: '8px' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontFamily: 'Montserrat, sans-serif', fontSize: '13px', color: isChecked ? '#f0ece4' : '#7a7570', userSelect: 'none', margin: 0 }}>
+                        <label className="custom-checkbox-container">
                           <input 
                             type="checkbox" 
                             checked={isChecked} 
@@ -352,9 +371,9 @@ const SellerPanel = () => {
                               }
                               setSelectedSizes(next);
                             }}
-                            style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#c9a96e' }}
                           />
-                          {size}
+                          <span className="checkmark"></span>
+                          <span className="label-text">{size}</span>
                         </label>
                         {isChecked && (
                           <div style={{ width: '180px' }}>
@@ -382,17 +401,32 @@ const SellerPanel = () => {
                 </div>
               </div>
 
-              <div className="form-field">
-                <label>Rəng</label>
-                <CustomSelect value={color} onChange={(e) => setColor(e.target.value)}
-                  options={[
-                    { value: "Qara", label: "Qara" }, { value: "Ağ", label: "Ağ" },
-                    { value: "Mavi", label: "Mavi" }, { value: "Qırmızı", label: "Qırmızı" },
-                    { value: "Yaşıl", label: "Yaşıl" }, { value: "Sarı", label: "Sarı" },
-                    { value: "Boz", label: "Boz" }, { value: "Qəhvəyi", label: "Qəhvəyi" },
-                    { value: "Bej", label: "Bej" }, { value: "Krem", label: "Krem" }
-                  ]} placeholder="Seçin"
-                />
+              <div className="form-field form-field--full" style={{ border: '1px solid #1a1a1a', padding: '20px', borderRadius: '4px', background: '#090909', marginTop: '10px' }}>
+                <label style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#c9a96e', marginBottom: '15px', display: 'block', textTransform: 'uppercase' }}>Geyim Rəngləri (Birdən çox seçilə bilər)</label>
+                <div className="color-checkbox-grid">
+                  {["Qara", "Ağ", "Mavi", "Qırmızı", "Yaşıl", "Sarı", "Boz", "Qəhvəyi", "Bej", "Krem"].map((c) => {
+                    const isColorChecked = !!selectedColors[c];
+                    return (
+                      <label key={c} className="custom-checkbox-container">
+                        <input 
+                          type="checkbox" 
+                          checked={isColorChecked} 
+                          onChange={(e) => {
+                            const next = { ...selectedColors };
+                            if (e.target.checked) {
+                              next[c] = true;
+                            } else {
+                              delete next[c];
+                            }
+                            setSelectedColors(next);
+                          }}
+                        />
+                        <span className="checkmark"></span>
+                        <span className="label-text">{c}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="form-field">
@@ -415,8 +449,18 @@ const SellerPanel = () => {
 
               <div className="form-field">
                 <label htmlFor="category">Kateqoriya</label>
-                <input id="category" type="text" placeholder="məs: Shirt, Pants, Jacket"
-                  value={category} onChange={(e) => setCategory(e.target.value)} required
+                <CustomSelect value={category} onChange={(e) => setCategory(e.target.value)}
+                  options={[
+                    { value: "Köynək", label: "Köynək" },
+                    { value: "Şalvar", label: "Şalvar" },
+                    { value: "Gödəkcə / Pencək", label: "Gödəkcə / Pencək" },
+                    { value: "T-Shirt", label: "T-Shirt" },
+                    { value: "Dəst", label: "Dəst" },
+                    { value: "Hudi / Sviter", label: "Hudi / Sviter" },
+                    { value: "Don / Yubka", label: "Don / Yubka" },
+                    { value: "Ayaqqabı", label: "Ayaqqabı" },
+                    { value: "Digər", label: "Digər" }
+                  ]} placeholder="Kateqoriya seçin"
                 />
               </div>
 
@@ -427,34 +471,67 @@ const SellerPanel = () => {
                 />
               </div>
 
-              <div className="form-field">
-                <label htmlFor="contactPhone">Əlaqə Telefonu / WhatsApp</label>
-                <input id="contactPhone" type="text" placeholder="məs: +994 50 123 45 67"
-                  value={contactPhone} onChange={(e) => setContactPhone(e.target.value)}
-                />
-              </div>
-
-              <div className="form-field">
-                <label htmlFor="contactLink">Instagram / TikTok Linki</label>
-                <input id="contactLink" type="url" placeholder="məs: https://instagram.com/direct/t/..."
-                  value={contactLink} onChange={(e) => setContactLink(e.target.value)}
-                />
+              <div className="form-field form-field--full">
+                <label>Sifariş Və Əlaqə Vasitələri (Ən azı biri mütləqdir)</label>
+                <div className="contact-section-card">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <span style={{ fontSize: '11px', color: '#7a7570', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '1px' }}>WhatsApp / Zəng Nömrəsi</span>
+                    <div className="contact-input-wrapper">
+                      <FaWhatsapp className="contact-input-icon" style={{ color: '#25D366' }} />
+                      <input id="contactPhone" type="text" placeholder="məs: +994 50 123 45 67"
+                        value={contactPhone} onChange={(e) => setContactPhone(e.target.value)}
+                        style={{ background: '#090909', border: '1px solid #1a1a1a' }}
+                      />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <span style={{ fontSize: '11px', color: '#7a7570', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '1px' }}>Instagram / TikTok Linki</span>
+                    <div className="contact-input-wrapper">
+                      <FaInstagram className="contact-input-icon" style={{ color: '#cc2366' }} />
+                      <input id="contactLink" type="url" placeholder="məs: https://instagram.com/mağaza_adı"
+                        value={contactLink} onChange={(e) => setContactLink(e.target.value)}
+                        style={{ background: '#090909', border: '1px solid #1a1a1a' }}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="form-field form-field--full">
-                <label htmlFor="image">
-                  Məhsulun Real Şəkilləri {editingId && <span style={{color: '#7a7570', fontSize: '11px'}}>(dəyişmək istəmirsinizsə boş buraxın)</span>}
-                </label>
-                <input id="image" type="file" accept="image/*" multiple
-                  onChange={handleFileChange}
-                  required={!editingId}
-                  style={{ padding: "14px" }}
-                />
+                <label>Məhsulun Real Şəkilləri {editingId && <span style={{color: '#7a7570', fontSize: '11px'}}>(dəyişmək istəmirsinizsə boş buraxın)</span>}</label>
+                <div 
+                  className="modern-uploader"
+                  onClick={() => document.getElementById("image").click()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.add("dragging");
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove("dragging");
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove("dragging");
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                      handleFileChange({ target: { files: e.dataTransfer.files } });
+                    }
+                  }}
+                >
+                  <FiUploadCloud className="uploader-icon" />
+                  <span className="uploader-text">Şəkilləri seçmək üçün klikləyin və ya buraya sürükləyin</span>
+                  <span className="uploader-subtext">Maksimum 5 şəkil, hər biri ən çox 10 MB (PNG, JPG)</span>
+                  <input id="image" type="file" accept="image/*" multiple
+                    onChange={handleFileChange}
+                    required={!editingId}
+                    style={{ display: "none" }}
+                  />
+                </div>
                 {previews.length > 0 && (
-                  <div className="image-previews-container" style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
+                  <div className="image-previews-container" style={{ display: 'flex', gap: '10px', marginTop: '15px', flexWrap: 'wrap' }}>
                     {previews.map((src, index) => (
-                      <div key={index} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '4px', overflow: 'hidden', border: '1px solid #c9a96e', background: '#f0ece4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <img src={src} alt="Önbaxış" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      <div key={index} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '4px', overflow: 'hidden', border: '1px solid #c9a96e', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <img src={src} alt="Önbaxış" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
                     ))}
                   </div>

@@ -6,6 +6,7 @@ import AOS from "aos"
 import "aos/dist/aos.css"
 import { BASE_URL } from '../../pages/config'
 import { useUser, useAuth } from '@clerk/clerk-react'
+import { notification } from 'antd'
 import { FiChevronLeft, FiChevronRight, FiMaximize2, FiX, FiLock } from 'react-icons/fi'
 import { FaWhatsapp, FaInstagram, FaTiktok, FaPhone } from 'react-icons/fa'
 import { Link } from 'react-router-dom'
@@ -16,6 +17,9 @@ function Clothing() {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [recommendation, setRecommendation] = useState(null)
   const [loadingRecommendation, setLoadingRecommendation] = useState(false)
+  const [selectedSize, setSelectedSize] = useState("")
+  const [selectedColor, setSelectedColor] = useState("")
+  const [imageOpacity, setImageOpacity] = useState(1)
 
   // Carousel & Zoom states
   const [activeImageIndexes, setActiveImageIndexes] = useState({}) // productCardId -> activeImageIndex
@@ -61,6 +65,21 @@ function Clothing() {
     setModalImageIndex(0)
     setLoadingRecommendation(true)
 
+    // Set default size
+    if (item.sizes && item.sizes.length > 0) {
+      setSelectedSize(item.sizes[0].sizeName);
+    } else {
+      setSelectedSize("");
+    }
+
+    // Set default color
+    if (item.color) {
+      const cols = item.color.split(",");
+      setSelectedColor(cols[0].trim());
+    } else {
+      setSelectedColor("");
+    }
+
     if (!isSignedIn) {
       setLoadingRecommendation(false)
       return
@@ -72,12 +91,46 @@ function Clothing() {
         headers: { Authorization: `Bearer ${token}` }
       })
       setRecommendation(data.sizeRecommendation)
+      if (data.sizeRecommendation && data.sizeRecommendation.recommendedSizeName) {
+        setSelectedSize(data.sizeRecommendation.recommendedSizeName);
+      }
     } catch (error) {
       console.error("Ölçü tövsiyəsi alınarkən xəta:", error)
     } finally {
       setLoadingRecommendation(false)
     }
   }
+
+  // Touch swipe coordinates and handlers
+  let touchStartX = 0;
+
+  const handleTouchStart = (e) => {
+    touchStartX = e.changedTouches[0].clientX;
+  };
+
+  const handleTouchEnd = (e, item) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX - touchEndX;
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) {
+        handleNextImage(e, item);
+      } else {
+        handlePrevImage(e, item);
+      }
+    }
+  };
+
+  const handleModalTouchEnd = (e) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX - touchEndX;
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) {
+        handleModalNextImage();
+      } else {
+        handleModalPrevImage();
+      }
+    }
+  };
 
   // Card list carousel handlers
   const handlePrevImage = (e, item) => {
@@ -105,14 +158,48 @@ function Clothing() {
   }
 
   const handleModalPrevImage = () => {
-    const imgs = getModalImages()
-    setModalImageIndex(prev => (prev - 1 + imgs.length) % imgs.length)
+    setImageOpacity(0);
+    setTimeout(() => {
+      const imgs = getModalImages()
+      setModalImageIndex(prev => (prev - 1 + imgs.length) % imgs.length)
+      setImageOpacity(1);
+    }, 200);
   }
 
   const handleModalNextImage = () => {
-    const imgs = getModalImages()
-    setModalImageIndex(prev => (prev + 1) % imgs.length)
+    setImageOpacity(0);
+    setTimeout(() => {
+      const imgs = getModalImages()
+      setModalImageIndex(prev => (prev + 1) % imgs.length)
+      setImageOpacity(1);
+    }, 200);
   }
+
+  const handleOrderMessage = (platform) => {
+    const message = `Salam! Parabola vebsaytından bu məhsul ilə maraqlanıram:\n\n` +
+                    `- Məhsul: ${selectedProduct.name}\n` +
+                    `- Brend: ${selectedProduct.brand}\n` +
+                    `- Kateqoriya: ${selectedProduct.category}\n` +
+                    `- Ölçü: ${selectedSize || 'Seçilməyib'}\n` +
+                    `- Rəng: ${selectedColor || 'Seçilməyib'}\n` +
+                    `- Qiymət: ${selectedProduct.price ? selectedProduct.price + ' AZN' : 'Təyin edilməyib'}\n\n` +
+                    `Bu məhsulu sifariş etmək istəyirəm.`;
+    
+    if (platform === 'whatsapp') {
+      const whatsappNumber = selectedProduct.contactPhone.replace(/\D/g, "");
+      window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
+    } else {
+      // Copy to clipboard
+      navigator.clipboard.writeText(message);
+      notification.success({
+        message: "Məlumat Kopyalandı",
+        description: "Məhsul haqqında detallı sifariş mətni kopyalandı! Satıcıya mesaj bölməsində birbaşa yapışdıraraq (paste) göndərə bilərsiniz."
+      });
+      if (selectedProduct.contactLink) {
+        window.open(selectedProduct.contactLink, '_blank');
+      }
+    }
+  };
 
   useEffect(() => {
     AOS.init({
@@ -139,7 +226,12 @@ function Clothing() {
 
               return (
                 <div key={item.id} className="cothingbox">
-                  <div className="cothingimg" style={{ position: 'relative' }}>
+                  <div 
+                    className="cothingimg" 
+                    style={{ position: 'relative' }}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={(e) => handleTouchEnd(e, item)}
+                  >
                     <img 
                       key={activeImg}
                       src={activeImg} 
@@ -212,8 +304,6 @@ function Clothing() {
             </div>
           )}
         </div>
-
-        {/* Try On / Modal */}
         {showModal && selectedProduct && (
           <div className="modal-overlay">
             <div className="modal-container">
@@ -228,14 +318,19 @@ function Clothing() {
                 </button>
               </div>
 
-              <div className="modal-body">
-                <div className="modal-left">
+              <div className="modal-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '30px', padding: '30px' }}>
+                <div className="modal-left" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '20px' }}>
                   {/* Image Viewer inside modal with Zoom and Slider */}
-                  <div className="modal-image-viewer" style={{ position: 'relative', width: '100%', height: '280px', borderRadius: '4px', overflow: 'hidden', border: '1px solid #1f1f1f', background: '#0e0e0e' }}>
+                  <div 
+                    className="modal-image-viewer" 
+                    style={{ position: 'relative', width: '100%', height: '280px', borderRadius: '4px', overflow: 'hidden', border: '1px solid #1f1f1f', background: '#0e0e0e' }}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleModalTouchEnd}
+                  >
                     <img 
                       src={getModalImages()[modalImageIndex] || "https://gunnandmoore.playwiththebest.com/media/catalog/product/cache/ec4e4c8893a2305e77afd20d2909bacb/7/0/7047_teknik_slipover_white_1.png"}
                       alt={selectedProduct.name}
-                      style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'zoom-in' }}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'zoom-in', opacity: imageOpacity }}
                       onClick={() => setZoomImage(getModalImages()[modalImageIndex])}
                     />
                     <button className="zoom-btn" onClick={() => setZoomImage(getModalImages()[modalImageIndex])} title="Böyütmək üçün klikləyin" style={{ position: 'absolute', bottom: '12px', right: '12px', background: 'rgba(0,0,0,0.7)', border: 'none', color: 'white', padding: '8px', borderRadius: '4px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
@@ -253,7 +348,7 @@ function Clothing() {
                     )}
                   </div>
                   
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '24px', width: '100%', justifyContent: 'space-between', marginTop: '20px', padding: '16px', background: '#090909', border: '1px solid #1a1a1a', borderRadius: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '24px', width: '100%', justifyContent: 'space-between', padding: '16px', background: '#090909', border: '1px solid #1a1a1a', borderRadius: '4px' }}>
                     <div style={{ position: 'relative', width: '90px', height: '90px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <svg width="90" height="90" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
                         <circle cx="50" cy="50" r="40" stroke="#141414" strokeWidth="8" fill="transparent" />
@@ -279,6 +374,7 @@ function Clothing() {
                     </div>
                   </div>
                 </div>
+
                 <div className="modal-right">
                   <h3 className="product-title" style={{ fontSize: '28px' }}>{selectedProduct.name}</h3>
                   <p className="product-brand" style={{ fontSize: '13px', color: '#7a7570' }}>
@@ -301,6 +397,68 @@ function Clothing() {
                     <div className="section" style={{ marginTop: '20px' }}>
                       <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>GEYİM HAQQINDA</div>
                       <p style={{ color: '#b0adaa', fontSize: '13px', lineHeight: '1.6', marginTop: '5px' }}>{selectedProduct.description}</p>
+                    </div>
+                  )}
+
+                  {/* Size Selector Swatches */}
+                  {selectedProduct.sizes && selectedProduct.sizes.length > 0 && (
+                    <div className="section" style={{ marginTop: '20px' }}>
+                      <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>ÖLÇÜ SEÇİN</div>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
+                        {selectedProduct.sizes.map(s => (
+                          <button 
+                            key={s.id}
+                            onClick={() => setSelectedSize(s.sizeName)}
+                            style={{
+                              background: selectedSize === s.sizeName ? '#c9a96e' : '#141414',
+                              color: selectedSize === s.sizeName ? 'black' : '#f0ece4',
+                              border: '1px solid #1f1f1f',
+                              padding: '8px 16px',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontFamily: 'Montserrat, sans-serif',
+                              fontSize: '12px',
+                              fontWeight: '600',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            {s.sizeName}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Color Selector Swatches */}
+                  {selectedProduct.color && (
+                    <div className="section" style={{ marginTop: '20px' }}>
+                      <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>RƏNG SEÇİN</div>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
+                        {selectedProduct.color.split(",").map(c => {
+                          const colorName = c.trim();
+                          const isSelected = selectedColor === colorName;
+                          return (
+                            <button 
+                              key={colorName}
+                              onClick={() => setSelectedColor(colorName)}
+                              style={{
+                                background: isSelected ? '#c9a96e' : '#141414',
+                                color: isSelected ? 'black' : '#f0ece4',
+                                border: '1px solid #1f1f1f',
+                                padding: '8px 16px',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontFamily: 'Montserrat, sans-serif',
+                                fontSize: '12px',
+                                fontWeight: '600',
+                                transition: 'all 0.2s ease'
+                              }}
+                            >
+                              {colorName}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
 
@@ -342,17 +500,15 @@ function Clothing() {
                     <div className="section" style={{ marginTop: '25px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>SİFARİŞ VƏ ƏLAQƏ</div>
                       {selectedProduct.contactPhone && (
-                        <a 
-                          href={`https://wa.me/${selectedProduct.contactPhone.replace(/\D/g, "")}`}
-                          target="_blank" 
-                          rel="noreferrer" 
+                        <button 
+                          onClick={() => handleOrderMessage('whatsapp')}
                           className="contact-seller-btn whatsapp-btn"
                           style={{
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '10px',
-                            backgroundColor: '#25D366',
+                            border: 'none',
                             color: 'white',
                             textDecoration: 'none',
                             padding: '14px 24px',
@@ -361,26 +517,24 @@ function Clothing() {
                             textAlign: 'center',
                             fontSize: '14px',
                             fontFamily: 'Montserrat, sans-serif',
-                            transition: 'all 0.3s ease'
+                            cursor: 'pointer',
+                            width: '100%'
                           }}
                         >
                           <FaWhatsapp style={{ fontSize: '18px' }} /> WhatsApp ilə Sifariş
-                        </a>
+                        </button>
                       )}
                       {selectedProduct.contactLink && (
-                        <a 
-                          href={selectedProduct.contactLink} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          className="contact-seller-btn social-btn"
+                        <button 
+                          onClick={() => handleOrderMessage('social')}
+                          className={`contact-seller-btn ${selectedProduct.contactLink.toLowerCase().includes('tiktok') ? 'tiktok-btn' : 'instagram-btn'}`}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '10px',
-                            backgroundColor: 'transparent',
-                            color: '#c9a96e',
-                            border: '1px solid #c9a96e',
+                            border: 'none',
+                            color: 'white',
                             textDecoration: 'none',
                             padding: '14px 24px',
                             fontWeight: 'bold',
@@ -388,7 +542,8 @@ function Clothing() {
                             textAlign: 'center',
                             fontSize: '14px',
                             fontFamily: 'Montserrat, sans-serif',
-                            transition: 'all 0.3s ease'
+                            cursor: 'pointer',
+                            width: '100%'
                           }}
                         >
                           {selectedProduct.contactLink.toLowerCase().includes('tiktok') ? (
@@ -397,7 +552,7 @@ function Clothing() {
                             <FaInstagram style={{ fontSize: '18px' }} />
                           )}
                           Sosial Media (Butik DM)
-                        </a>
+                        </button>
                       )}
                     </div>
                   )}
