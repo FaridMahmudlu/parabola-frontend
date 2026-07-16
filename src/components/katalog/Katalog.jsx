@@ -21,9 +21,11 @@ function Katalog() {
           <p data-aos="fade-right" className="sub-tag">ÖLÇÜ UYĞUNLUĞU PLATFORMASI</p>
           <h2 data-aos="fade-up">Sizə ən <span>uyğun</span> geyimi tapın</h2>
           <p data-aos="fade-left" className="description-text">
-            Bədən tipinizə əsasən hər bir geyimin sizə uyğunluq faizini öyrənin. 
-            Dəqiq ölçü analizimiz sayəsində yanlış seçim etməkdən sığortalanın.
+            Bədən parametrlərinizə əsasən geyimlərin sizə uyğunluq dərəcəsini analiz edin.
           </p>
+          <span data-aos="fade-up" className="disclaimer-text" style={{ display: 'block', fontSize: '11px', color: '#7a7570', marginTop: '-8px', fontFamily: 'Montserrat, sans-serif', letterSpacing: '0.5px' }}>
+            *Tövsiyələr daxil edilən göstəricilərə əsaslanır və mütləq uyğunluğa zəmanət vermir.
+          </span>
         </div>
       </div>
     </section>
