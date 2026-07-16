@@ -1,5 +1,5 @@
 import React from 'react'
-
+import { Analytics } from '@vercel/analytics/react'
 import{Routes,Route} from "react-router-dom"
 import Home from './pages/Home/Home'
 import Register from './pages/register/Register'
@@ -22,6 +22,7 @@ const App = () => {
         <Route path='/profile' element={<Profile/>}/>
         <Route path='/seller' element={<SellerPanel/>}/>
       </Routes>
+      <Analytics />
      
 
     
