@@ -7,7 +7,8 @@ import "aos/dist/aos.css"
 import Avatar from '../Avatar/Avatar'
 import { BASE_URL } from '../../pages/config'
 import { useUser, useAuth } from '@clerk/clerk-react'
-import { FiChevronLeft, FiChevronRight, FiMaximize2, FiX } from 'react-icons/fi'
+import { FiChevronLeft, FiChevronRight, FiMaximize2, FiX, FiLock } from 'react-icons/fi'
+import { Link } from 'react-router-dom'
 
 function Clothing() {
   const [products, setProducts] = useState([])
@@ -125,72 +126,91 @@ function Clothing() {
     <div className="cothingcontainer">
       <div data-aos="fade-up" className="box">
         <h1>Geyimlər</h1>
-        <div className="cothingboxcontainer">
-          {products.map(item => {
-            const cardImages = item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls : [item.imageUrl].filter(Boolean)
-            const activeIdx = activeImageIndexes[item.id] || 0
-            const activeImg = cardImages[activeIdx] || "https://gunnandmoore.playwiththebest.com/media/catalog/product/cache/ec4e4c8893a2305e77afd20d2909bacb/7/0/7047_teknik_slipover_white_1.png"
-            const isPng = activeImg.toLowerCase().split('?')[0].endsWith('.png')
+        <div style={{ position: 'relative' }}>
+          <div 
+            className="cothingboxcontainer"
+            style={!isSignedIn ? { filter: 'blur(10px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.5 } : {}}
+          >
+            {products.map(item => {
+              const cardImages = item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls : [item.imageUrl].filter(Boolean)
+              const activeIdx = activeImageIndexes[item.id] || 0
+              const activeImg = cardImages[activeIdx] || "https://gunnandmoore.playwiththebest.com/media/catalog/product/cache/ec4e4c8893a2305e77afd20d2909bacb/7/0/7047_teknik_slipover_white_1.png"
+              const isPng = activeImg.toLowerCase().split('?')[0].endsWith('.png')
 
-            return (
-              <div key={item.id} className="cothingbox">
-                <div className="cothingimg" style={{ position: 'relative' }}>
-                  <img 
-                    key={activeImg}
-                    src={activeImg} 
-                    alt={item.name} 
-                    onClick={() => handleTryOn(item)}
-                    style={{ 
-                      cursor: 'pointer',
-                      objectFit: isPng ? 'contain' : 'cover',
-                      padding: isPng ? '16px' : '0',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                  {cardImages.length > 1 && (
-                    <>
-                      <button className="slider-arrow prev" onClick={(e) => handlePrevImage(e, item)}>
-                        <FiChevronLeft />
-                      </button>
-                      <button className="slider-arrow next" onClick={(e) => handleNextImage(e, item)}>
-                        <FiChevronRight />
-                      </button>
-                      <div className="slider-indicators">
-                        {cardImages.map((_, idx) => (
-                          <span 
-                            key={idx} 
-                            className={`indicator-dot ${activeIdx === idx ? 'active' : ''}`}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-                <div className="cothingtext">
-                  <div className="cothingtoptext">
-                    <h3>{item.name}</h3>
-                    <p className="brand-text">{item.brand}</p>
-                    <p className="price-text">{item.price ? `${item.price} AZN` : "Qiymət təyin edilməyib"}</p>
-                    {item.sellerName && (
-                      <p className="seller-text">Satıcı: {item.sellerName}</p>
+              return (
+                <div key={item.id} className="cothingbox">
+                  <div className="cothingimg" style={{ position: 'relative' }}>
+                    <img 
+                      key={activeImg}
+                      src={activeImg} 
+                      alt={item.name} 
+                      onClick={() => handleTryOn(item)}
+                      style={{ 
+                        cursor: 'pointer',
+                        objectFit: isPng ? 'contain' : 'cover',
+                        padding: isPng ? '16px' : '0',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                    {cardImages.length > 1 && (
+                      <>
+                        <button className="slider-arrow prev" onClick={(e) => handlePrevImage(e, item)}>
+                          <FiChevronLeft />
+                        </button>
+                        <button className="slider-arrow next" onClick={(e) => handleNextImage(e, item)}>
+                          <FiChevronRight />
+                        </button>
+                        <div className="slider-indicators">
+                          {cardImages.map((_, idx) => (
+                            <span 
+                              key={idx} 
+                              className={`indicator-dot ${activeIdx === idx ? 'active' : ''}`}
+                            />
+                          ))}
+                        </div>
+                      </>
                     )}
                   </div>
+                  <div className="cothingtext">
+                    <div className="cothingtoptext">
+                      <h3>{item.name}</h3>
+                      <p className="brand-text">{item.brand}</p>
+                      <p className="price-text">{item.price ? `${item.price} AZN` : "Qiymət təyin edilməyib"}</p>
+                      {item.sellerName && (
+                        <p className="seller-text">Satıcı: {item.sellerName}</p>
+                      )}
+                    </div>
 
-                  <div className="cothingbtn">
-                    {item.sizes && item.sizes.map(s => (
-                      <button key={s.id}>{s.sizeName}</button>
-                    ))}
-                  </div>
-                  
-                  <div className="cothingbutton">
-                    <button onClick={() => handleTryOn(item)}>
-                      Sına <GoArrowRight />
-                    </button>
+                    <div className="cothingbtn">
+                      {item.sizes && item.sizes.map(s => (
+                        <button key={s.id}>{s.sizeName}</button>
+                      ))}
+                    </div>
+                    
+                    <div className="cothingbutton">
+                      <button onClick={() => handleTryOn(item)}>
+                        Sına <GoArrowRight />
+                      </button>
+                    </div>
                   </div>
                 </div>
+              )
+            })}
+          </div>
+
+          {!isSignedIn && (
+            <div className="catalog-locked-overlay">
+              <div className="catalog-locked-content">
+                <FiLock className="locked-icon" />
+                <h2>Kataloqu görmək üçün daxil olun</h2>
+                <p>Məhsulları incələmək və bədən ölçünüzə uyğunluğunu yoxlamaq üçün hesaba daxil olmalısınız.</p>
+                <div className="locked-auth-buttons">
+                  <Link to="/login" className="btn-locked-login">Daxil Ol</Link>
+                  <Link to="/register" className="btn-locked-register">Qeydiyyat</Link>
+                </div>
               </div>
-            )
-          })}
+            </div>
+          )}
         </div>
 
         {/* Try On / Modal */}

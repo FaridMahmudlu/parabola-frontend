@@ -71,28 +71,22 @@ function Header() {
                   </li>
                 </>
               ) : (
-                <>
-                  <li>
-                    <Link 
-                      to="/login" 
-                      className={isActive('/login') ? 'active-link' : ''} 
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      <FiLogIn className="nav-icon" />
-                      <span>Daxil Ol</span>
-                    </Link>
-                  </li>
-                  <li>
-                    <Link 
-                      to="/register" 
-                      className={isActive('/register') ? 'active-link' : ''} 
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      <FiUserPlus className="nav-icon" />
-                      <span>Qeydiyyat</span>
-                    </Link>
-                  </li>
-                </>
+                <li className="auth-btn-group">
+                  <Link 
+                    to="/login" 
+                    className="btn-header-login"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Daxil Ol
+                  </Link>
+                  <Link 
+                    to="/register" 
+                    className="btn-header-register"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Qeydiyyat
+                  </Link>
+                </li>
               )}
             </ul>
           </nav>
