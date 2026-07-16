@@ -26,13 +26,17 @@ function Clothing() {
 
   useEffect(() => {
     async function getProducts() {
-      // Load cached products first to show them instantly
-      const cached = localStorage.getItem("parabola_catalog_products")
-      if (cached) {
-        setProducts(JSON.parse(cached))
-      }
-
       try {
+        // Load cached products first inside try-catch to avoid crashes
+        const cached = localStorage.getItem("parabola_catalog_products")
+        if (cached) {
+          try {
+            setProducts(JSON.parse(cached))
+          } catch (e) {
+            localStorage.removeItem("parabola_catalog_products")
+          }
+        }
+
         const headers = {}
         if (isSignedIn) {
           const token = await getToken()

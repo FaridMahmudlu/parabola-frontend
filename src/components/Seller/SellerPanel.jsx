@@ -40,14 +40,18 @@ const SellerPanel = () => {
   const fetchMyProducts = async () => {
     if (!isSignedIn) return;
     
-    // Load cached products first to show cards immediately
     const cacheKey = `parabola_seller_products_${user?.id}`
-    const cached = localStorage.getItem(cacheKey)
-    if (cached) {
-      setProducts(JSON.parse(cached))
-    }
-
     try {
+      // Load cached products first inside try-catch to avoid crashes
+      const cached = localStorage.getItem(cacheKey)
+      if (cached) {
+        try {
+          setProducts(JSON.parse(cached))
+        } catch (e) {
+          localStorage.removeItem(cacheKey)
+        }
+      }
+
       const token = await getToken();
       const res = await axios.get(`${BASE_URL}/api/v1/products/my`, {
         headers: { 
