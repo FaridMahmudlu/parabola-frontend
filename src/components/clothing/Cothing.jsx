@@ -26,13 +26,22 @@ function Clothing() {
 
   useEffect(() => {
     async function getProducts() {
-      if (!isSignedIn) return;
+      // Load cached products first to show them instantly
+      const cached = localStorage.getItem("parabola_catalog_products")
+      if (cached) {
+        setProducts(JSON.parse(cached))
+      }
+
       try {
-        const token = await getToken()
-        const { data } = await axios.get(`${BASE_URL}/api/v1/products`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        const headers = {}
+        if (isSignedIn) {
+          const token = await getToken()
+          headers.Authorization = `Bearer ${token}`
+        }
+        const { data } = await axios.get(`${BASE_URL}/api/v1/products`, { headers })
         setProducts(data)
+        // Update cache
+        localStorage.setItem("parabola_catalog_products", JSON.stringify(data))
       } catch (error) {
         console.error("Məhsulları gətirmək mümkün olmadı:", error)
       }
@@ -108,16 +117,6 @@ function Clothing() {
     })
   }, [])
 
-  if (!isSignedIn) {
-    return (
-      <div className="login-prompt-container">
-        <h2>Ağıllı Ölçü Analizi Üçün Giriş Edin</h2>
-        <p>Geyimlərin sizə uyğunluq dərəcəsini görmək üçün hesabınıza daxil olun.</p>
-        <a href="/login" className="login-prompt-btn">Daxil Ol</a>
-      </div>
-    )
-  }
-
   return (
     <div className="cothingcontainer">
       <div data-aos="fade-up" className="box">
@@ -127,15 +126,22 @@ function Clothing() {
             const cardImages = item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls : [item.imageUrl].filter(Boolean)
             const activeIdx = activeImageIndexes[item.id] || 0
             const activeImg = cardImages[activeIdx] || "https://gunnandmoore.playwiththebest.com/media/catalog/product/cache/ec4e4c8893a2305e77afd20d2909bacb/7/0/7047_teknik_slipover_white_1.png"
+            const isPng = activeImg.toLowerCase().split('?')[0].endsWith('.png')
 
             return (
               <div key={item.id} className="cothingbox">
                 <div className="cothingimg" style={{ position: 'relative' }}>
                   <img 
+                    key={activeImg}
                     src={activeImg} 
                     alt={item.name} 
                     onClick={() => handleTryOn(item)}
-                    style={{ cursor: 'pointer' }}
+                    style={{ 
+                      cursor: 'pointer',
+                      objectFit: isPng ? 'contain' : 'cover',
+                      padding: isPng ? '16px' : '0',
+                      boxSizing: 'border-box'
+                    }}
                   />
                   {cardImages.length > 1 && (
                     <>
@@ -232,10 +238,10 @@ function Clothing() {
                     />
                     <div className="score" style={{ flexGrow: 1 }}>
                       <div className="score-number" style={{ fontSize: '32px' }}>
-                        {loadingRecommendation ? "..." : recommendation ? `${recommendation.matchPercentage}%` : "0%"}
+                        {!isSignedIn ? "?" : loadingRecommendation ? "..." : recommendation ? `${recommendation.matchPercentage}%` : "0%"}
                       </div>
                       <div className="score-label" style={{ fontSize: '12px' }}>
-                        {recommendation && recommendation.matchPercentage > 0 ? "UYĞUNDUR" : "UYĞUN DEYİL"}
+                        {!isSignedIn ? "Daxil olun" : (recommendation && recommendation.matchPercentage > 0 ? "UYĞUNDUR" : "UYĞUN DEYİL")}
                       </div>
                     </div>
                   </div>
@@ -269,11 +275,17 @@ function Clothing() {
                   <div className="section" style={{ marginTop: '20px' }}>
                     <div className="section-label">AĞILLI ÖLÇÜ TÖVSİYƏSİ</div>
                     <div className="recommendation" style={{ color: '#c9a96e', fontSize: '16px', lineHeight: '1.6', marginTop: '5px' }}>
-                      {loadingRecommendation 
-                        ? "Analiz edilir..." 
-                        : recommendation 
-                          ? recommendation.feedbackMessage 
-                          : "Ölçü hesablana bilmədi. Zəhmət olmasa profilinizdə ölçüləri daxil etdiyinizdən əmin olun."}
+                      {!isSignedIn ? (
+                        <span>
+                          Ağıllı ölçü hesablama və uyğunluq analizi üçün zəhmət olmasa <a href="/login" style={{ color: '#c9a96e', textDecoration: 'underline' }}>Daxil Olun</a>.
+                        </span>
+                      ) : (
+                        loadingRecommendation 
+                          ? "Analiz edilir..." 
+                          : recommendation 
+                            ? recommendation.feedbackMessage 
+                            : "Ölçü hesablana bilmədi. Zəhmət olmasa profilinizdə ölçüləri daxil etdiyinizdən əmin olun."
+                      )}
                     </div>
                   </div>
 

@@ -39,6 +39,14 @@ const SellerPanel = () => {
 
   const fetchMyProducts = async () => {
     if (!isSignedIn) return;
+    
+    // Load cached products first to show cards immediately
+    const cacheKey = `parabola_seller_products_${user?.id}`
+    const cached = localStorage.getItem(cacheKey)
+    if (cached) {
+      setProducts(JSON.parse(cached))
+    }
+
     try {
       const token = await getToken();
       const res = await axios.get(`${BASE_URL}/api/v1/products/my`, {
@@ -48,6 +56,8 @@ const SellerPanel = () => {
         }
       });
       setProducts(res.data);
+      // Update cache
+      localStorage.setItem(cacheKey, JSON.stringify(res.data))
     } catch (err) {
       console.error("Məhsullar yüklənmədi:", err);
     }
@@ -145,12 +155,16 @@ const SellerPanel = () => {
           "X-Clerk-Role": user?.publicMetadata?.role
         }
       });
+      setProducts(prev => {
+        const next = prev.filter(p => p.id !== id);
+        localStorage.setItem(`parabola_seller_products_${user?.id}`, JSON.stringify(next));
+        return next;
+      });
       notification.success({
         message: "Məhsul silindi",
         description: "Məhsul kataloqdan uğurla silindi!"
       });
       setDeletingId(null);
-      fetchMyProducts();
     } catch (err) {
       const errMsg = err.response?.data?.message || err.message;
       notification.error({
@@ -205,12 +219,18 @@ const SellerPanel = () => {
 
       if (editingId) {
         // UPDATE
-        await axios.put(`${BASE_URL}/api/v1/products/${editingId}`, formData, {
+        const res = await axios.put(`${BASE_URL}/api/v1/products/${editingId}`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
             "X-Clerk-Role": user?.publicMetadata?.role
           }
+        });
+        const updatedProduct = res.data;
+        setProducts(prev => {
+          const next = prev.map(p => p.id === editingId ? updatedProduct : p);
+          localStorage.setItem(`parabola_seller_products_${user?.id}`, JSON.stringify(next));
+          return next;
         });
         notification.success({
           message: "Məhsul yeniləndi",
@@ -218,12 +238,18 @@ const SellerPanel = () => {
         });
       } else {
         // CREATE
-        await axios.post(`${BASE_URL}/api/v1/products`, formData, {
+        const res = await axios.post(`${BASE_URL}/api/v1/products`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
             "X-Clerk-Role": user?.publicMetadata?.role
           }
+        });
+        const createdProduct = res.data;
+        setProducts(prev => {
+          const next = [createdProduct, ...prev];
+          localStorage.setItem(`parabola_seller_products_${user?.id}`, JSON.stringify(next));
+          return next;
         });
         notification.success({
           message: "Məhsul əlavə edildi",
@@ -233,7 +259,6 @@ const SellerPanel = () => {
 
       setStatus({ loading: false, error: null, ok: true });
       clearForm();
-      fetchMyProducts();
     } catch (err) {
       const errMsg = err.response?.data?.message || err.response?.data || err.message;
       setStatus({

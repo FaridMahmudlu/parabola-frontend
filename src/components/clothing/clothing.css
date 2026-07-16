@@ -55,9 +55,18 @@
   box-shadow: 0 10px 25px rgba(201, 169, 110, 0.05);
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .cothingimg {
   width: 100%;
-  background: #111;
+  background: radial-gradient(circle, #1c1c1c 0%, #070707 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -71,6 +80,7 @@
   height: 100%;
   object-fit: cover;
   transition: transform 0.6s ease;
+  animation: fadeIn 0.4s ease-in-out;
 }
 
 .cothingbox:hover .cothingimg img {
