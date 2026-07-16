@@ -255,9 +255,9 @@ body .ant-notification-notice-error::after {
   background: linear-gradient(90deg, #e07b7b, #ff9e9e) !important;
 }
 
-body .ant-notification-notice .ant-notification-notice-content * {
+body .ant-notification-notice,
+body .ant-notification-notice * {
   color: #ffffff !important;
-  font-family: 'Cormorant Garamond', serif !important;
 }
 
 body .ant-notification-notice .ant-notification-notice-message,
@@ -305,7 +305,8 @@ body .ant-notification-notice-success {
   border-left: 4px solid #c9a96e !important;
 }
 
-body .ant-notification-notice-success .ant-notification-notice-icon {
+body .ant-notification-notice-success .ant-notification-notice-icon,
+body .ant-notification-notice-success .ant-notification-notice-icon * {
   color: #c9a96e !important;
 }
 
@@ -314,6 +315,7 @@ body .ant-notification-notice-error {
   border-left: 4px solid #e07b7b !important;
 }
 
-body .ant-notification-notice-error .ant-notification-notice-icon {
+body .ant-notification-notice-error .ant-notification-notice-icon,
+body .ant-notification-notice-error .ant-notification-notice-icon * {
   color: #e07b7b !important;
 }
