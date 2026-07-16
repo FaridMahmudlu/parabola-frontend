@@ -28,7 +28,10 @@ const Profile = () => {
         try {
           const token = await getToken()
           const { data } = await axios.get(`${BASE_URL}/api/v1/users/profile`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              "X-Clerk-Role": user?.publicMetadata?.role
+            }
           })
           if (data) {
             setGender(data.gender || "")
@@ -72,7 +75,12 @@ const Profile = () => {
       const { data } = await axios.put(
         `${BASE_URL}/api/v1/users/profile`,
         payload,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            "X-Clerk-Role": user?.publicMetadata?.role
+          } 
+        }
       )
       setSavedData(payload)
       notification.success({

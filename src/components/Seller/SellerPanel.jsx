@@ -42,7 +42,10 @@ const SellerPanel = () => {
     try {
       const token = await getToken();
       const res = await axios.get(`${BASE_URL}/api/v1/products/my`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "X-Clerk-Role": user?.publicMetadata?.role
+        }
       });
       setProducts(res.data);
     } catch (err) {
@@ -137,7 +140,10 @@ const SellerPanel = () => {
     try {
       const token = await getToken();
       await axios.delete(`${BASE_URL}/api/v1/products/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "X-Clerk-Role": user?.publicMetadata?.role
+        }
       });
       notification.success({
         message: "Məhsul silindi",
@@ -202,7 +208,8 @@ const SellerPanel = () => {
         await axios.put(`${BASE_URL}/api/v1/products/${editingId}`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            "X-Clerk-Role": user?.publicMetadata?.role
           }
         });
         notification.success({
@@ -214,7 +221,8 @@ const SellerPanel = () => {
         await axios.post(`${BASE_URL}/api/v1/products`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            "X-Clerk-Role": user?.publicMetadata?.role
           }
         });
         notification.success({
