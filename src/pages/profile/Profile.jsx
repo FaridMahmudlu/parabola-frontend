@@ -178,10 +178,13 @@ const Profile = () => {
               value={clothingSize}
               onChange={(e) => setClothingSize(e.target.value)}
               options={[
+                { value: "XS", label: "XS" },
                 { value: "S", label: "S" },
                 { value: "M", label: "M" },
                 { value: "L", label: "L" },
-                { value: "XL", label: "XL" }
+                { value: "XL", label: "XL" },
+                { value: "XXL", label: "XXL" },
+                { value: "3XL", label: "3XL" }
               ]}
               placeholder="Seçin"
             />

@@ -4,10 +4,10 @@ import axios from "axios"
 import "./clothing.css"
 import AOS from "aos"
 import "aos/dist/aos.css"
-import Avatar from '../Avatar/Avatar'
 import { BASE_URL } from '../../pages/config'
 import { useUser, useAuth } from '@clerk/clerk-react'
 import { FiChevronLeft, FiChevronRight, FiMaximize2, FiX, FiLock } from 'react-icons/fi'
+import { FaWhatsapp, FaInstagram, FaTiktok, FaPhone } from 'react-icons/fa'
 import { Link } from 'react-router-dom'
 
 function Clothing() {
@@ -252,25 +252,33 @@ function Clothing() {
                       </>
                     )}
                   </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', width: '100%', justifyContent: 'space-between', marginTop: '10px' }}>
-                    <Avatar
-                      topColor="#4A90C2"        
-                      bottomColor="#A0A0A0"                    
-                      skinColor="#d4b896"                     
-                      size={130}                               
-                    />
-                    <div className="score" style={{ flexGrow: 1 }}>
-                      <div className="score-number" style={{ fontSize: '32px' }}>
-                        {!isSignedIn ? "?" : loadingRecommendation ? "..." : recommendation ? `${recommendation.matchPercentage}%` : "0%"}
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '24px', width: '100%', justifyContent: 'space-between', marginTop: '20px', padding: '16px', background: '#090909', border: '1px solid #1a1a1a', borderRadius: '4px' }}>
+                    <div style={{ position: 'relative', width: '90px', height: '90px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <svg width="90" height="90" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
+                        <circle cx="50" cy="50" r="40" stroke="#141414" strokeWidth="8" fill="transparent" />
+                        <circle cx="50" cy="50" r="40" stroke="#c9a96e" strokeWidth="8" fill="transparent" 
+                                strokeDasharray="251.2" 
+                                strokeDashoffset={251.2 - (251.2 * (!isSignedIn ? 0 : (recommendation ? recommendation.matchPercentage : 0))) / 100}
+                                strokeLinecap="round"
+                                style={{ transition: 'stroke-dashoffset 0.8s ease-in-out', filter: 'drop-shadow(0 0 4px rgba(201, 169, 110, 0.4))' }} />
+                      </svg>
+                      <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#c9a96e', fontFamily: 'Montserrat, sans-serif' }}>
+                          {!isSignedIn ? "?" : (loadingRecommendation ? "..." : (recommendation ? `${recommendation.matchPercentage}%` : "0%"))}
+                        </span>
                       </div>
-                      <div className="score-label" style={{ fontSize: '12px' }}>
-                        {!isSignedIn ? "Daxil olun" : (recommendation && recommendation.matchPercentage > 0 ? "UYĞUNDUR" : "UYĞUN DEYİL")}
+                    </div>
+                    <div className="score" style={{ flexGrow: 1 }}>
+                      <div className="score-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570', textTransform: 'uppercase', marginBottom: '4px' }}>
+                        Ağıllı Uyğunluq
+                      </div>
+                      <div className="score-status" style={{ fontSize: '16px', fontWeight: '500', color: !isSignedIn ? '#7a7570' : (recommendation && recommendation.matchPercentage > 75 ? '#c9a96e' : '#f0ece4'), fontFamily: 'Cormorant Garamond, serif', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        {!isSignedIn ? "Daxil olun" : (loadingRecommendation ? "Hesablanır..." : (recommendation && recommendation.matchPercentage > 0 ? "Bədəninizə Uyğundur" : "Tam Uyğun Deyil"))}
                       </div>
                     </div>
                   </div>
                 </div>
-
                 <div className="modal-right">
                   <h3 className="product-title" style={{ fontSize: '28px' }}>{selectedProduct.name}</h3>
                   <p className="product-brand" style={{ fontSize: '13px', color: '#7a7570' }}>
@@ -330,28 +338,67 @@ function Clothing() {
                     </div>
                   )}
 
-                  {selectedProduct.contactLink && (
-                    <div className="section" style={{ marginTop: '20px' }}>
-                      <a 
-                        href={selectedProduct.contactLink} 
-                        target="_blank" 
-                        rel="noreferrer" 
-                        className="contact-seller-btn"
-                        style={{
-                          display: 'block',
-                          backgroundColor: '#c9a96e',
-                          color: 'black',
-                          textDecoration: 'none',
-                          padding: '14px 24px',
-                          fontWeight: 'bold',
-                          borderRadius: '4px',
-                          textAlign: 'center',
-                          marginTop: '10px',
-                          transition: 'background-color 0.3s'
-                        }}
-                      >
-                        Sifariş Et (Butik DM)
-                      </a>
+                  {(selectedProduct.contactPhone || selectedProduct.contactLink) && (
+                    <div className="section" style={{ marginTop: '25px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>SİFARİŞ VƏ ƏLAQƏ</div>
+                      {selectedProduct.contactPhone && (
+                        <a 
+                          href={`https://wa.me/${selectedProduct.contactPhone.replace(/\D/g, "")}`}
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="contact-seller-btn whatsapp-btn"
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '10px',
+                            backgroundColor: '#25D366',
+                            color: 'white',
+                            textDecoration: 'none',
+                            padding: '14px 24px',
+                            fontWeight: 'bold',
+                            borderRadius: '4px',
+                            textAlign: 'center',
+                            fontSize: '14px',
+                            fontFamily: 'Montserrat, sans-serif',
+                            transition: 'all 0.3s ease'
+                          }}
+                        >
+                          <FaWhatsapp style={{ fontSize: '18px' }} /> WhatsApp ilə Sifariş
+                        </a>
+                      )}
+                      {selectedProduct.contactLink && (
+                        <a 
+                          href={selectedProduct.contactLink} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="contact-seller-btn social-btn"
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '10px',
+                            backgroundColor: 'transparent',
+                            color: '#c9a96e',
+                            border: '1px solid #c9a96e',
+                            textDecoration: 'none',
+                            padding: '14px 24px',
+                            fontWeight: 'bold',
+                            borderRadius: '4px',
+                            textAlign: 'center',
+                            fontSize: '14px',
+                            fontFamily: 'Montserrat, sans-serif',
+                            transition: 'all 0.3s ease'
+                          }}
+                        >
+                          {selectedProduct.contactLink.toLowerCase().includes('tiktok') ? (
+                            <FaTiktok style={{ fontSize: '16px' }} />
+                          ) : (
+                            <FaInstagram style={{ fontSize: '18px' }} />
+                          )}
+                          Sosial Media (Butik DM)
+                        </a>
+                      )}
                     </div>
                   )}
                 </div>

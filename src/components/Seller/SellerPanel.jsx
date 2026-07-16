@@ -19,11 +19,11 @@ const SellerPanel = () => {
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
   const [contactLink, setContactLink] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
   const [files, setFiles] = useState([]);
   const [previews, setPreviews] = useState([]);
   const [gender, setGender] = useState("");
-  const [sizeName, setSizeName] = useState("");
-  const [clothingFit, setClothingFit] = useState("");
+  const [selectedSizes, setSelectedSizes] = useState({}); // size -> fit
   const [color, setColor] = useState("");
   const [style, setStyle] = useState("");
   const [description, setDescription] = useState("");
@@ -87,11 +87,11 @@ const SellerPanel = () => {
     setCategory("");
     setPrice("");
     setContactLink("");
+    setContactPhone("");
     setFiles([]);
     setPreviews([]);
     setGender("");
-    setSizeName("");
-    setClothingFit("");
+    setSelectedSizes({});
     setColor("");
     setStyle("");
     setDescription("");
@@ -107,15 +107,21 @@ const SellerPanel = () => {
     setCategory(product.category || "");
     setPrice(product.price ? String(product.price) : "");
     setContactLink(product.contactLink || "");
+    setContactPhone(product.contactPhone || "");
     setGender(product.gender || "");
     setColor(product.color || "");
     setStyle(product.style || "");
     setDescription(product.description || "");
-    // Extract size info from first size
-    if (product.sizes && product.sizes.length > 0) {
-      setSizeName(product.sizes[0].sizeName || "");
-      setClothingFit(product.sizes[0].clothingFit || "");
+    
+    // Extract sizes
+    const sizesObj = {};
+    if (product.sizes) {
+      product.sizes.forEach(s => {
+        sizesObj[s.sizeName] = s.clothingFit || "Orta";
+      });
     }
+    setSelectedSizes(sizesObj);
+
     setFiles([]);
     setPreviews(product.imageUrls || (product.imageUrl ? [product.imageUrl] : []));
     // Scroll to form
@@ -182,8 +188,18 @@ const SellerPanel = () => {
     e.preventDefault();
     setStatus({ loading: true, error: null, ok: false });
 
-    if (!gender || !sizeName || !clothingFit || !color || !style) {
-      setStatus({ loading: false, error: "Zəhmət olmasa bütün vacib seçimləri daxil edin.", ok: false });
+    if (!gender || !color || !style || !name || !brand || !category || !price) {
+      setStatus({ loading: false, error: "Zəhmət olmasa bütün vacib geyim məlumatlarını daxil edin.", ok: false });
+      return;
+    }
+
+    if (Object.keys(selectedSizes).length === 0) {
+      setStatus({ loading: false, error: "Zəhmət olmasa ən azı bir ölçü seçin.", ok: false });
+      return;
+    }
+
+    if (!contactPhone.trim() && !contactLink.trim()) {
+      setStatus({ loading: false, error: "Ən azı bir əlaqə vasitəsi (Telefon/WhatsApp və ya Instagram/TikTok linki) daxil edilməlidir.", ok: false });
       return;
     }
 
@@ -192,16 +208,18 @@ const SellerPanel = () => {
       return;
     }
 
-    const sizesList = [{
-      sizeName: sizeName,
-      clothingFit: clothingFit,
+    const sizesList = Object.entries(selectedSizes).map(([size, fit]) => ({
+      sizeName: size,
+      clothingFit: fit,
       modelBodyType: ""
-    }];
+    }));
 
     const productPayload = {
       name, brand, category,
       price: parseFloat(price),
-      contactLink, gender, color, style, description,
+      contactLink: contactLink.trim() || null,
+      contactPhone: contactPhone.trim() || null,
+      gender, color, style, description,
       sizes: sizesList
     };
 
@@ -314,28 +332,54 @@ const SellerPanel = () => {
                 />
               </div>
 
-              <div className="form-field">
-                <label>Ölçü</label>
-                <CustomSelect value={sizeName} onChange={(e) => setSizeName(e.target.value)}
-                  options={[
-                    { value: "S", label: "S" }, { value: "M", label: "M" },
-                    { value: "L", label: "L" }, { value: "XL", label: "XL" },
-                    { value: "XXL", label: "XXL" }
-                  ]} placeholder="Seçin"
-                />
-              </div>
-
-              <div className="form-field">
-                <label>Uyğunlaşma Ölçüsü (Fit)</label>
-                <CustomSelect value={clothingFit} onChange={(e) => setClothingFit(e.target.value)}
-                  options={[
-                    { value: "Kiçik", label: "Kiçik" },
-                    { value: "Orta kiçik", label: "Orta kiçik" },
-                    { value: "Orta", label: "Orta" },
-                    { value: "Orta geniş", label: "Orta geniş" },
-                    { value: "Geniş", label: "Geniş" }
-                  ]} placeholder="Seçin"
-                />
+              <div className="form-field form-field--full" style={{ border: '1px solid #1a1a1a', padding: '20px', borderRadius: '4px', background: '#090909', marginTop: '10px' }}>
+                <label style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#c9a96e', marginBottom: '15px', display: 'block', textTransform: 'uppercase' }}>Geyim Ölçüləri və Kəsim (Fit)</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {["XS", "S", "M", "L", "XL", "XXL", "3XL"].map((size) => {
+                    const isChecked = !!selectedSizes[size];
+                    return (
+                      <div key={size} style={{ display: 'flex', alignItems: 'center', gap: '20px', justifyContent: 'space-between', borderBottom: '1px solid #141414', paddingBottom: '8px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontFamily: 'Montserrat, sans-serif', fontSize: '13px', color: isChecked ? '#f0ece4' : '#7a7570', userSelect: 'none', margin: 0 }}>
+                          <input 
+                            type="checkbox" 
+                            checked={isChecked} 
+                            onChange={(e) => {
+                              const next = { ...selectedSizes };
+                              if (e.target.checked) {
+                                next[size] = "Orta";
+                              } else {
+                                delete next[size];
+                              }
+                              setSelectedSizes(next);
+                            }}
+                            style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#c9a96e' }}
+                          />
+                          {size}
+                        </label>
+                        {isChecked && (
+                          <div style={{ width: '180px' }}>
+                            <CustomSelect 
+                              value={selectedSizes[size]} 
+                              onChange={(e) => {
+                                const next = { ...selectedSizes };
+                                next[size] = e.target.value;
+                                setSelectedSizes(next);
+                              }}
+                              options={[
+                                { value: "Kiçik", label: "Kiçik (Slim-fit)" },
+                                { value: "Orta kiçik", label: "Orta kiçik" },
+                                { value: "Orta", label: "Orta (Regular)" },
+                                { value: "Orta geniş", label: "Orta geniş" },
+                                { value: "Geniş", label: "Geniş (Oversized)" }
+                              ]} 
+                              placeholder="Kəsim seçin"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="form-field">
@@ -384,9 +428,16 @@ const SellerPanel = () => {
               </div>
 
               <div className="form-field">
-                <label htmlFor="contactLink">Sifariş/Əlaqə Linki</label>
-                <input id="contactLink" type="url" placeholder="https://instagram.com/direct/t/..."
-                  value={contactLink} onChange={(e) => setContactLink(e.target.value)} required
+                <label htmlFor="contactPhone">Əlaqə Telefonu / WhatsApp</label>
+                <input id="contactPhone" type="text" placeholder="məs: +994 50 123 45 67"
+                  value={contactPhone} onChange={(e) => setContactPhone(e.target.value)}
+                />
+              </div>
+
+              <div className="form-field">
+                <label htmlFor="contactLink">Instagram / TikTok Linki</label>
+                <input id="contactLink" type="url" placeholder="məs: https://instagram.com/direct/t/..."
+                  value={contactLink} onChange={(e) => setContactLink(e.target.value)}
                 />
               </div>
 
