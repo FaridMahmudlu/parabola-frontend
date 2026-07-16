@@ -218,11 +218,12 @@ function Clothing() {
             className="cothingboxcontainer"
             style={!isSignedIn ? { filter: 'blur(10px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.5 } : {}}
           >
-            {products.map(item => {
+            {products.map((item, index) => {
               const cardImages = item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls : [item.imageUrl].filter(Boolean)
               const activeIdx = activeImageIndexes[item.id] || 0
               const activeImg = cardImages[activeIdx] || "https://gunnandmoore.playwiththebest.com/media/catalog/product/cache/ec4e4c8893a2305e77afd20d2909bacb/7/0/7047_teknik_slipover_white_1.png"
               const isPng = activeImg.toLowerCase().split('?')[0].endsWith('.png')
+              const isLcp = index < 2;
 
               return (
                 <div key={item.id} className="cothingbox">
@@ -237,6 +238,8 @@ function Clothing() {
                       src={activeImg} 
                       alt={item.name} 
                       onClick={() => handleTryOn(item)}
+                      fetchPriority={isLcp ? "high" : undefined}
+                      loading={isLcp ? "eager" : "lazy"}
                       style={{ 
                         cursor: 'pointer',
                         objectFit: isPng ? 'contain' : 'cover',
