@@ -216,7 +216,7 @@
   }
 }
 
-.ant-notification-notice {
+body .ant-notification-notice {
   background: rgba(15, 15, 15, 0.95) !important;
   backdrop-filter: blur(25px) !important;
   -webkit-backdrop-filter: blur(25px) !important;
@@ -236,7 +236,7 @@
   box-sizing: border-box !important;
 }
 
-.ant-notification-notice::after {
+body .ant-notification-notice::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -246,18 +246,19 @@
 }
 
 /* Success progress bar color */
-.ant-notification-notice-success::after {
+body .ant-notification-notice-success::after {
   background: linear-gradient(90deg, #c9a96e, #edd19c) !important;
 }
 
 /* Error progress bar color */
-.ant-notification-notice-error::after {
+body .ant-notification-notice-error::after {
   background: linear-gradient(90deg, #e07b7b, #ff9e9e) !important;
 }
 
-.ant-notification-notice-message,
-.ant-notification-notice-message *,
-.ant-notification-notice-message span {
+body .ant-notification-notice .ant-notification-notice-message,
+body .ant-notification-notice .ant-notification-notice-message *,
+body .ant-notification-notice-message,
+body .ant-notification-notice-message * {
   color: #ffffff !important;
   font-family: 'Cormorant Garamond', serif !important;
   font-size: 19px !important;
@@ -266,47 +267,48 @@
   letter-spacing: 0.5px !important;
 }
 
-.ant-notification-notice-description,
-.ant-notification-notice-description *,
-.ant-notification-notice-description span {
-  color: #a8a39e !important;
+body .ant-notification-notice .ant-notification-notice-description,
+body .ant-notification-notice .ant-notification-notice-description *,
+body .ant-notification-notice-description,
+body .ant-notification-notice-description * {
+  color: #c0b9b3 !important;
   font-size: 13px !important;
   font-family: 'Montserrat', sans-serif !important;
   line-height: 1.5 !important;
   margin-top: 4px !important;
 }
 
-.ant-notification-notice-close {
+body .ant-notification-notice-close {
   color: #7a7570 !important;
   transition: all 0.3s ease !important;
   top: 18px !important;
   right: 20px !important;
 }
 
-.ant-notification-notice-close:hover {
+body .ant-notification-notice-close:hover {
   color: #c9a96e !important;
   transform: rotate(90deg) scale(1.15);
 }
 
-.ant-notification-notice-icon {
+body .ant-notification-notice-icon {
   margin-top: 2px !important;
   font-size: 22px !important;
 }
 
 /* Success notification custom accent */
-.ant-notification-notice-success {
+body .ant-notification-notice-success {
   border-left: 4px solid #c9a96e !important;
 }
 
-.ant-notification-notice-success .ant-notification-notice-icon {
+body .ant-notification-notice-success .ant-notification-notice-icon {
   color: #c9a96e !important;
 }
 
 /* Error notification custom accent */
-.ant-notification-notice-error {
+body .ant-notification-notice-error {
   border-left: 4px solid #e07b7b !important;
 }
 
-.ant-notification-notice-error .ant-notification-notice-icon {
+body .ant-notification-notice-error .ant-notification-notice-icon {
   color: #e07b7b !important;
 }
