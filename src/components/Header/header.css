@@ -207,20 +207,6 @@
 }
 
 /* Ant Design Global Notification Dark-Gold Premium Glassmorphic Theme Override */
-@keyframes notificationSlideIn {
-  0% {
-    transform: translateX(120%) scale(0.9);
-    opacity: 0;
-  }
-  60% {
-    transform: translateX(-5%) scale(1.02);
-  }
-  100% {
-    transform: translateX(0) scale(1);
-    opacity: 1;
-  }
-}
-
 @keyframes notificationProgressBar {
   from {
     width: 100%;
@@ -231,17 +217,23 @@
 }
 
 .ant-notification-notice {
-  background: rgba(15, 15, 15, 0.85) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(201, 169, 110, 0.15) !important;
+  background: rgba(15, 15, 15, 0.95) !important;
+  backdrop-filter: blur(25px) !important;
+  -webkit-backdrop-filter: blur(25px) !important;
+  border: 1px solid rgba(201, 169, 110, 0.25) !important;
   border-radius: 8px !important;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
-  padding: 18px 24px !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+  padding: 20px 24px !important;
   font-family: 'Montserrat', sans-serif !important;
   overflow: hidden !important;
   position: relative !important;
-  animation: notificationSlideIn 0.50s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+  width: 380px !important;
+  min-height: 80px !important;
+  height: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
 }
 
 .ant-notification-notice::after {
@@ -264,19 +256,21 @@
 }
 
 .ant-notification-notice-message,
-.ant-notification-notice-message * {
+.ant-notification-notice-message *,
+.ant-notification-notice-message span {
   color: #ffffff !important;
   font-family: 'Cormorant Garamond', serif !important;
-  font-size: 18px !important;
+  font-size: 19px !important;
   font-weight: 500 !important;
   margin-bottom: 2px !important;
   letter-spacing: 0.5px !important;
 }
 
 .ant-notification-notice-description,
-.ant-notification-notice-description * {
+.ant-notification-notice-description *,
+.ant-notification-notice-description span {
   color: #a8a39e !important;
-  font-size: 12px !important;
+  font-size: 13px !important;
   font-family: 'Montserrat', sans-serif !important;
   line-height: 1.5 !important;
   margin-top: 4px !important;
