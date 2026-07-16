@@ -209,9 +209,8 @@ body {
 }
 
 .product-item.is-deleting {
-  opacity: 0.3;
-  transform: translateX(20px);
-  pointer-events: none;
+  border-color: #4d1f1f;
+  background: rgba(224, 123, 123, 0.02);
 }
 
 .product-info {
