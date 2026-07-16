@@ -7,8 +7,10 @@ function Home  () {
   return (
     <>
       <Header/>
-      <Katalog/>
-      <Cothing/>
+      <main>
+        <Katalog/>
+        <Cothing/>
+      </main>
      
 
     </>

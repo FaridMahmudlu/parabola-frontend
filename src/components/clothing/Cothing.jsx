@@ -212,7 +212,7 @@ function Clothing() {
   return (
     <div className="cothingcontainer">
       <div data-aos="fade-up" className="box">
-        <h1>Geyimlər</h1>
+        <h2>Geyimlər</h2>
         <div style={{ position: 'relative' }}>
           <div 
             className="cothingboxcontainer"
