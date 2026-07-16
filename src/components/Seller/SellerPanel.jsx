@@ -404,25 +404,47 @@ const SellerPanel = () => {
               <div className="form-field form-field--full" style={{ border: '1px solid #1a1a1a', padding: '20px', borderRadius: '4px', background: '#090909', marginTop: '10px' }}>
                 <label style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#c9a96e', marginBottom: '15px', display: 'block', textTransform: 'uppercase' }}>Geyim Rəngləri (Birdən çox seçilə bilər)</label>
                 <div className="color-checkbox-grid">
-                  {["Qara", "Ağ", "Mavi", "Qırmızı", "Yaşıl", "Sarı", "Boz", "Qəhvəyi", "Bej", "Krem"].map((c) => {
-                    const isColorChecked = !!selectedColors[c];
+                  {[
+                    { name: "Qara", hex: "#000000" },
+                    { name: "Ağ", hex: "#ffffff", border: "1px solid #555" },
+                    { name: "Mavi", hex: "#1e90ff" },
+                    { name: "Qırmızı", hex: "#ff4d4d" },
+                    { name: "Yaşıl", hex: "#2ed573" },
+                    { name: "Sarı", hex: "#ffa502" },
+                    { name: "Boz", hex: "#747d8c" },
+                    { name: "Qəhvəyi", hex: "#8b4513" },
+                    { name: "Bej", hex: "#f5f5dc" },
+                    { name: "Krem", hex: "#fffdd0" }
+                  ].map(({ name, hex, border }) => {
+                    const isColorChecked = !!selectedColors[name];
                     return (
-                      <label key={c} className="custom-checkbox-container">
+                      <label key={name} className="custom-checkbox-container">
                         <input 
                           type="checkbox" 
                           checked={isColorChecked} 
                           onChange={(e) => {
                             const next = { ...selectedColors };
                             if (e.target.checked) {
-                              next[c] = true;
+                              next[name] = true;
                             } else {
-                              delete next[c];
+                              delete next[name];
                             }
                             setSelectedColors(next);
                           }}
                         />
                         <span className="checkmark"></span>
-                        <span className="label-text">{c}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ 
+                            display: 'inline-block', 
+                            width: '10px', 
+                            height: '10px', 
+                            borderRadius: '50%', 
+                            background: hex, 
+                            border: border || 'none',
+                            boxShadow: '0 0 4px rgba(0,0,0,0.5)'
+                          }}></span>
+                          <span className="label-text">{name}</span>
+                        </div>
                       </label>
                     );
                   })}

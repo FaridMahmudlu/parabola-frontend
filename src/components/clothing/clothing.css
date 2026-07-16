@@ -621,6 +621,7 @@
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   transform: translateZ(0);
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .contact-seller-btn:hover {
@@ -631,6 +632,7 @@
 .contact-seller-btn.whatsapp-btn {
   background-color: #25D366 !important;
   border: none !important;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 }
 .contact-seller-btn.whatsapp-btn:hover {
   background-color: #20ba59 !important;
@@ -641,6 +643,7 @@
   background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%) !important;
   border: none !important;
   color: white !important;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 }
 .contact-seller-btn.instagram-btn:hover {
   box-shadow: 0 10px 25px rgba(220, 39, 67, 0.4);
@@ -651,6 +654,7 @@
   border: 1px solid #1a1a1a !important;
   color: white !important;
   box-shadow: -2px 0 0 #00f2fe, 2px 0 0 #fe0979 !important;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 }
 .contact-seller-btn.tiktok-btn:hover {
   box-shadow: -4px 0 15px #00f2fe, 4px 0 15px #fe0979 !important;
