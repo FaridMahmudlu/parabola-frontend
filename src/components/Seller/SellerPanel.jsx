@@ -130,15 +130,15 @@ const SellerPanel = () => {
     for (let f of selectedFiles) {
       if (f.size > 5 * 1024 * 1024) {
         notification.error({
-          message: "Xəta",
-          description: `${f.name} faylı 5MB-dan çoxdur!`
+          message: "Maksimum 5MB",
+          description: `${f.name} faylı çox böyükdür.`
         });
         continue;
       }
       if (!f.type.startsWith("image/")) {
         notification.error({
-          message: "Xəta",
-          description: `${f.name} şəkil formatında deyil!`
+          message: "Format xətası",
+          description: `${f.name} şəkil faylı deyil.`
         });
         continue;
       }
@@ -166,13 +166,13 @@ const SellerPanel = () => {
       });
       notification.success({
         message: "Məhsul silindi",
-        description: "Məhsul kataloqdan uğurla silindi!"
+        description: "Seçilmiş məhsul kataloqdan silindi."
       });
       setDeletingId(null);
     } catch (err) {
       const errMsg = err.response?.data?.message || err.message;
       notification.error({
-        message: "Xəta",
+        message: "Silinmə zamanı xəta",
         description: typeof errMsg === "string" ? errMsg : "Məhsul silinə bilmədi."
       });
     }
@@ -238,7 +238,7 @@ const SellerPanel = () => {
         });
         notification.success({
           message: "Məhsul yeniləndi",
-          description: "Geyim məlumatları uğurla redaktə olundu!"
+          description: "Məhsul məlumatları yeniləndi."
         });
       } else {
         // CREATE
@@ -257,7 +257,7 @@ const SellerPanel = () => {
         });
         notification.success({
           message: "Məhsul əlavə edildi",
-          description: "Yeni geyim uğurla kataloqa yerləşdirildi!"
+          description: "Yeni məhsul kataloqa yerləşdirildi."
         });
       }
 

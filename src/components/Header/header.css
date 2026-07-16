@@ -205,3 +205,63 @@
         transform: translateY(0);
     }
 }
+
+/* Ant Design Global Notification Dark-Gold Theme Override */
+.ant-notification-notice {
+  background-color: #0c0c0c !important;
+  border: 1px solid #1a1a1a !important;
+  border-radius: 4px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
+  padding: 16px 20px !important;
+  font-family: 'Montserrat', sans-serif !important;
+}
+
+.ant-notification-notice-message {
+  color: #f0ece4 !important;
+  font-family: 'Cormorant Garamond', serif !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  margin-bottom: 4px !important;
+  letter-spacing: 0.5px !important;
+}
+
+.ant-notification-notice-description {
+  color: #7a7570 !important;
+  font-size: 12px !important;
+  font-family: 'Montserrat', sans-serif !important;
+  line-height: 1.5 !important;
+}
+
+.ant-notification-notice-close {
+  color: #7a7570 !important;
+  transition: color 0.2s !important;
+  top: 16px !important;
+  right: 20px !important;
+}
+
+.ant-notification-notice-close:hover {
+  color: #c9a96e !important;
+}
+
+.ant-notification-notice-icon {
+  margin-top: 2px !important;
+  font-size: 20px !important;
+}
+
+/* Success notification custom accent */
+.ant-notification-notice-success {
+  border-left: 3px solid #c9a96e !important;
+}
+
+.ant-notification-notice-success .ant-notification-notice-icon {
+  color: #c9a96e !important;
+}
+
+/* Error notification custom accent */
+.ant-notification-notice-error {
+  border-left: 3px solid #e07b7b !important;
+}
+
+.ant-notification-notice-error .ant-notification-notice-icon {
+  color: #e07b7b !important;
+}
