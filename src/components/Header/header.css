@@ -321,65 +321,74 @@ body .ant-notification-notice-error .ant-notification-notice-icon * {
   color: #e07b7b !important;
 }
 
-/* Header Auth Buttons */
-.auth-btn-group {
+/* Header Auth Buttons (Highly Specific Selectors to override default nav links) */
+.parabolanavigation .auth-btn-group {
   display: flex;
-  gap: 25px;
+  gap: 20px;
   align-items: center;
   margin-left: 20px;
 }
 
-.btn-header-login {
-  color: rgba(255, 255, 255, 0.7);
+.parabolanavigation .auth-btn-group a.btn-header-login {
+  color: rgba(255, 255, 255, 0.8) !important;
   font-family: 'Montserrat', sans-serif;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-  text-decoration: none;
-  padding: 8px 0;
-  transition: color 0.4s ease;
-  background: transparent;
-  display: inline-flex;
-  position: relative;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  text-decoration: none !important;
+  padding: 8px 4px !important;
+  background: transparent !important;
+  transition: color 0.3s ease !important;
+  border: none !important;
 }
 
-.btn-header-login:hover {
-  color: #c9a96e;
+.parabolanavigation .auth-btn-group a.btn-header-login::after {
+  display: none !important; /* Remove the hover underline effect from generic nav links */
 }
 
-.btn-header-register {
-  color: #c9a96e;
+.parabolanavigation .auth-btn-group a.btn-header-login:hover {
+  color: #c9a96e !important;
+}
+
+.parabolanavigation .auth-btn-group a.btn-header-register {
+  color: #000 !important;
   font-family: 'Montserrat', sans-serif;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-  text-decoration: none;
-  padding: 10px 24px;
-  background: transparent;
-  border: 1px solid rgba(201, 169, 110, 0.5);
-  border-radius: 0;
-  transition: all 0.4s ease;
-  display: inline-flex;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  text-decoration: none !important;
+  padding: 10px 24px !important;
+  background: #c9a96e !important;
+  border: 1px solid #c9a96e !important;
+  border-radius: 4px !important;
+  transition: all 0.3s ease !important;
 }
 
-.btn-header-register:hover {
-  background: #c9a96e;
-  color: #000;
-  border-color: #c9a96e;
+.parabolanavigation .auth-btn-group a.btn-header-register::after {
+  display: none !important;
+}
+
+.parabolanavigation .auth-btn-group a.btn-header-register:hover {
+  background: #edd19c !important;
+  border-color: #edd19c !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 15px rgba(201, 169, 110, 0.3) !important;
 }
 
 @media screen and (max-width: 900px) {
-  .auth-btn-group {
+  .parabolanavigation .auth-btn-group {
     flex-direction: column;
     margin-left: 0;
     margin-top: 15px;
     width: 100%;
     gap: 15px;
   }
-  .btn-header-login, .btn-header-register {
+  .parabolanavigation .auth-btn-group a.btn-header-login,
+  .parabolanavigation .auth-btn-group a.btn-header-register {
     width: 100%;
+    text-align: center;
     justify-content: center;
   }
 }
