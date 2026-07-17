@@ -7,6 +7,7 @@ import { Navigate } from "react-router-dom";
 import { BASE_URL, translateError } from "../../pages/config";
 import { notification } from "antd";
 import { useUser, useAuth } from "@clerk/clerk-react";
+import { trackProductCreate } from "../../utils/analytics";
 import { FiEdit2, FiTrash2, FiX, FiUploadCloud } from "react-icons/fi";
 import { FaWhatsapp, FaInstagram } from "react-icons/fa";
 
@@ -291,6 +292,14 @@ const SellerPanel = () => {
           const next = [createdProduct, ...prev];
           localStorage.setItem(`parabola_seller_products_${user?.id}`, JSON.stringify(next));
           return next;
+        });
+        trackProductCreate({
+          name: createdProduct.name,
+          price: createdProduct.price,
+          brand: createdProduct.brand,
+          category: createdProduct.category,
+          sizes: createdProduct.sizes?.map(s => s.sizeName),
+          colors: createdProduct.color ? createdProduct.color.split(",").map(c => c.trim()) : [],
         });
         notification.success({
           message: "Məhsul əlavə edildi",

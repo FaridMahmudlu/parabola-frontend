@@ -10,6 +10,7 @@ import { notification } from 'antd'
 import { FiChevronLeft, FiChevronRight, FiMaximize2, FiX, FiLock } from 'react-icons/fi'
 import { FaWhatsapp, FaInstagram, FaTiktok, FaPhone } from 'react-icons/fa'
 import { Link } from 'react-router-dom'
+import { trackTryOnOpen, trackTryOnCalculate, trackContactClick } from '../../utils/analytics'
 
 function Clothing() {
   const [products, setProducts] = useState([])
@@ -64,6 +65,7 @@ function Clothing() {
     setRecommendation(null)
     setModalImageIndex(0)
     setLoadingRecommendation(true)
+    trackTryOnOpen(item)
 
     // Set default size
     if (item.sizes && item.sizes.length > 0) {
@@ -91,8 +93,15 @@ function Clothing() {
         headers: { Authorization: `Bearer ${token}` }
       })
       setRecommendation(data.sizeRecommendation)
-      if (data.sizeRecommendation && data.sizeRecommendation.recommendedSizeName) {
-        setSelectedSize(data.sizeRecommendation.recommendedSizeName);
+      if (data.sizeRecommendation) {
+        if (data.sizeRecommendation.recommendedSizeName) {
+          setSelectedSize(data.sizeRecommendation.recommendedSizeName);
+        }
+        trackTryOnCalculate(item, {
+          gender: data.sizeRecommendation.gender || "",
+          clothingSize: data.sizeRecommendation.clothingSize || "",
+          bodyType: data.sizeRecommendation.bodyType || "",
+        }, data.sizeRecommendation.matchPercentage || 0)
       }
     } catch (error) {
       console.error("Ölçü tövsiyəsi alınarkən xəta:", error)
@@ -176,6 +185,7 @@ function Clothing() {
   }
 
   const handleOrderMessage = (platform) => {
+    trackContactClick(selectedProduct, platform, selectedSize, selectedColor);
     const message = `Salam! Parabola vebsaytından bu məhsul ilə maraqlanıram:\n\n` +
                     `- Məhsul: ${selectedProduct.name}\n` +
                     `- Brend: ${selectedProduct.brand}\n` +

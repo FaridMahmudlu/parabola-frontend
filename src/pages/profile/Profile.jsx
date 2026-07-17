@@ -7,6 +7,7 @@ import "./profile.css"
 import axios from 'axios'
 import { BASE_URL, translateError } from '../config'
 import { useUser, useAuth } from '@clerk/clerk-react'
+import { trackProfileSave } from '../../utils/analytics'
 
 const Profile = () => {
   const { isLoaded, isSignedIn, user } = useUser()
@@ -83,6 +84,7 @@ const Profile = () => {
         }
       )
       setSavedData(payload)
+      trackProfileSave(payload)
       notification.success({
         message: "Məlumat yadda saxlanıldı",
         description: data || "Profil seçimləriniz uğurla yeniləndi!"
