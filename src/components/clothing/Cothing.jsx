@@ -12,6 +12,29 @@ import { FaWhatsapp, FaInstagram, FaTiktok, FaPhone } from 'react-icons/fa'
 import { Link } from 'react-router-dom'
 import { trackTryOnOpen, trackTryOnCalculate, trackContactClick } from '../../utils/analytics'
 
+const getSortedUniqueSizes = (sizes) => {
+  if (!sizes) return [];
+  const sizeOrder = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
+  
+  // Deduplicate by sizeName
+  const uniqueMap = {};
+  sizes.forEach(s => {
+    if (s && s.sizeName) {
+      uniqueMap[s.sizeName.toUpperCase()] = s;
+    }
+  });
+  
+  // Convert to array and sort according to sizeOrder index
+  return Object.values(uniqueMap).sort((a, b) => {
+    const indexA = sizeOrder.indexOf(a.sizeName.toUpperCase());
+    const indexB = sizeOrder.indexOf(b.sizeName.toUpperCase());
+    
+    const valA = indexA === -1 ? 999 : indexA;
+    const valB = indexB === -1 ? 999 : indexB;
+    return valA - valB;
+  });
+};
+
 function Clothing() {
   const [products, setProducts] = useState([])
   const [showModal, setShowModal] = useState(false)
@@ -287,7 +310,7 @@ function Clothing() {
                     </div>
 
                     <div className="cothingbtn">
-                      {item.sizes && item.sizes.map(s => (
+                      {getSortedUniqueSizes(item.sizes).map(s => (
                         <button key={s.id}>{s.sizeName}</button>
                       ))}
                     </div>
@@ -418,28 +441,26 @@ function Clothing() {
                     <div className="section" style={{ marginTop: '20px' }}>
                       <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>ÖLÇÜ SEÇİN</div>
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
-                        {selectedProduct.sizes
-                          .filter((value, index, self) => self.findIndex(t => t.sizeName === value.sizeName) === index)
-                          .map(s => (
-                            <button 
-                              key={s.id}
-                              onClick={() => setSelectedSize(s.sizeName)}
-                              style={{
-                                background: selectedSize === s.sizeName ? '#c9a96e' : '#141414',
-                                color: selectedSize === s.sizeName ? 'black' : '#f0ece4',
-                                border: '1px solid #1f1f1f',
-                                padding: '8px 16px',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontFamily: 'Montserrat, sans-serif',
-                                fontSize: '12px',
-                                fontWeight: '600',
-                                transition: 'all 0.2s ease'
-                              }}
-                            >
-                              {s.sizeName}
-                            </button>
-                          ))}
+                        {getSortedUniqueSizes(selectedProduct.sizes).map(s => (
+                          <button 
+                            key={s.id}
+                            onClick={() => setSelectedSize(s.sizeName)}
+                            style={{
+                              background: selectedSize === s.sizeName ? '#c9a96e' : '#141414',
+                              color: selectedSize === s.sizeName ? 'black' : '#f0ece4',
+                              border: '1px solid #1f1f1f',
+                              padding: '8px 16px',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontFamily: 'Montserrat, sans-serif',
+                              fontSize: '12px',
+                              fontWeight: '600',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            {s.sizeName}
+                          </button>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -499,16 +520,14 @@ function Clothing() {
                     <div className="section" style={{ marginTop: '20px' }}>
                       <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>GEYİM KƏSİMİ VƏ ÖLÇÜ DETALLARI</div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
-                        {selectedProduct.sizes
-                          .filter((value, index, self) => self.findIndex(t => t.sizeName === value.sizeName) === index)
-                          .map(s => (
-                            <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', borderBottom: '1px solid #1a1a1a', paddingBottom: '6px' }}>
-                              <span style={{ color: '#c9a96e', fontWeight: '500' }}>{s.sizeName} Ölçüsü</span>
-                              <span style={{ color: '#888' }}>
-                                Kəsim (Fit): {s.clothingFit || 'Standart'} • Manken Tipi: {s.modelBodyType || 'Normal'}
-                              </span>
-                            </div>
-                          ))}
+                        {getSortedUniqueSizes(selectedProduct.sizes).map(s => (
+                          <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', borderBottom: '1px solid #1a1a1a', paddingBottom: '6px' }}>
+                            <span style={{ color: '#c9a96e', fontWeight: '500' }}>{s.sizeName} Ölçüsü</span>
+                            <span style={{ color: '#888' }}>
+                              Kəsim (Fit): {s.clothingFit || 'Standart'} • Manken Tipi: {s.modelBodyType || 'Normal'}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
