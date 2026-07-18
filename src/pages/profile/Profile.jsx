@@ -62,6 +62,15 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    if (isSeller && (!shopName || !shopName.trim())) {
+      notification.error({
+        message: "Xəta",
+        description: "Profilinizi yadda saxlamaq üçün Mağaza adı mütləq daxil edilməlidir!"
+      })
+      return
+    }
+
     setLoading(true)
 
     const payload = {

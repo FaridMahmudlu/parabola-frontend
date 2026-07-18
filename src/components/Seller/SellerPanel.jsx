@@ -3,7 +3,7 @@ import axios from "axios";
 import "./seller.css";
 import Header from "../Header/Header";
 import CustomSelect from "../CustomSelect/CustomSelect";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { BASE_URL, translateError } from "../../pages/config";
 import { notification } from "antd";
 import { useUser, useAuth } from "@clerk/clerk-react";
@@ -38,6 +38,8 @@ const SellerPanel = () => {
 
   const [status, setStatus] = useState({ loading: false, error: null, ok: false });
   const [products, setProducts] = useState([]);
+  const [sellerShopName, setSellerShopName] = useState("");
+  const [profileLoading, setProfileLoading] = useState(true);
 
   const fetchMyProducts = async () => {
     if (!isSignedIn) return;
@@ -70,12 +72,35 @@ const SellerPanel = () => {
   };
 
   useEffect(() => {
+    const fetchProfile = async () => {
+      if (!isSignedIn) return;
+      try {
+        const token = await getToken();
+        const { data } = await axios.get(`${BASE_URL}/api/v1/users/profile`, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            "X-Clerk-Role": user?.publicMetadata?.role
+          }
+        });
+        if (data && data.shopName) {
+          setSellerShopName(data.shopName);
+        } else {
+          setSellerShopName("");
+        }
+      } catch (error) {
+        console.error("Profil məlumatları yüklənmədi:", error);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
     if (isSignedIn) {
+      fetchProfile();
       fetchMyProducts();
     }
   }, [isSignedIn, getToken]);
 
-  if (!isLoaded) {
+  if (!isLoaded || profileLoading) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#c9a96e' }}>Yüklənir...</div>;
   }
 
@@ -198,6 +223,11 @@ const SellerPanel = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus({ loading: true, error: null, ok: false });
+
+    if (!sellerShopName || !sellerShopName.trim()) {
+      setStatus({ loading: false, error: "Məhsul yarada bilmək üçün profilinizdə mütləq Mağaza Adı daxil etməlisiniz!", ok: false });
+      return;
+    }
 
     if (!gender || !style || !name || !brand || !category || !price) {
       setStatus({ loading: false, error: "Zəhmət olmasa bütün vacib geyim məlumatlarını daxil edin.", ok: false });
@@ -329,16 +359,28 @@ const SellerPanel = () => {
             {editingId ? "Məhsulu redaktə edin." : "Yeni geyim əlavə edin."}
           </p>
         </header>
-        <div className="panel-card">
-          {editingId && (
-            <div className="edit-banner">
-              <span>Redaktə rejimi — ID: {editingId}</span>
-              <button className="cancel-edit-btn" onClick={clearForm}>
-                <FiX /> Ləğv et
-              </button>
-            </div>
-          )}
-          <form className="panel-form" onSubmit={handleSubmit}>
+        {!sellerShopName ? (
+          <div className="panel-card" style={{ border: '1px solid #ff4d4f', background: 'rgba(255, 77, 79, 0.05)', textAlign: 'center', padding: '40px 20px', maxWidth: '800px', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+            <div style={{ color: '#ff4d4f', fontSize: '48px' }}>⚠️</div>
+            <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '24px', color: '#fff', margin: 0 }}>Mağaza Adı Tələb Olunur</h2>
+            <p style={{ color: '#aaa', fontSize: '14px', lineHeight: '1.6', margin: '0 0 10px 0', maxWidth: '500px' }}>
+              Məhsul əlavə edə bilmək üçün profilinizdə mütləq <strong>Mağaza adı</strong> təyin etməlisiniz.
+            </p>
+            <Link to="/profile" style={{ display: 'inline-block', background: '#c9a96e', color: 'black', padding: '12px 30px', borderRadius: '4px', textDecoration: 'none', fontWeight: '600', fontFamily: 'Montserrat, sans-serif', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Profilə Keç
+            </Link>
+          </div>
+        ) : (
+          <div className="panel-card">
+            {editingId && (
+              <div className="edit-banner">
+                <span>Redaktə rejimi — ID: {editingId}</span>
+                <button className="cancel-edit-btn" onClick={clearForm}>
+                  <FiX /> Ləğv et
+                </button>
+              </div>
+            )}
+            <form className="panel-form" onSubmit={handleSubmit}>
             <div className="form-grid">
               
               <div className="form-field">
@@ -590,6 +632,7 @@ const SellerPanel = () => {
             </button>
           </form>
         </div>
+        )}
 
         <div className="panel-product">
           <section className="products-section">
