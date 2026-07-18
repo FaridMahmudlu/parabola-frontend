@@ -1,9 +1,14 @@
 import React, { lazy, Suspense, useEffect } from 'react'
+import { notification } from 'antd'
 
 import { Routes, Route, useLocation } from "react-router-dom"
 import Home from './pages/Home/Home'
 import { initGA, trackPageView, trackEvent } from './utils/analytics'
 import { useUser } from '@clerk/clerk-react'
+
+notification.config({
+  maxCount: 1
+})
 
 const Register = lazy(() => import('./pages/register/Register'))
 const Login = lazy(() => import('./pages/login/Login'))
