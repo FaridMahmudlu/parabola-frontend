@@ -82,17 +82,6 @@ function Clothing() {
     getProducts()
   }, [isSignedIn, getToken])
 
-  useEffect(() => {
-    if (showModal) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [showModal])
-
   const handleTryOn = async (item) => {
     setSelectedProduct(item)
     setShowModal(true)
