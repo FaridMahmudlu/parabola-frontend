@@ -84,12 +84,6 @@ function Clothing() {
   }, [isSignedIn, getToken])
 
   const handleTryOn = async (item) => {
-    // Daxil olmamış istifadəçini qeydiyyat səhifəsinə yönləndir
-    if (!isSignedIn) {
-      navigate('/register')
-      return
-    }
-
     setSelectedProduct(item)
     setShowModal(true)
     setRecommendation(null)
@@ -110,6 +104,11 @@ function Clothing() {
       setSelectedColor(cols[0].trim());
     } else {
       setSelectedColor("");
+    }
+
+    if (!isSignedIn) {
+      setLoadingRecommendation(false)
+      return
     }
 
     try {
@@ -370,30 +369,70 @@ function Clothing() {
                     )}
                   </div>
                   
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '24px', width: '100%', justifyContent: 'space-between', padding: '16px', background: '#090909', border: '1px solid #1a1a1a', borderRadius: '4px' }}>
-                    <div style={{ position: 'relative', width: '90px', height: '90px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <svg width="90" height="90" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-                        <circle cx="50" cy="50" r="40" stroke="#141414" strokeWidth="8" fill="transparent" />
-                        <circle cx="50" cy="50" r="40" stroke="#c9a96e" strokeWidth="8" fill="transparent" 
-                                strokeDasharray="251.2" 
-                                strokeDashoffset={251.2 - (251.2 * (!isSignedIn ? 0 : (recommendation ? recommendation.matchPercentage : 0))) / 100}
-                                strokeLinecap="round"
-                                style={{ transition: 'stroke-dashoffset 0.8s ease-in-out', filter: 'drop-shadow(0 0 4px rgba(201, 169, 110, 0.4))' }} />
-                      </svg>
-                      <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#c9a96e', fontFamily: 'Montserrat, sans-serif' }}>
-                          {!isSignedIn ? "?" : (loadingRecommendation ? "..." : (recommendation ? `${recommendation.matchPercentage}%` : "0%"))}
+                  <div style={{ position: 'relative', width: '100%', overflow: 'hidden', borderRadius: '4px' }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '24px', 
+                      width: '100%', 
+                      justifyContent: 'space-between', 
+                      padding: '16px', 
+                      background: '#090909', 
+                      border: '1px solid #1a1a1a', 
+                      borderRadius: '4px',
+                      filter: !isSignedIn ? 'blur(5px)' : 'none',
+                      pointerEvents: !isSignedIn ? 'none' : 'auto',
+                      userSelect: !isSignedIn ? 'none' : 'auto'
+                    }}>
+                      <div style={{ position: 'relative', width: '90px', height: '90px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="90" height="90" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
+                          <circle cx="50" cy="50" r="40" stroke="#141414" strokeWidth="8" fill="transparent" />
+                          <circle cx="50" cy="50" r="40" stroke="#c9a96e" strokeWidth="8" fill="transparent" 
+                                  strokeDasharray="251.2" 
+                                  strokeDashoffset={251.2 - (251.2 * (!isSignedIn ? 0 : (recommendation ? recommendation.matchPercentage : 0))) / 100}
+                                  strokeLinecap="round"
+                                  style={{ transition: 'stroke-dashoffset 0.8s ease-in-out', filter: 'drop-shadow(0 0 4px rgba(201, 169, 110, 0.4))' }} />
+                        </svg>
+                        <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                          <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#c9a96e', fontFamily: 'Montserrat, sans-serif' }}>
+                            {!isSignedIn ? "?" : (loadingRecommendation ? "..." : (recommendation ? `${recommendation.matchPercentage}%` : "0%"))}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="score" style={{ flexGrow: 1 }}>
+                        <div className="score-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570', textTransform: 'uppercase', marginBottom: '4px' }}>
+                          Ağıllı Uyğunluq
+                        </div>
+                        <div className="score-status" style={{ fontSize: '16px', fontWeight: '500', color: !isSignedIn ? '#7a7570' : (recommendation && recommendation.matchPercentage > 75 ? '#c9a96e' : '#f0ece4'), fontFamily: 'Cormorant Garamond, serif', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                          {!isSignedIn ? "Daxil olun" : (loadingRecommendation ? "Hesablanır..." : (recommendation && recommendation.matchPercentage > 0 ? "Bədəninizə Uyğundur" : "Tam Uyğun Deyil"))}
+                        </div>
+                      </div>
+                    </div>
+                    {!isSignedIn && (
+                      <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 2,
+                        textAlign: 'center',
+                        padding: '10px',
+                        background: 'rgba(0,0,0,0.4)'
+                      }}>
+                        <span style={{ fontSize: '11px', fontWeight: '700', color: '#c9a96e', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase', letterSpacing: '1px', textShadow: '0 2px 4px rgba(0,0,0,0.9)' }}>
+                          Uyğunluq faizini görmək üçün
                         </span>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                          <a href="/login" style={{ fontSize: '10px', fontWeight: '700', color: '#000', background: '#c9a96e', padding: '4px 12px', borderRadius: '4px', textDecoration: 'none', transition: 'all 0.2s', fontFamily: 'Montserrat, sans-serif' }}>Daxil Ol</a>
+                          <a href="/register" style={{ fontSize: '10px', fontWeight: '700', color: '#c9a96e', border: '1px solid #c9a96e', padding: '3px 11px', borderRadius: '4px', textDecoration: 'none', transition: 'all 0.2s', fontFamily: 'Montserrat, sans-serif' }}>Qeydiyyat</a>
+                        </div>
                       </div>
-                    </div>
-                    <div className="score" style={{ flexGrow: 1 }}>
-                      <div className="score-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570', textTransform: 'uppercase', marginBottom: '4px' }}>
-                        Ağıllı Uyğunluq
-                      </div>
-                      <div className="score-status" style={{ fontSize: '16px', fontWeight: '500', color: !isSignedIn ? '#7a7570' : (recommendation && recommendation.matchPercentage > 75 ? '#c9a96e' : '#f0ece4'), fontFamily: 'Cormorant Garamond, serif', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        {!isSignedIn ? "Daxil olun" : (loadingRecommendation ? "Hesablanır..." : (recommendation && recommendation.matchPercentage > 0 ? "Bədəninizə Uyğundur" : "Tam Uyğun Deyil"))}
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </div>
 
@@ -484,21 +523,56 @@ function Clothing() {
                     </div>
                   )}
 
-                  <div className="section" style={{ marginTop: '20px' }}>
+                  <div className="section" style={{ marginTop: '20px', position: 'relative', overflow: 'hidden', borderRadius: '4px' }}>
                     <div className="section-label">AĞILLI ÖLÇÜ TÖVSİYƏSİ</div>
-                    <div className="recommendation" style={{ color: '#c9a96e', fontSize: '16px', lineHeight: '1.6', marginTop: '5px' }}>
-                      {!isSignedIn ? (
-                        <span>
-                          Ağıllı ölçü hesablama və uyğunluq analizi üçün zəhmət olmasa <a href="/login" style={{ color: '#c9a96e', textDecoration: 'underline' }}>Daxil Olun</a>.
-                        </span>
-                      ) : (
+                    <div 
+                      className="recommendation" 
+                      style={{ 
+                        color: '#c9a96e', 
+                        fontSize: '14px', 
+                        lineHeight: '1.6', 
+                        marginTop: '5px',
+                        filter: !isSignedIn ? 'blur(5px)' : 'none',
+                        pointerEvents: !isSignedIn ? 'none' : 'auto',
+                        userSelect: !isSignedIn ? 'none' : 'auto',
+                        minHeight: !isSignedIn ? '60px' : 'auto'
+                      }}
+                    >
+                      {isSignedIn ? (
                         loadingRecommendation 
                           ? "Analiz edilir..." 
                           : recommendation 
                             ? recommendation.feedbackMessage 
                             : "Ölçü hesablana bilmədi. Zəhmət olmasa profilinizdə ölçüləri daxil etdiyinizdən əmin olun."
+                      ) : (
+                        "Bu geyimin bədən ölçülərinizə uyğun gəlib-gəlmədiyini və sizə ən uyğun olan geyim ölçüsünü öyrənmək üçün ağıllı tövsiyə sistemimizdən istifadə edin."
                       )}
                     </div>
+                    {!isSignedIn && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '20px',
+                        left: 0,
+                        width: '100%',
+                        height: 'calc(100% - 20px)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 2,
+                        textAlign: 'center',
+                        background: 'rgba(0,0,0,0.4)',
+                        padding: '10px'
+                      }}>
+                        <span style={{ fontSize: '11px', fontWeight: '700', color: '#c9a96e', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase', letterSpacing: '1px', textShadow: '0 2px 4px rgba(0,0,0,0.9)' }}>
+                          Ölçü tövsiyəsini görmək üçün
+                        </span>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                          <a href="/login" style={{ fontSize: '10px', fontWeight: '700', color: '#000', background: '#c9a96e', padding: '4px 12px', borderRadius: '4px', textDecoration: 'none', transition: 'all 0.2s', fontFamily: 'Montserrat, sans-serif' }}>Daxil Ol</a>
+                          <a href="/register" style={{ fontSize: '10px', fontWeight: '700', color: '#c9a96e', border: '1px solid #c9a96e', padding: '3px 11px', borderRadius: '4px', textDecoration: 'none', transition: 'all 0.2s', fontFamily: 'Montserrat, sans-serif' }}>Qeydiyyat</a>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Geyim Kəsimi və Manken Uyğunluğu */}
