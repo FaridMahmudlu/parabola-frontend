@@ -7,9 +7,9 @@ import "aos/dist/aos.css"
 import { BASE_URL } from '../../pages/config'
 import { useUser, useAuth } from '@clerk/clerk-react'
 import { notification } from 'antd'
-import { FiChevronLeft, FiChevronRight, FiMaximize2, FiX, FiLock } from 'react-icons/fi'
+import { FiChevronLeft, FiChevronRight, FiMaximize2, FiX } from 'react-icons/fi'
 import { FaWhatsapp, FaInstagram, FaTiktok, FaPhone } from 'react-icons/fa'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { trackTryOnOpen, trackTryOnCalculate, trackContactClick } from '../../utils/analytics'
 
 const getSortedUniqueSizes = (sizes) => {
@@ -36,6 +36,7 @@ const getSortedUniqueSizes = (sizes) => {
 };
 
 function Clothing() {
+  const navigate = useNavigate()
   const [products, setProducts] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState(null)
@@ -83,6 +84,12 @@ function Clothing() {
   }, [isSignedIn, getToken])
 
   const handleTryOn = async (item) => {
+    // Daxil olmamış istifadəçini qeydiyyat səhifəsinə yönləndir
+    if (!isSignedIn) {
+      navigate('/register')
+      return
+    }
+
     setSelectedProduct(item)
     setShowModal(true)
     setRecommendation(null)
@@ -103,11 +110,6 @@ function Clothing() {
       setSelectedColor(cols[0].trim());
     } else {
       setSelectedColor("");
-    }
-
-    if (!isSignedIn) {
-      setLoadingRecommendation(false)
-      return
     }
 
     try {
@@ -246,11 +248,8 @@ function Clothing() {
     <div className="cothingcontainer">
       <div data-aos="fade-up" className="box">
         <h2>Geyimlər</h2>
-        <div style={{ position: 'relative' }}>
-          <div 
-            className="cothingboxcontainer"
-            style={!isSignedIn ? { filter: 'blur(10px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.5 } : {}}
-          >
+        <div>
+          <div className="cothingboxcontainer">
             {products.map((item, index) => {
               const cardImages = item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls : [item.imageUrl].filter(Boolean)
               const activeIdx = activeImageIndexes[item.id] || 0
@@ -326,19 +325,6 @@ function Clothing() {
             })}
           </div>
 
-          {!isSignedIn && (
-            <div className="catalog-locked-overlay">
-              <div className="catalog-locked-content">
-                <FiLock className="locked-icon" />
-                <h2>Kataloqu görmək üçün daxil olun</h2>
-                <p>Məhsulları incələmək və bədən ölçünüzə uyğunluğunu yoxlamaq üçün hesaba daxil olmalısınız.</p>
-                <div className="locked-auth-buttons">
-                  <Link to="/login" className="btn-locked-login">Daxil Ol</Link>
-                  <Link to="/register" className="btn-locked-register">Qeydiyyat</Link>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
         {showModal && selectedProduct && (
           <div className="modal-overlay">

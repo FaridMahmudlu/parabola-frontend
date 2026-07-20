@@ -8,7 +8,7 @@ function Login() {
     <>
       <Header />
       <div className='FormLoginContainer' style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', padding: '20px 0' }}>
-        <SignIn signUpUrl="/register" redirectUrl="/profile" />
+        <SignIn signUpUrl="/register" afterSignInUrl="/profile" forceRedirectUrl="/profile" />
       </div>
     </>
   )

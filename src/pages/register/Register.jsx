@@ -8,7 +8,7 @@ function Register() {
     <>
       <Header />
       <div className='FormContainer' style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', padding: '20px 0' }}>
-        <SignUp signInUrl="/login" redirectUrl="/profile" />
+        <SignUp signInUrl="/login" afterSignUpUrl="/profile" forceRedirectUrl="/profile" />
       </div>
     </>
   )
