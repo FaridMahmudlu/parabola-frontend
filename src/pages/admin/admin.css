@@ -1,0 +1,315 @@
+/* Admin Panel Styles */
+
+.admin-wrapper {
+  min-height: 100vh;
+  background-color: #050505;
+  color: #f0ece4;
+  font-family: 'Montserrat', sans-serif;
+  padding: 40px 20px 80px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.admin-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 35px;
+  padding-bottom: 25px;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.admin-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 36px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.admin-title span {
+  color: #c9a96e;
+}
+
+.admin-subtitle {
+  color: #8a8580;
+  font-size: 14px;
+}
+
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.admin-stat-card {
+  background: #0d0d0d;
+  border: 1px solid #1a1a1a;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(201, 169, 110, 0.4);
+}
+
+.stat-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  background: rgba(201, 169, 110, 0.1);
+  color: #c9a96e;
+}
+
+.stat-info .stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.stat-info .stat-label {
+  font-size: 12px;
+  color: #7a7570;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+.admin-controls-bar {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+  background: #090909;
+  padding: 16px 20px;
+  border-radius: 8px;
+  border: 1px solid #161616;
+}
+
+.search-box-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+}
+
+.search-box-wrapper input {
+  width: 100%;
+  background: #141414;
+  border: 1px solid #222222;
+  border-radius: 6px;
+  padding: 12px 16px 12px 42px;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.search-box-wrapper input:focus {
+  border-color: #c9a96e;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #7a7570;
+  font-size: 16px;
+}
+
+.role-filter-group {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-chip {
+  background: #141414;
+  border: 1px solid #222;
+  color: #a09a94;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-chip:hover, .filter-chip.active {
+  background: #c9a96e;
+  color: #000;
+  border-color: #c9a96e;
+  font-weight: 600;
+}
+
+/* Table styling */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #1a1a1a;
+  border-radius: 8px;
+  background: #080808;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-table th {
+  background: #0e0e0e;
+  color: #7a7570;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #1a1a1a;
+  font-weight: 600;
+}
+
+.admin-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #141414;
+  font-size: 13px;
+  color: #e0dcd5;
+}
+
+.admin-table tr:hover td {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c9a96e 0%, #8a6f3b 100%);
+  color: #000;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.user-details .username {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.user-details .email {
+  font-size: 12px;
+  color: #7a7570;
+}
+
+/* Role Badges */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.role-badge.badge-user {
+  background: rgba(120, 120, 120, 0.15);
+  color: #b0b0b0;
+  border: 1px solid rgba(120, 120, 120, 0.3);
+}
+
+.role-badge.badge-seller {
+  background: rgba(201, 169, 110, 0.15);
+  color: #c9a96e;
+  border: 1px solid rgba(201, 169, 110, 0.4);
+}
+
+.role-badge.badge-admin {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.action-buttons-cell {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-action-role {
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: 'Montserrat', sans-serif;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-make-seller {
+  background: #c9a96e;
+  color: #000;
+}
+
+.btn-make-seller:hover {
+  background: #edd19c;
+  transform: translateY(-1px);
+}
+
+.btn-make-user {
+  background: #222222;
+  color: #a0a0a0;
+  border: 1px solid #333;
+}
+
+.btn-make-user:hover {
+  background: #333333;
+  color: #ffffff;
+}
+
+.btn-make-admin {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.btn-make-admin:hover {
+  background: rgba(168, 85, 247, 0.4);
+  color: #ffffff;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #7a7570;
+}

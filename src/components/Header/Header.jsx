@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { CgMenuRight, CgClose } from "react-icons/cg";
-import { FiGrid, FiUser, FiSliders, FiLogIn, FiUserPlus } from "react-icons/fi";
+import { FiGrid, FiUser, FiSliders, FiShield, FiLogIn, FiUserPlus } from "react-icons/fi";
 import "./header.css"
 import { Link, useLocation } from 'react-router-dom'
 import { useUser, useAuth, UserButton } from '@clerk/clerk-react'
@@ -12,30 +12,39 @@ function Header() {
   const { getToken } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
   const [isSeller, setIsSeller] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const location = useLocation()
 
   useEffect(() => {
     if (isSignedIn) {
+      const email = user?.primaryEmailAddress?.emailAddress?.toLowerCase() || ""
       if (user?.publicMetadata?.role === 'ROLE_SELLER') {
         setIsSeller(true)
-      } else {
-        const checkProfile = async () => {
-          try {
-            const token = await getToken()
-            const { data } = await axios.get(`${BASE_URL}/api/v1/users/profile`, {
-              headers: { Authorization: `Bearer ${token}` }
-            })
-            if (data && (data.role === 'ROLE_SELLER' || (data.shopName && data.shopName.trim()))) {
-              setIsSeller(true)
-            }
-          } catch (e) {
-            // ignore
-          }
-        }
-        checkProfile()
       }
+      if (user?.publicMetadata?.role === 'ROLE_ADMIN' || email.includes('turalabdullayev') || email.includes('seid')) {
+        setIsAdmin(true)
+      }
+
+      const checkProfile = async () => {
+        try {
+          const token = await getToken()
+          const { data } = await axios.get(`${BASE_URL}/api/v1/users/profile`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          if (data && (data.role === 'ROLE_SELLER' || (data.shopName && data.shopName.trim()))) {
+            setIsSeller(true)
+          }
+          if (data && (data.role === 'ROLE_ADMIN' || email.includes('turalabdullayev') || email.includes('seid'))) {
+            setIsAdmin(true)
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+      checkProfile()
     } else {
       setIsSeller(false)
+      setIsAdmin(false)
     }
   }, [isSignedIn, user, getToken])
 
@@ -92,6 +101,19 @@ function Header() {
                       >
                         <FiSliders className="nav-icon" />
                         <span>Satıcı Paneli</span>
+                      </Link>
+                    </li>
+                  )}
+                  {isAdmin && (
+                    <li>
+                      <Link 
+                        to="/admin" 
+                        className={isActive('/admin') ? 'active-link' : ''} 
+                        onClick={() => setMenuOpen(false)}
+                        style={{ color: '#c084fc' }}
+                      >
+                        <FiShield className="nav-icon" />
+                        <span>Admin Panel</span>
                       </Link>
                     </li>
                   )}
