@@ -29,15 +29,17 @@ const AdminPanel = () => {
       try {
         const token = await getToken()
         const clerkRoleHeader = user?.publicMetadata?.role || ""
+        const userEmailHeader = user?.primaryEmailAddress?.emailAddress || ""
         const { data } = await axios.get(`${BASE_URL}/api/v1/admin/check`, {
           headers: { 
             Authorization: `Bearer ${token}`,
-            ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {})
+            ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {}),
+            ...(userEmailHeader ? { "X-Clerk-User-Email": userEmailHeader } : {})
           }
         })
         if (data && data.isAdmin) {
           setIsAdmin(true)
-          fetchUsersList(token, clerkRoleHeader)
+          fetchUsersList(token, clerkRoleHeader, userEmailHeader)
         } else {
           setIsAdmin(false)
         }
@@ -56,15 +58,17 @@ const AdminPanel = () => {
     }
   }, [isSignedIn, isLoaded, getToken, user])
 
-  const fetchUsersList = async (authToken, roleHeader) => {
+  const fetchUsersList = async (authToken, roleHeader, emailHeader) => {
     setLoadingUsers(true)
     try {
       const token = authToken || (await getToken())
       const clerkRoleHeader = roleHeader || user?.publicMetadata?.role || ""
+      const userEmailHeader = emailHeader || user?.primaryEmailAddress?.emailAddress || ""
       const { data } = await axios.get(`${BASE_URL}/api/v1/admin/users`, {
         headers: { 
           Authorization: `Bearer ${token}`,
-          ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {})
+          ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {}),
+          ...(userEmailHeader ? { "X-Clerk-User-Email": userEmailHeader } : {})
         }
       })
       setUsersList(data)
@@ -84,13 +88,15 @@ const AdminPanel = () => {
     try {
       const token = await getToken()
       const clerkRoleHeader = user?.publicMetadata?.role || ""
+      const userEmailHeader = user?.primaryEmailAddress?.emailAddress || ""
       const { data } = await axios.put(
         `${BASE_URL}/api/v1/admin/users/${targetUserId}/role`,
         { role: newRoleStr },
         {
           headers: { 
             Authorization: `Bearer ${token}`,
-            ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {})
+            ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {}),
+            ...(userEmailHeader ? { "X-Clerk-User-Email": userEmailHeader } : {})
           }
         }
       )
