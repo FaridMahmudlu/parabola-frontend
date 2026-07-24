@@ -28,10 +28,11 @@ const Profile = () => {
       const fetchProfile = async () => {
         try {
           const token = await getToken()
+          const clerkRoleHeader = user?.publicMetadata?.role || ""
           const { data } = await axios.get(`${BASE_URL}/api/v1/users/profile`, {
             headers: { 
               Authorization: `Bearer ${token}`,
-              "X-Clerk-Role": user?.publicMetadata?.role
+              ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {})
             }
           })
           if (data) {
@@ -82,13 +83,14 @@ const Profile = () => {
 
     try {
       const token = await getToken()
+      const clerkRoleHeader = user?.publicMetadata?.role || ""
       const { data } = await axios.put(
         `${BASE_URL}/api/v1/users/profile`,
         payload,
         { 
           headers: { 
             Authorization: `Bearer ${token}`,
-            "X-Clerk-Role": user?.publicMetadata?.role
+            ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {})
           } 
         }
       )

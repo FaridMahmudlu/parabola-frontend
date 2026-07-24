@@ -57,10 +57,11 @@ const SellerPanel = () => {
       }
 
       const token = await getToken();
+      const clerkRoleHeader = user?.publicMetadata?.role || "";
       const res = await axios.get(`${BASE_URL}/api/v1/products/my`, {
         headers: { 
           Authorization: `Bearer ${token}`,
-          "X-Clerk-Role": user?.publicMetadata?.role
+          ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {})
         }
       });
       setProducts(res.data);
@@ -76,10 +77,11 @@ const SellerPanel = () => {
       if (!isSignedIn) return;
       try {
         const token = await getToken();
+        const clerkRoleHeader = user?.publicMetadata?.role || "";
         const { data } = await axios.get(`${BASE_URL}/api/v1/users/profile`, {
           headers: { 
             Authorization: `Bearer ${token}`,
-            "X-Clerk-Role": user?.publicMetadata?.role
+            ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {})
           }
         });
         if (data && data.shopName) {
@@ -104,7 +106,9 @@ const SellerPanel = () => {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#c9a96e' }}>Yüklənir...</div>;
   }
 
-  if (!isSignedIn || user?.publicMetadata?.role !== "ROLE_SELLER") {
+  const isSellerRole = user?.publicMetadata?.role === "ROLE_SELLER" || !!sellerShopName;
+
+  if (!isSignedIn || !isSellerRole) {
     return <Navigate to="/" />;
   }
 
@@ -195,10 +199,11 @@ const SellerPanel = () => {
   const handleDelete = async (id) => {
     try {
       const token = await getToken();
+      const clerkRoleHeader = user?.publicMetadata?.role || "";
       await axios.delete(`${BASE_URL}/api/v1/products/${id}`, {
         headers: { 
           Authorization: `Bearer ${token}`,
-          "X-Clerk-Role": user?.publicMetadata?.role
+          ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {})
         }
       });
       setProducts(prev => {
@@ -288,6 +293,7 @@ const SellerPanel = () => {
 
     try {
       const token = await getToken();
+      const clerkRoleHeader = user?.publicMetadata?.role || "";
 
       if (editingId) {
         // UPDATE
@@ -295,7 +301,7 @@ const SellerPanel = () => {
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
-            "X-Clerk-Role": user?.publicMetadata?.role
+            ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {})
           }
         });
         const updatedProduct = res.data;
@@ -314,7 +320,7 @@ const SellerPanel = () => {
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
-            "X-Clerk-Role": user?.publicMetadata?.role
+            ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {})
           }
         });
         const createdProduct = res.data;
