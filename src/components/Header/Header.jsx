@@ -7,6 +7,12 @@ import { useUser, useAuth, UserButton } from '@clerk/clerk-react'
 import axios from 'axios'
 import { BASE_URL } from '../../pages/config'
 
+const ALLOWED_ADMIN_EMAILS = [
+  "mleykmahmudlu@gmail.com",
+  "fariddmahmudlu2008@gmail.com",
+  "qeyisovli@gmail.com"
+];
+
 function Header() {
   const { isSignedIn, user } = useUser()
   const { getToken } = useAuth()
@@ -17,11 +23,13 @@ function Header() {
 
   useEffect(() => {
     if (isSignedIn) {
-      const email = user?.primaryEmailAddress?.emailAddress?.toLowerCase() || ""
+      const email = user?.primaryEmailAddress?.emailAddress?.toLowerCase()?.trim() || ""
+      const isAllowedAdmin = ALLOWED_ADMIN_EMAILS.includes(email)
+
       if (user?.publicMetadata?.role === 'ROLE_SELLER') {
         setIsSeller(true)
       }
-      if (user?.publicMetadata?.role === 'ROLE_ADMIN' || email.includes('turalabdullayev') || email.includes('seid')) {
+      if (isAllowedAdmin) {
         setIsAdmin(true)
       }
 
@@ -34,7 +42,7 @@ function Header() {
           if (data && (data.role === 'ROLE_SELLER' || (data.shopName && data.shopName.trim()))) {
             setIsSeller(true)
           }
-          if (data && (data.role === 'ROLE_ADMIN' || email.includes('turalabdullayev') || email.includes('seid'))) {
+          if (isAllowedAdmin || (data && data.role === 'ROLE_ADMIN' && ALLOWED_ADMIN_EMAILS.includes(data.email?.toLowerCase()))) {
             setIsAdmin(true)
           }
         } catch (e) {
