@@ -145,10 +145,13 @@ const AdminPanel = () => {
       (u.shopName && u.shopName.toLowerCase().includes(searchQuery.toLowerCase()))
     
     if (filterRole === 'ALL') return matchesSearch
+    if (filterRole === 'ROLE_SELLER') {
+      return matchesSearch && (u.role === 'ROLE_SELLER' || u.role === 'ROLE_ADMIN')
+    }
     return matchesSearch && u.role === filterRole
   })
 
-  const totalSellers = usersList.filter(u => u.role === 'ROLE_SELLER').length
+  const totalSellers = usersList.filter(u => u.role === 'ROLE_SELLER' || u.role === 'ROLE_ADMIN').length
   const totalAdmins = usersList.filter(u => u.role === 'ROLE_ADMIN').length
   const totalUsers = usersList.filter(u => u.role === 'ROLE_USER').length
 

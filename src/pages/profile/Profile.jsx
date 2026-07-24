@@ -25,14 +25,6 @@ const Profile = () => {
 
   const isSeller = user?.publicMetadata?.role === "ROLE_SELLER"
 
-  if (!isLoaded) {
-    return <LoadingSpinner text="Profil məlumatları yüklənir..." fullScreen={true} />
-  }
-
-  if (!isSignedIn) {
-    return <Navigate to="/login" />
-  }
-
   useEffect(() => {
     if (isSignedIn) {
       const fetchProfile = async () => {
@@ -61,10 +53,10 @@ const Profile = () => {
       }
       fetchProfile()
     }
-  }, [isSignedIn, getToken])
+  }, [isSignedIn, getToken, user])
 
   if (!isLoaded) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#c9a96e' }}>Yüklənir...</div>
+    return <LoadingSpinner text="Profil məlumatları yüklənir..." fullScreen={true} />
   }
 
   if (!isSignedIn) {
