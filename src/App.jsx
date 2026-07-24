@@ -3,6 +3,7 @@ import { notification } from 'antd'
 
 import { Routes, Route, useLocation } from "react-router-dom"
 import Home from './pages/Home/Home'
+import LoadingSpinner from './components/Loading/LoadingSpinner'
 import { initGA, trackPageView, trackEvent } from './utils/analytics'
 import { useUser } from '@clerk/clerk-react'
 
@@ -41,7 +42,7 @@ const App = () => {
 
   return (
     <div>
-      <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#c9a96e', background: 'black' }}>Yüklənir...</div>}>
+      <Suspense fallback={<LoadingSpinner text="Səhifə yüklənir..." fullScreen={true} />}>
         <Routes>
           <Route path='/' element={<Home/>}/>
           <Route path='/register' element={<Register/>}/>

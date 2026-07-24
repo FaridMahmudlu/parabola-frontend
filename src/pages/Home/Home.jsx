@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react'
 import Header from '../../components/Header/Header'
 import Katalog from '../../components/katalog/Katalog'
+import LoadingSpinner from '../../components/Loading/LoadingSpinner'
 
 const Cothing = lazy(() => import('../../components/clothing/Cothing'))
 
@@ -10,7 +11,7 @@ function Home() {
       <Header/>
       <main>
         <Katalog/>
-        <Suspense fallback={<div style={{ padding: '40px', textAlign: 'center', color: '#c9a96e', fontFamily: 'Montserrat, sans-serif', fontSize: '14px', letterSpacing: '1px' }}>Katalog yüklənir...</div>}>
+        <Suspense fallback={<LoadingSpinner text="Geyim kataloqu yüklənir..." fullScreen={false} iconType="catalog" />}>
           <Cothing/>
         </Suspense>
       </main>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import Header from '../../components/Header/Header'
+import LoadingSpinner from '../../components/Loading/LoadingSpinner'
 import { useUser, useAuth } from '@clerk/clerk-react'
 import { Navigate } from 'react-router-dom'
 import axios from 'axios'
@@ -125,11 +126,7 @@ const AdminPanel = () => {
   }
 
   if (!isLoaded || loadingCheck) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#c9a96e', background: '#050505' }}>
-        Təhlükəsizlik icazələri yoxlanılır...
-      </div>
-    )
+    return <LoadingSpinner text="Təhlükəsizlik icazələri yoxlanılır..." fullScreen={true} iconType="admin" />
   }
 
   if (!isSignedIn || !isAdmin) {
@@ -252,7 +249,9 @@ const AdminPanel = () => {
             <tbody>
               {loadingUsers ? (
                 <tr>
-                  <td colSpan="5" className="empty-state">Yüklənir...</td>
+                  <td colSpan="5" className="empty-state">
+                    <LoadingSpinner text="İstifadəçilər gətirilir..." fullScreen={false} iconType="admin" />
+                  </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>

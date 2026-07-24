@@ -9,6 +9,8 @@ import { BASE_URL, translateError } from '../config'
 import { useUser, useAuth } from '@clerk/clerk-react'
 import { trackProfileSave } from '../../utils/analytics'
 
+import LoadingSpinner from '../../components/Loading/LoadingSpinner'
+
 const Profile = () => {
   const { isLoaded, isSignedIn, user } = useUser()
   const { getToken } = useAuth()
@@ -22,6 +24,14 @@ const Profile = () => {
   const [savedData, setSavedData] = useState(null)
 
   const isSeller = user?.publicMetadata?.role === "ROLE_SELLER"
+
+  if (!isLoaded) {
+    return <LoadingSpinner text="Profil məlumatları yüklənir..." fullScreen={true} />
+  }
+
+  if (!isSignedIn) {
+    return <Navigate to="/login" />
+  }
 
   useEffect(() => {
     if (isSignedIn) {

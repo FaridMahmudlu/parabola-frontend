@@ -11,6 +11,8 @@ import { trackProductCreate } from "../../utils/analytics";
 import { FiEdit2, FiTrash2, FiX, FiUploadCloud } from "react-icons/fi";
 import { FaWhatsapp, FaInstagram } from "react-icons/fa";
 
+import LoadingSpinner from "../Loading/LoadingSpinner";
+
 const SellerPanel = () => {
   const { isLoaded, isSignedIn, user } = useUser();
   const { getToken } = useAuth();
@@ -103,7 +105,7 @@ const SellerPanel = () => {
   }, [isSignedIn, getToken]);
 
   if (!isLoaded || profileLoading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#c9a96e' }}>Yüklənir...</div>;
+    return <LoadingSpinner text="Satıcı paneli yüklənir..." fullScreen={true} iconType="seller" />;
   }
 
   const isSellerRole = user?.publicMetadata?.role === "ROLE_SELLER" || !!sellerShopName;
