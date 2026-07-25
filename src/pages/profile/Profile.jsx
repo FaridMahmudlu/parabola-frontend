@@ -11,6 +11,12 @@ import { trackProfileSave } from '../../utils/analytics'
 
 import LoadingSpinner from '../../components/Loading/LoadingSpinner'
 
+const ALLOWED_ADMIN_EMAILS = [
+  "mleykmahmudlu@gmail.com",
+  "fariddmahmudlu2008@gmail.com",
+  "qeyisovli@gmail.com"
+]
+
 const Profile = () => {
   const { isLoaded, isSignedIn, user } = useUser()
   const { getToken } = useAuth()
@@ -23,7 +29,9 @@ const Profile = () => {
   const [loading, setLoading] = useState(false)
   const [savedData, setSavedData] = useState(null)
 
-  const isSeller = user?.publicMetadata?.role === "ROLE_SELLER"
+  const userEmail = user?.primaryEmailAddress?.emailAddress?.toLowerCase()?.trim() || ""
+  const isAdmin = ALLOWED_ADMIN_EMAILS.includes(userEmail)
+  const isSeller = user?.publicMetadata?.role === "ROLE_SELLER" || user?.publicMetadata?.role === "ROLE_ADMIN" || isAdmin
 
   useEffect(() => {
     if (isSignedIn) {
