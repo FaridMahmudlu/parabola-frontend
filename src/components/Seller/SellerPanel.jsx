@@ -60,10 +60,12 @@ const SellerPanel = () => {
 
       const token = await getToken();
       const clerkRoleHeader = user?.publicMetadata?.role || "";
+      const userEmailHeader = user?.primaryEmailAddress?.emailAddress || "";
       const res = await axios.get(`${BASE_URL}/api/v1/products/my`, {
         headers: { 
           Authorization: `Bearer ${token}`,
-          ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {})
+          ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {}),
+          ...(userEmailHeader ? { "X-Clerk-User-Email": userEmailHeader } : {})
         }
       });
       setProducts(res.data);
@@ -80,10 +82,12 @@ const SellerPanel = () => {
       try {
         const token = await getToken();
         const clerkRoleHeader = user?.publicMetadata?.role || "";
+        const userEmailHeader = user?.primaryEmailAddress?.emailAddress || "";
         const { data } = await axios.get(`${BASE_URL}/api/v1/users/profile`, {
           headers: { 
             Authorization: `Bearer ${token}`,
-            ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {})
+            ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {}),
+            ...(userEmailHeader ? { "X-Clerk-User-Email": userEmailHeader } : {})
           }
         });
         if (data && data.shopName) {
@@ -202,10 +206,12 @@ const SellerPanel = () => {
     try {
       const token = await getToken();
       const clerkRoleHeader = user?.publicMetadata?.role || "";
+      const userEmailHeader = user?.primaryEmailAddress?.emailAddress || "";
       await axios.delete(`${BASE_URL}/api/v1/products/${id}`, {
         headers: { 
           Authorization: `Bearer ${token}`,
-          ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {})
+          ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {}),
+          ...(userEmailHeader ? { "X-Clerk-User-Email": userEmailHeader } : {})
         }
       });
       setProducts(prev => {
@@ -296,6 +302,7 @@ const SellerPanel = () => {
     try {
       const token = await getToken();
       const clerkRoleHeader = user?.publicMetadata?.role || "";
+      const userEmailHeader = user?.primaryEmailAddress?.emailAddress || "";
 
       if (editingId) {
         // UPDATE
@@ -303,7 +310,8 @@ const SellerPanel = () => {
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
-            ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {})
+            ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {}),
+            ...(userEmailHeader ? { "X-Clerk-User-Email": userEmailHeader } : {})
           }
         });
         const updatedProduct = res.data;
@@ -322,7 +330,8 @@ const SellerPanel = () => {
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
-            ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {})
+            ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {}),
+            ...(userEmailHeader ? { "X-Clerk-User-Email": userEmailHeader } : {})
           }
         });
         const createdProduct = res.data;
