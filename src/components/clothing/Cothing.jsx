@@ -410,8 +410,8 @@ function Clothing() {
                       pointerEvents: !isSignedIn ? 'none' : 'auto',
                       userSelect: !isSignedIn ? 'none' : 'auto'
                     }}>
-                      <div style={{ position: 'relative', width: '90px', height: '90px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="90" height="90" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
+                      <div style={{ position: 'relative', width: '76px', height: '76px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="76" height="76" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
                           <circle cx="50" cy="50" r="40" stroke="#141414" strokeWidth="8" fill="transparent" />
                           <circle cx="50" cy="50" r="40" stroke="#c9a96e" strokeWidth="8" fill="transparent" 
                                   strokeDasharray="251.2" 

@@ -189,14 +189,14 @@
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  padding: 20px;
+  padding: 16px;
   overflow-y: auto;
 }
 
 .modal-container {
   width: 100%;
-  max-width: 880px;
-  max-height: 90vh;
+  max-width: 900px;
+  max-height: 88vh;
   background: #0d0d0d;
   border: 1px solid #1a1a1a;
   border-radius: 6px;
@@ -207,18 +207,39 @@
   scroll-behavior: smooth;
 }
 
+.modal-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-container::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+.modal-container::-webkit-scrollbar-thumb {
+  background: #262626;
+  border-radius: 3px;
+}
+
+.modal-container::-webkit-scrollbar-thumb:hover {
+  background: #c9a96e;
+}
+
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 30px;
+  padding: 14px 24px;
   border-bottom: 1px solid #161616;
+  background: #0a0a0a;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .modal-title {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 300;
-  font-size: 22px;
+  font-size: 20px;
   color: #f0ece4;
   letter-spacing: 1px;
 }
@@ -227,7 +248,7 @@
   background: transparent;
   border: none;
   color: #7a7570;
-  font-size: 32px;
+  font-size: 28px;
   cursor: pointer;
   line-height: 1;
   transition: color 0.3s;
@@ -240,30 +261,30 @@
 .modal-body {
   display: grid;
   grid-template-columns: 1fr 1.2fr;
-  gap: 30px;
-  padding: 30px;
+  gap: 20px;
+  padding: 20px 24px;
 }
 
 .modal-left {
-  padding: 40px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   border-right: 1px solid #161616;
   background: #080808;
   justify-content: flex-start;
-  gap: 20px;
-  padding-top: 60px;
+  gap: 16px;
+  border-radius: 4px;
 }
 
 .score {
   text-align: center;
-  margin: 24px 0 0;
+  margin: 16px 0 0;
 }
 
 .score-number {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 64px;
+  font-size: 52px;
   font-weight: 300;
   color: #c9a96e;
   line-height: 1;
@@ -271,39 +292,39 @@
 
 .score-label {
   font-family: 'Montserrat', sans-serif;
-  font-size: 11px;
-  letter-spacing: 3px;
+  font-size: 10px;
+  letter-spacing: 2px;
   color: #7a7570;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .modal-right {
-  padding: 40px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .product-title {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 400;
-  font-size: 28px;
+  font-size: 24px;
   color: #f0ece4;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .product-brand {
   font-family: 'Montserrat', sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: 1px;
   text-transform: uppercase;
   color: #7a7570;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .price-badge {
   font-family: 'Montserrat', sans-serif;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 500;
   color: #c9a96e;
 }
@@ -313,13 +334,13 @@
   font-size: 10px;
   letter-spacing: 2px;
   color: #7a7570;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .recommendation {
   background: #111;
   border-left: 2px solid #c9a96e;
-  padding: 18px 24px;
+  padding: 14px 18px;
   color: #aca9a6;
   border-radius: 2px;
 }
