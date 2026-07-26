@@ -169,26 +169,42 @@
 }
 
 /* Modal Styling */
+@keyframes modalPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.88);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
+  z-index: 9999;
   padding: 20px;
+  overflow-y: auto;
 }
 
 .modal-container {
   width: 100%;
-  max-width: 800px;
+  max-width: 880px;
+  max-height: 90vh;
   background: #0d0d0d;
   border: 1px solid #1a1a1a;
-  border-radius: 4px;
-  overflow: hidden;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+  border-radius: 6px;
+  overflow-y: auto;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
+  margin: auto;
+  animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  scroll-behavior: smooth;
 }
 
 .modal-header {

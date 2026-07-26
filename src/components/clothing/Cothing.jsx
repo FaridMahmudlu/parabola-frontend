@@ -50,9 +50,24 @@ function Clothing() {
   const [activeImageIndexes, setActiveImageIndexes] = useState({}) // productCardId -> activeImageIndex
   const [modalImageIndex, setModalImageIndex] = useState(0)
   const [zoomImage, setZoomImage] = useState(null)
+  const modalRef = React.useRef(null)
 
-  const { isSignedIn } = useUser()
+  const { isSignedIn, user } = useUser()
   const { getToken } = useAuth()
+
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => {
+        modalRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showModal]);
 
   useEffect(() => {
     async function getProducts() {
@@ -67,7 +82,12 @@ function Clothing() {
           }
         }
 
-        const headers = {}
+        const userEmailHeader = user?.primaryEmailAddress?.emailAddress || "";
+        const clerkRoleHeader = user?.publicMetadata?.role || "";
+        const headers = {
+          ...(userEmailHeader ? { "X-Clerk-User-Email": userEmailHeader } : {}),
+          ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {})
+        }
         if (isSignedIn) {
           const token = await getToken()
           headers.Authorization = `Bearer ${token}`
@@ -81,7 +101,7 @@ function Clothing() {
       }
     }
     getProducts()
-  }, [isSignedIn, getToken])
+  }, [isSignedIn, getToken, user])
 
   const handleTryOn = async (item) => {
     setSelectedProduct(item)
@@ -113,8 +133,14 @@ function Clothing() {
 
     try {
       const token = await getToken()
+      const userEmailHeader = user?.primaryEmailAddress?.emailAddress || "";
+      const clerkRoleHeader = user?.publicMetadata?.role || "";
       const { data } = await axios.get(`${BASE_URL}/api/v1/products/${item.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          ...(userEmailHeader ? { "X-Clerk-User-Email": userEmailHeader } : {}),
+          ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {})
+        }
       })
       setRecommendation(data.sizeRecommendation)
       if (data.sizeRecommendation) {
@@ -326,8 +352,8 @@ function Clothing() {
 
         </div>
         {showModal && selectedProduct && (
-          <div className="modal-overlay">
-            <div className="modal-container">
+          <div className="modal-overlay" onClick={(e) => { if (e.target.className === 'modal-overlay') setShowModal(false); }}>
+            <div className="modal-container" ref={modalRef}>
               <div className="modal-header">
                 <h2 className="modal-title">Geyim Detalları və Ölçü Analizi</h2>
                 <button 
