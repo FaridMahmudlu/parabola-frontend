@@ -308,7 +308,6 @@ const SellerPanel = () => {
         // UPDATE
         const res = await axios.put(`${BASE_URL}/api/v1/products/${editingId}`, formData, {
           headers: {
-            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
             ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {}),
             ...(userEmailHeader ? { "X-Clerk-User-Email": userEmailHeader } : {})
@@ -328,7 +327,6 @@ const SellerPanel = () => {
         // CREATE
         const res = await axios.post(`${BASE_URL}/api/v1/products`, formData, {
           headers: {
-            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
             ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {}),
             ...(userEmailHeader ? { "X-Clerk-User-Email": userEmailHeader } : {})
@@ -357,10 +355,12 @@ const SellerPanel = () => {
       setStatus({ loading: false, error: null, ok: true });
       clearForm();
     } catch (err) {
-      const errMsg = err.response?.data?.message || err.response?.data || err.message;
+      console.error("Məhsul saxlanılarkən xəta:", err);
+      const rawMsg = err.response?.data?.message || err.response?.data || err.message;
+      const errMsg = typeof rawMsg === 'string' ? translateError(rawMsg) : "Əməliyyat yerinə yetirilərkən xəta baş verdi. Zəhmət olmasa məlumatları yoxlayın.";
       setStatus({
         loading: false,
-        error: translateError(errMsg),
+        error: errMsg,
         ok: false,
       });
     }
