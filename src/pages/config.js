@@ -3,7 +3,14 @@ export const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 export const translateError = (errorMsg) => {
   if (!errorMsg) return "Gözlənilməz bir xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.";
   
-  const msg = String(errorMsg).toLowerCase();
+  const msgStr = String(errorMsg);
+
+  // If already an Azerbaijani message with special characters, return it directly
+  if (/[əçğıöşüƏÇĞİÖŞÜ]/.test(msgStr)) {
+    return msgStr;
+  }
+  
+  const msg = msgStr.toLowerCase();
   
   // Database / Connection / PgBouncer prepared statement error
   if (msg.includes("jdbc") || msg.includes("sql") || msg.includes("database") || msg.includes("prepared statement") || msg.includes("connection")) {
@@ -34,11 +41,6 @@ export const translateError = (errorMsg) => {
     return "Yalnız şəkil formatında (PNG, JPG, JPEG, WEBP) fayllar yüklənə bilər.";
   }
 
-  // Shop name validation
-  if (msg.includes("shopname") || msg.includes("mağaza adı") || msg.includes("shop name")) {
-    return "Zəhmət olmasa mağaza adını düzgün daxil edin.";
-  }
-
   // Default fallback (friendly translated)
-  return "Əməliyyat yerinə yetirilərkən xəta baş verdi. Zəhmət olmasa məlumatları yoxlayın.";
+  return msgStr || "Əməliyyat yerinə yetirilərkən xəta baş verdi. Zəhmət olmasa məlumatları yoxlayın.";
 };
