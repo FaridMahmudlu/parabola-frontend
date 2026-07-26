@@ -35,6 +35,15 @@ const getSortedUniqueSizes = (sizes) => {
   });
 };
 
+const formatSellerName = (sellerName) => {
+  if (!sellerName) return "";
+  const nameStr = String(sellerName).trim();
+  if (nameStr.toLowerCase().includes("mleykmahmudlu")) {
+    return "Parabola Admin";
+  }
+  return nameStr;
+};
+
 function Clothing() {
   const navigate = useNavigate()
   const [products, setProducts] = useState([])
@@ -329,7 +338,7 @@ function Clothing() {
                       <p className="brand-text">{item.brand}</p>
                       <p className="price-text">{item.price ? `${item.price} AZN` : "Qiymət təyin edilməyib"}</p>
                       {item.sellerName && (
-                        <p className="seller-text">Satıcı: {item.sellerName}</p>
+                        <p className="seller-text">Satıcı: {formatSellerName(item.sellerName)}</p>
                       )}
                     </div>
 
@@ -465,7 +474,7 @@ function Clothing() {
                 <div className="modal-right">
                   <h3 className="product-title" style={{ fontSize: '28px' }}>{selectedProduct.name}</h3>
                   <p className="product-brand" style={{ fontSize: '13px', color: '#7a7570' }}>
-                    {selectedProduct.brand} • {selectedProduct.category} {selectedProduct.sellerName && `• Satıcı: ${selectedProduct.sellerName}`}
+                    {selectedProduct.brand} • {selectedProduct.category} {selectedProduct.sellerName && `• Satıcı: ${formatSellerName(selectedProduct.sellerName)}`}
                   </p>
 
                   <div className="filter-buttons" style={{ marginTop: '10px' }}>
