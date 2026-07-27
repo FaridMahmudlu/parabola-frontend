@@ -712,15 +712,53 @@ function Clothing() {
             <button 
               className="lightbox-close" 
               onClick={(e) => { e.stopPropagation(); setZoomImage(null); }} 
-              style={{ position: 'absolute', top: '24px', right: '24px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontSize: '24px', width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100001 }}
+              title="Bağla"
+              style={{ position: 'absolute', top: '24px', right: '24px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontSize: '24px', width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100001, transition: 'all 0.2s ease' }}
             >
               <FiX />
             </button>
+
+            {getModalImages().length > 1 && (
+              <>
+                <button 
+                  className="lightbox-nav-btn prev"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const newIndex = (modalImageIndex - 1 + getModalImages().length) % getModalImages().length;
+                    setModalImageIndex(newIndex);
+                    setZoomImage(getModalImages()[newIndex]);
+                  }}
+                  title="Əvvəlki şəkil"
+                  style={{ position: 'absolute', left: '24px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontSize: '28px', width: '52px', height: '52px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100001, transition: 'all 0.2s ease' }}
+                >
+                  <FiChevronLeft />
+                </button>
+
+                <button 
+                  className="lightbox-nav-btn next"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const newIndex = (modalImageIndex + 1) % getModalImages().length;
+                    setModalImageIndex(newIndex);
+                    setZoomImage(getModalImages()[newIndex]);
+                  }}
+                  title="Növbəti şəkil"
+                  style={{ position: 'absolute', right: '24px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontSize: '28px', width: '52px', height: '52px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100001, transition: 'all 0.2s ease' }}
+                >
+                  <FiChevronRight />
+                </button>
+
+                <div style={{ position: 'absolute', bottom: '24px', background: 'rgba(0,0,0,0.7)', color: '#c9a96e', padding: '6px 18px', borderRadius: '20px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', border: '1px solid rgba(201,169,110,0.3)', zIndex: 100001, letterSpacing: '1px' }}>
+                  {modalImageIndex + 1} / {getModalImages().length}
+                </div>
+              </>
+            )}
+
             <img 
               src={zoomImage} 
               alt="Böyüdülmüş baxış" 
               onClick={(e) => e.stopPropagation()}
-              style={{ maxWidth: '92%', maxHeight: '92%', objectFit: 'contain', borderRadius: '6px', boxShadow: '0 25px 60px rgba(0,0,0,0.8)' }} 
+              style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain', borderRadius: '6px', boxShadow: '0 25px 60px rgba(0,0,0,0.8)', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }} 
             />
           </div>
         )}
