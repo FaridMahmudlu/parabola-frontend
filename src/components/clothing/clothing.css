@@ -186,23 +186,23 @@
   background: rgba(0, 0, 0, 0.88);
   backdrop-filter: blur(8px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  z-index: 9999;
-  padding: 16px;
+  z-index: 9990;
+  padding: 75px 16px 20px 16px;
   overflow-y: auto;
 }
 
 .modal-container {
   width: 100%;
   max-width: 900px;
-  max-height: 88vh;
+  max-height: calc(100vh - 95px);
   background: #0d0d0d;
   border: 1px solid #1a1a1a;
   border-radius: 6px;
   overflow-y: auto;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
-  margin: auto;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95);
+  margin: 0 auto;
   animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   scroll-behavior: smooth;
 }
@@ -233,7 +233,7 @@
   background: #0a0a0a;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 100;
 }
 
 .modal-title {

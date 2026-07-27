@@ -67,9 +67,9 @@ function Clothing() {
   useEffect(() => {
     if (showModal) {
       document.body.style.overflow = 'hidden';
-      setTimeout(() => {
-        modalRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 50);
+      if (modalRef.current) {
+        modalRef.current.scrollTop = 0;
+      }
     } else {
       document.body.style.overflow = 'unset';
     }
@@ -389,8 +389,17 @@ function Clothing() {
                       style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'zoom-in', opacity: imageOpacity }}
                       onClick={() => setZoomImage(getModalImages()[modalImageIndex])}
                     />
-                    <button className="zoom-btn" onClick={() => setZoomImage(getModalImages()[modalImageIndex])} title="Böyütmək üçün klikləyin" style={{ position: 'absolute', bottom: '12px', right: '12px', background: 'rgba(0,0,0,0.7)', border: 'none', color: 'white', padding: '8px', borderRadius: '4px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                      <FiMaximize2 />
+                    <button 
+                      className="zoom-btn" 
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        const img = getModalImages()[modalImageIndex] || (selectedProduct ? selectedProduct.imageUrl : null);
+                        if (img) setZoomImage(img);
+                      }} 
+                      title="Böyütmək üçün klikləyin" 
+                      style={{ position: 'absolute', bottom: '12px', right: '12px', background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '8px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10 }}
+                    >
+                      <FiMaximize2 style={{ fontSize: '16px' }} />
                     </button>
                     {getModalImages().length > 1 && (
                       <>
@@ -695,14 +704,23 @@ function Clothing() {
 
         {/* Zoom Lightbox fullscreen overlay */}
         {zoomImage && (
-          <div className="zoom-lightbox-overlay" onClick={() => setZoomImage(null)} style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.95)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out', animation: 'fadeIn 0.25s ease-out' }}>
-            <button className="lightbox-close" onClick={() => setZoomImage(null)} style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', color: 'white', fontSize: '32px', cursor: 'pointer' }}>
+          <div 
+            className="zoom-lightbox-overlay" 
+            onClick={() => setZoomImage(null)} 
+            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.96)', zIndex: 100000, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out' }}
+          >
+            <button 
+              className="lightbox-close" 
+              onClick={(e) => { e.stopPropagation(); setZoomImage(null); }} 
+              style={{ position: 'absolute', top: '24px', right: '24px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontSize: '24px', width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100001 }}
+            >
               <FiX />
             </button>
             <img 
               src={zoomImage} 
               alt="Böyüdülmüş baxış" 
-              style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain', borderRadius: '4px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', transition: 'transform 0.3s' }} 
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '92%', maxHeight: '92%', objectFit: 'contain', borderRadius: '6px', boxShadow: '0 25px 60px rgba(0,0,0,0.8)' }} 
             />
           </div>
         )}
