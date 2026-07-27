@@ -8,7 +8,7 @@ import "aos/dist/aos.css"
 import { BASE_URL } from '../../pages/config'
 import { useUser, useAuth } from '@clerk/clerk-react'
 import { notification } from 'antd'
-import { FiChevronLeft, FiChevronRight, FiMaximize2, FiX } from 'react-icons/fi'
+import { FiChevronLeft, FiChevronRight, FiMaximize2, FiX, FiZoomIn, FiZoomOut, FiRefreshCw } from 'react-icons/fi'
 import { FaWhatsapp, FaInstagram, FaTiktok, FaPhone } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
 import { trackTryOnOpen, trackTryOnCalculate, trackContactClick } from '../../utils/analytics'
@@ -60,6 +60,11 @@ function Clothing() {
   const [activeImageIndexes, setActiveImageIndexes] = useState({}) // productCardId -> activeImageIndex
   const [modalImageIndex, setModalImageIndex] = useState(0)
   const [zoomImage, setZoomImage] = useState(null)
+  const [zoomScale, setZoomScale] = useState(1)
+  const [zoomPan, setZoomPan] = useState({ x: 0, y: 0 })
+  const [zoomOpacity, setZoomOpacity] = useState(1)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const modalRef = React.useRef(null)
 
   const { isSignedIn, user } = useUser()
@@ -78,6 +83,114 @@ function Clothing() {
       document.body.style.overflow = 'unset';
     };
   }, [showModal]);
+
+  const handleOpenZoom = (imgUrl) => {
+    setZoomImage(imgUrl);
+    setZoomScale(1);
+    setZoomPan({ x: 0, y: 0 });
+    setZoomOpacity(1);
+  };
+
+  const handleCloseZoom = () => {
+    setZoomOpacity(0);
+    setTimeout(() => {
+      setZoomImage(null);
+      setZoomScale(1);
+      setZoomPan({ x: 0, y: 0 });
+    }, 200);
+  };
+
+  const handleLightboxNav = (direction) => {
+    const modalImgs = getModalImages();
+    if (modalImgs.length <= 1) return;
+    setZoomOpacity(0.3);
+    setTimeout(() => {
+      let newIndex;
+      if (direction === 'next') {
+        newIndex = (modalImageIndex + 1) % modalImgs.length;
+      } else {
+        newIndex = (modalImageIndex - 1 + modalImgs.length) % modalImgs.length;
+      }
+      setModalImageIndex(newIndex);
+      setZoomImage(modalImgs[newIndex]);
+      setZoomScale(1);
+      setZoomPan({ x: 0, y: 0 });
+      setZoomOpacity(1);
+    }, 150);
+  };
+
+  const handleSelectLightboxThumbnail = (idx) => {
+    if (idx === modalImageIndex) return;
+    const modalImgs = getModalImages();
+    setZoomOpacity(0.3);
+    setTimeout(() => {
+      setModalImageIndex(idx);
+      setZoomImage(modalImgs[idx]);
+      setZoomScale(1);
+      setZoomPan({ x: 0, y: 0 });
+      setZoomOpacity(1);
+    }, 150);
+  };
+
+  const handleZoomIn = (e) => {
+    if (e) e.stopPropagation();
+    setZoomScale(prev => Math.min(3.5, Number((prev + 0.5).toFixed(1))));
+  };
+
+  const handleZoomOut = (e) => {
+    if (e) e.stopPropagation();
+    setZoomScale(prev => {
+      const next = Math.max(1, Number((prev - 0.5).toFixed(1)));
+      if (next === 1) setZoomPan({ x: 0, y: 0 });
+      return next;
+    });
+  };
+
+  const handleResetZoom = (e) => {
+    if (e) e.stopPropagation();
+    setZoomScale(1);
+    setZoomPan({ x: 0, y: 0 });
+  };
+
+  const handleToggleZoomClick = (e) => {
+    e.stopPropagation();
+    if (zoomScale > 1) {
+      setZoomScale(1);
+      setZoomPan({ x: 0, y: 0 });
+    } else {
+      setZoomScale(2.2);
+    }
+  };
+
+  const handleWheelZoom = (e) => {
+    e.stopPropagation();
+    if (e.deltaY < 0) {
+      setZoomScale(prev => Math.min(3.5, Number((prev + 0.25).toFixed(2))));
+    } else {
+      setZoomScale(prev => {
+        const next = Math.max(1, Number((prev - 0.25).toFixed(2)));
+        if (next === 1) setZoomPan({ x: 0, y: 0 });
+        return next;
+      });
+    }
+  };
+
+  const handleMouseDownPan = (e) => {
+    if (zoomScale <= 1) return;
+    e.preventDefault();
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - zoomPan.x, y: e.clientY - zoomPan.y });
+  };
+
+  const handleMouseMovePan = (e) => {
+    if (!isDragging || zoomScale <= 1) return;
+    e.preventDefault();
+    setZoomPan({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+  };
+
+  const handleMouseUpPan = () => {
+    setIsDragging(false);
+  };
 
   useEffect(() => {
     async function getProducts() {
@@ -388,14 +501,14 @@ function Clothing() {
                       src={getModalImages()[modalImageIndex] || "https://gunnandmoore.playwiththebest.com/media/catalog/product/cache/ec4e4c8893a2305e77afd20d2909bacb/7/0/7047_teknik_slipover_white_1.png"}
                       alt={selectedProduct.name}
                       style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'zoom-in', opacity: imageOpacity }}
-                      onClick={() => setZoomImage(getModalImages()[modalImageIndex])}
+                      onClick={() => handleOpenZoom(getModalImages()[modalImageIndex])}
                     />
                     <button 
                       className="zoom-btn" 
                       onClick={(e) => { 
                         e.stopPropagation(); 
                         const img = getModalImages()[modalImageIndex] || (selectedProduct ? selectedProduct.imageUrl : null);
-                        if (img) setZoomImage(img);
+                        if (img) handleOpenZoom(img);
                       }} 
                       title="Böyütmək üçün klikləyin" 
                       style={{ position: 'absolute', bottom: '12px', right: '12px', background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '8px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10 }}
@@ -708,60 +821,106 @@ function Clothing() {
         {zoomImage && createPortal(
           <div 
             className="zoom-lightbox-overlay" 
-            onClick={() => setZoomImage(null)} 
-            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.96)', zIndex: 100000, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out' }}
+            onClick={handleCloseZoom} 
+            onWheel={handleWheelZoom}
+            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.94)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', zIndex: 100000000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            <button 
-              className="lightbox-close" 
-              onClick={(e) => { e.stopPropagation(); setZoomImage(null); }} 
-              title="Bağla"
-              style={{ position: 'absolute', top: '24px', right: '24px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontSize: '24px', width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100001, transition: 'all 0.2s ease' }}
-            >
-              <FiX />
-            </button>
+            {/* Top Control Toolbar */}
+            <div className="lightbox-controls-top" onClick={(e) => e.stopPropagation()}>
+              <button className="lightbox-btn" onClick={handleZoomOut} title="Kiçilt (-)">
+                <FiZoomOut />
+              </button>
+              <span className="lightbox-scale-badge" onClick={handleResetZoom} title="Əvvəlki ölçüyə qaytar">
+                {Math.round(zoomScale * 100)}%
+              </span>
+              <button className="lightbox-btn" onClick={handleZoomIn} title="Böyüt (+)">
+                <FiZoomIn />
+              </button>
+              <button className="lightbox-btn" onClick={handleResetZoom} title="Sıfırla">
+                <FiRefreshCw style={{ fontSize: '15px' }} />
+              </button>
+              <button className="lightbox-close-btn" onClick={handleCloseZoom} title="Bağla">
+                <FiX />
+              </button>
+            </div>
 
+            {/* Navigation Arrows */}
             {getModalImages().length > 1 && (
               <>
                 <button 
                   className="lightbox-nav-btn prev"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const newIndex = (modalImageIndex - 1 + getModalImages().length) % getModalImages().length;
-                    setModalImageIndex(newIndex);
-                    setZoomImage(getModalImages()[newIndex]);
-                  }}
+                  onClick={(e) => handleLightboxNav('prev')}
                   title="Əvvəlki şəkil"
-                  style={{ position: 'absolute', left: '24px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontSize: '28px', width: '52px', height: '52px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100001, transition: 'all 0.2s ease' }}
+                  style={{ position: 'absolute', left: '24px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontSize: '28px', width: '52px', height: '52px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100002, transition: 'all 0.2s ease' }}
                 >
                   <FiChevronLeft />
                 </button>
 
                 <button 
                   className="lightbox-nav-btn next"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const newIndex = (modalImageIndex + 1) % getModalImages().length;
-                    setModalImageIndex(newIndex);
-                    setZoomImage(getModalImages()[newIndex]);
-                  }}
+                  onClick={(e) => handleLightboxNav('next')}
                   title="Növbəti şəkil"
-                  style={{ position: 'absolute', right: '24px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontSize: '28px', width: '52px', height: '52px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100001, transition: 'all 0.2s ease' }}
+                  style={{ position: 'absolute', right: '24px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontSize: '28px', width: '52px', height: '52px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100002, transition: 'all 0.2s ease' }}
                 >
                   <FiChevronRight />
                 </button>
-
-                <div style={{ position: 'absolute', bottom: '24px', background: 'rgba(0,0,0,0.7)', color: '#c9a96e', padding: '6px 18px', borderRadius: '20px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', border: '1px solid rgba(201,169,110,0.3)', zIndex: 100001, letterSpacing: '1px' }}>
-                  {modalImageIndex + 1} / {getModalImages().length}
-                </div>
               </>
             )}
 
-            <img 
-              src={zoomImage} 
-              alt="Böyüdülmüş baxış" 
+            {/* Thumbnail Strip / Counter */}
+            {getModalImages().length > 1 ? (
+              <div className="lightbox-thumbnails-strip" onClick={(e) => e.stopPropagation()}>
+                {getModalImages().map((imgUrl, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`lightbox-thumbnail ${idx === modalImageIndex ? 'active' : ''}`}
+                    onClick={() => handleSelectLightboxThumbnail(idx)}
+                  >
+                    <img src={imgUrl} alt={`Thumbnail ${idx + 1}`} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ position: 'absolute', bottom: '24px', background: 'rgba(0,0,0,0.7)', color: '#c9a96e', padding: '6px 18px', borderRadius: '20px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', border: '1px solid rgba(201,169,110,0.3)', zIndex: 100002, letterSpacing: '1px' }}>
+                1 / 1
+              </div>
+            )}
+
+            {/* Main Lightbox Image */}
+            <div 
               onClick={(e) => e.stopPropagation()}
-              style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain', borderRadius: '6px', boxShadow: '0 25px 60px rgba(0,0,0,0.8)', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }} 
-            />
+              onMouseDown={handleMouseDownPan}
+              onMouseMove={handleMouseMovePan}
+              onMouseUp={handleMouseUpPan}
+              onMouseLeave={handleMouseUpPan}
+              style={{
+                maxWidth: '88vw',
+                maxHeight: '82vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'visible',
+                cursor: zoomScale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'zoom-in'
+              }}
+            >
+              <img 
+                src={zoomImage} 
+                alt="Böyüdülmüş geyim baxışı" 
+                onClick={handleToggleZoomClick}
+                style={{ 
+                  maxWidth: '100%', 
+                  maxHeight: '82vh', 
+                  objectFit: 'contain', 
+                  borderRadius: '6px', 
+                  boxShadow: '0 25px 60px rgba(0,0,0,0.9)', 
+                  opacity: zoomOpacity,
+                  transform: `scale(${zoomScale}) translate(${zoomPan.x / zoomScale}px, ${zoomPan.y / zoomScale}px)`,
+                  transition: isDragging ? 'none' : 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease',
+                  userSelect: 'none',
+                  WebkitUserDrag: 'none'
+                }} 
+              />
+            </div>
           </div>,
           document.body
         )}
