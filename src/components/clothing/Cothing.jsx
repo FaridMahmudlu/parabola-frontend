@@ -85,7 +85,11 @@ function Clothing() {
   }, [showModal]);
 
   const handleOpenZoom = (imgUrl) => {
-    setZoomImage(imgUrl);
+    const imgs = getLightboxImages();
+    let initialIdx = imgs.indexOf(imgUrl);
+    if (initialIdx === -1) initialIdx = 0;
+    setModalImageIndex(initialIdx);
+    setZoomImage(imgs[initialIdx] || imgUrl);
     setZoomScale(1);
     setZoomPan({ x: 0, y: 0 });
     setZoomOpacity(1);
@@ -101,18 +105,19 @@ function Clothing() {
   };
 
   const handleLightboxNav = (direction) => {
-    const modalImgs = getModalImages();
-    if (modalImgs.length <= 1) return;
+    const imgs = getLightboxImages();
+    if (imgs.length <= 1) return;
     setZoomOpacity(0.3);
     setTimeout(() => {
       let newIndex;
       if (direction === 'next') {
-        newIndex = (modalImageIndex + 1) % modalImgs.length;
+        newIndex = (modalImageIndex + 1) % imgs.length;
       } else {
-        newIndex = (modalImageIndex - 1 + modalImgs.length) % modalImgs.length;
+        newIndex = (modalImageIndex - 1 + imgs.length) % imgs.length;
       }
+      const targetImg = imgs[newIndex] || imgs[0];
       setModalImageIndex(newIndex);
-      setZoomImage(modalImgs[newIndex]);
+      setZoomImage(targetImg);
       setZoomScale(1);
       setZoomPan({ x: 0, y: 0 });
       setZoomOpacity(1);
@@ -120,12 +125,13 @@ function Clothing() {
   };
 
   const handleSelectLightboxThumbnail = (idx) => {
-    if (idx === modalImageIndex) return;
-    const modalImgs = getModalImages();
+    const imgs = getLightboxImages();
+    if (imgs.length === 0) return;
+    const validIdx = idx % imgs.length;
     setZoomOpacity(0.3);
     setTimeout(() => {
-      setModalImageIndex(idx);
-      setZoomImage(modalImgs[idx]);
+      setModalImageIndex(validIdx);
+      setZoomImage(imgs[validIdx] || imgs[0]);
       setZoomScale(1);
       setZoomPan({ x: 0, y: 0 });
       setZoomOpacity(1);
@@ -334,9 +340,44 @@ function Clothing() {
   // Modal carousel handlers
   const getModalImages = () => {
     if (!selectedProduct) return []
-    return selectedProduct.imageUrls && selectedProduct.imageUrls.length > 0
-      ? selectedProduct.imageUrls
-      : [selectedProduct.imageUrl].filter(Boolean)
+    const list = []
+    if (selectedProduct.imageUrl && typeof selectedProduct.imageUrl === 'string' && selectedProduct.imageUrl.trim()) {
+      list.push(selectedProduct.imageUrl.trim())
+    }
+    if (Array.isArray(selectedProduct.imageUrls)) {
+      selectedProduct.imageUrls.forEach(url => {
+        if (url && typeof url === 'string' && url.trim() && !list.includes(url.trim())) {
+          list.push(url.trim())
+        }
+      })
+    }
+    return list
+  }
+
+  const getLightboxImages = () => {
+    const ownImages = getModalImages()
+    if (ownImages.length > 1) {
+      return ownImages
+    }
+
+    // If selectedProduct has only 1 image, build a list of all images across all products in the catalog
+    // so the user can navigate through all garment photos in the store!
+    const catalogImages = [...ownImages]
+    if (Array.isArray(products)) {
+      products.forEach(p => {
+        if (p.imageUrl && typeof p.imageUrl === 'string' && p.imageUrl.trim() && !catalogImages.includes(p.imageUrl.trim())) {
+          catalogImages.push(p.imageUrl.trim())
+        }
+        if (Array.isArray(p.imageUrls)) {
+          p.imageUrls.forEach(url => {
+            if (url && typeof url === 'string' && url.trim() && !catalogImages.includes(url.trim())) {
+              catalogImages.push(url.trim())
+            }
+          })
+        }
+      })
+    }
+    return catalogImages.length > 0 ? catalogImages : ownImages
   }
 
   const handleModalPrevImage = () => {
@@ -845,7 +886,7 @@ function Clothing() {
             </div>
 
             {/* Navigation Arrows */}
-            {getModalImages().length > 1 && (
+            {getLightboxImages().length > 1 && (
               <>
                 <button 
                   className="lightbox-nav-btn prev"
@@ -868,9 +909,9 @@ function Clothing() {
             )}
 
             {/* Thumbnail Strip / Counter */}
-            {getModalImages().length > 1 ? (
+            {getLightboxImages().length > 1 ? (
               <div className="lightbox-thumbnails-strip" onClick={(e) => e.stopPropagation()}>
-                {getModalImages().map((imgUrl, idx) => (
+                {getLightboxImages().map((imgUrl, idx) => (
                   <div 
                     key={idx} 
                     className={`lightbox-thumbnail ${idx === modalImageIndex ? 'active' : ''}`}
@@ -904,9 +945,15 @@ function Clothing() {
               }}
             >
               <img 
-                src={zoomImage} 
+                src={zoomImage || getLightboxImages()[modalImageIndex] || selectedProduct?.imageUrl} 
                 alt="Böyüdülmüş geyim baxışı" 
                 onClick={handleToggleZoomClick}
+                onError={(e) => {
+                  const fallbackList = getLightboxImages();
+                  if (fallbackList.length > 0 && e.target.src !== fallbackList[0]) {
+                    e.target.src = fallbackList[0];
+                  }
+                }}
                 style={{ 
                   maxWidth: '100%', 
                   maxHeight: '82vh', 
