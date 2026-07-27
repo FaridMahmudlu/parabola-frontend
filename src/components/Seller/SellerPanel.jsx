@@ -378,7 +378,7 @@ const SellerPanel = () => {
           {sellerShopName && (
             <div style={{ display: 'flex', gap: '10px', marginTop: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
               <Link 
-                to={`/store/${encodeURIComponent(sellerShopName)}`} 
+                to={`/store/${encodeURIComponent(sellerShopName.trim())}`} 
                 target="_blank"
                 style={{
                   background: 'rgba(201, 169, 110, 0.15)',

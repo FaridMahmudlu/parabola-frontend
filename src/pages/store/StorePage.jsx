@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
 import { BASE_URL } from '../config'
@@ -10,7 +10,9 @@ import { createPortal } from 'react-dom'
 import { 
   FiShoppingBag, FiPhone, FiCheckCircle, FiSearch, 
   FiArrowLeft, FiShare2, FiChevronLeft, FiChevronRight, 
-  FiMaximize2, FiX, FiZoomIn, FiZoomOut, FiRefreshCw 
+  FiMaximize2, FiX, FiZoomIn, FiZoomOut, FiRefreshCw,
+  FiGrid, FiList, FiArrowUp, FiFilter, FiStar, FiTruck,
+  FiPackage, FiTag, FiClock
 } from 'react-icons/fi'
 import { FaWhatsapp, FaInstagram, FaTiktok } from 'react-icons/fa'
 import { GoArrowRight } from "react-icons/go"
@@ -29,6 +31,10 @@ const StorePage = () => {
   const [filteredProducts, setFilteredProducts] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('Hamısı')
+  const [sortBy, setSortBy] = useState('newest')
+  const [viewMode, setViewMode] = useState('grid')
+  const [showBackToTop, setShowBackToTop] = useState(false)
+  const [storeFound, setStoreFound] = useState(true)
 
   // Size Modal State
   const [selectedProduct, setSelectedProduct] = useState(null)
@@ -44,8 +50,27 @@ const StorePage = () => {
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [zoomOpacity, setZoomOpacity] = useState(1)
+  const [zoomImages, setZoomImages] = useState([])
+  const [zoomIndex, setZoomIndex] = useState(0)
 
-  const decodedShopName = shopName ? decodeURIComponent(shopName) : ''
+  // Touch support for zoom swipe
+  const [touchStart, setTouchStart] = useState(null)
+
+  // Decode and trim the shopName from URL
+  const decodedShopName = shopName ? decodeURIComponent(shopName).trim() : ''
+
+  // Back to top scroll listener
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 600)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   useEffect(() => {
     // Dynamic SEO & Document Title
@@ -67,17 +92,32 @@ const StorePage = () => {
           headers['X-Clerk-User-Email'] = user.primaryEmailAddress.emailAddress
         }
 
-        const res = await axios.get(`${BASE_URL}/api/v1/products/store/${encodeURIComponent(decodedShopName)}`, { headers })
-        setStoreData(res.data)
-        const prodList = res.data.products || []
-        setProducts(prodList)
-        setFilteredProducts(prodList)
+        // Trim the shopName before sending to API
+        const trimmedName = decodedShopName.trim()
+        const res = await axios.get(`${BASE_URL}/api/v1/products/store/${encodeURIComponent(trimmedName)}`, { headers })
+        
+        if (res.data) {
+          setStoreData(res.data)
+          const prodList = res.data.products || []
+          setProducts(prodList)
+          setFilteredProducts(prodList)
+          setStoreFound(res.data.storeFound !== false)
+          
+          // Use the corrected shopName from backend (if available)
+          if (res.data.shopName && res.data.shopName !== decodedShopName) {
+            document.title = `${res.data.shopName} - Parabola Butik Mağazası`
+          }
+        }
       } catch (err) {
         console.error("Mağaza məlumatı yüklənərkən xəta:", err)
-        notification.error({
-          message: 'Mağaza Tapılmadı',
-          description: 'Axtardığınız butik mağazası tapılmadı və ya aktiv deyil.'
-        })
+        setStoreFound(false)
+        // Only show error if it's a real network/server error
+        if (err.response && err.response.status >= 500) {
+          notification.error({
+            message: 'Server Xətası',
+            description: 'Mağaza yüklənərkən server xətası baş verdi. Bir az sonra yenidən cəhd edin.'
+          })
+        }
       } finally {
         setLoading(false)
       }
@@ -88,25 +128,58 @@ const StorePage = () => {
     }
   }, [decodedShopName, isSignedIn, user])
 
-  // Search & Category Filter
+  // Search, Category & Sort Filter
   useEffect(() => {
     let list = [...products]
+    
+    // Category filter
     if (selectedCategory !== 'Hamısı') {
       list = list.filter(p => p.category && p.category.toLowerCase() === selectedCategory.toLowerCase())
     }
+    
+    // Search filter
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim()
       list = list.filter(p => 
         (p.name && p.name.toLowerCase().includes(q)) ||
         (p.brand && p.brand.toLowerCase().includes(q)) ||
-        (p.description && p.description.toLowerCase().includes(q))
+        (p.description && p.description.toLowerCase().includes(q)) ||
+        (p.color && p.color.toLowerCase().includes(q))
       )
     }
+
+    // Sort
+    switch (sortBy) {
+      case 'price-low':
+        list.sort((a, b) => (a.price || 0) - (b.price || 0))
+        break
+      case 'price-high':
+        list.sort((a, b) => (b.price || 0) - (a.price || 0))
+        break
+      case 'name':
+        list.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+        break
+      case 'newest':
+      default:
+        // Already sorted by newest from API
+        break
+    }
+    
     setFilteredProducts(list)
-  }, [searchQuery, selectedCategory, products])
+  }, [searchQuery, selectedCategory, sortBy, products])
 
   // Extract unique categories in this store
   const categories = ['Hamısı', ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))]
+
+  // Store statistics
+  const storeStats = {
+    totalProducts: products.length,
+    categories: categories.length - 1,
+    priceRange: products.length > 0 ? {
+      min: Math.min(...products.filter(p => p.price).map(p => p.price)),
+      max: Math.max(...products.filter(p => p.price).map(p => p.price))
+    } : null
+  }
 
   // Size Recommendation Modal Handlers
   const handleOpenModal = async (product) => {
@@ -179,7 +252,8 @@ const StorePage = () => {
     const images = getModalImages()
     let initialIdx = images.indexOf(imgUrl)
     if (initialIdx === -1) initialIdx = 0
-    setModalImageIndex(initialIdx)
+    setZoomImages(images)
+    setZoomIndex(initialIdx)
     setZoomImage(imgUrl || images[0])
     setZoomScale(1)
     setZoomPan({ x: 0, y: 0 })
@@ -189,6 +263,7 @@ const StorePage = () => {
   const handleCloseZoom = (e) => {
     if (e) e.stopPropagation()
     setZoomImage(null)
+    setZoomImages([])
     setZoomScale(1)
     setZoomPan({ x: 0, y: 0 })
   }
@@ -213,11 +288,62 @@ const StorePage = () => {
     setZoomPan({ x: 0, y: 0 })
   }
 
+  // Zoom next/prev for lightbox
+  const handleZoomNext = useCallback((e) => {
+    if (e) e.stopPropagation()
+    if (zoomImages.length <= 1) return
+    setZoomOpacity(0)
+    setTimeout(() => {
+      setZoomIndex(prev => {
+        const next = (prev + 1) % zoomImages.length
+        setZoomImage(zoomImages[next])
+        return next
+      })
+      setZoomScale(1)
+      setZoomPan({ x: 0, y: 0 })
+      setZoomOpacity(1)
+    }, 150)
+  }, [zoomImages])
+
+  const handleZoomPrev = useCallback((e) => {
+    if (e) e.stopPropagation()
+    if (zoomImages.length <= 1) return
+    setZoomOpacity(0)
+    setTimeout(() => {
+      setZoomIndex(prev => {
+        const next = (prev - 1 + zoomImages.length) % zoomImages.length
+        setZoomImage(zoomImages[next])
+        return next
+      })
+      setZoomScale(1)
+      setZoomPan({ x: 0, y: 0 })
+      setZoomOpacity(1)
+    }, 150)
+  }, [zoomImages])
+
+  // Touch swipe for zoom lightbox
+  const handleTouchStart = (e) => {
+    if (zoomScale > 1) return
+    setTouchStart(e.touches[0].clientX)
+  }
+
+  const handleTouchEnd = (e) => {
+    if (touchStart === null || zoomScale > 1) return
+    const touchEnd = e.changedTouches[0].clientX
+    const diff = touchStart - touchEnd
+    if (Math.abs(diff) > 60) {
+      if (diff > 0) handleZoomNext(e)
+      else handleZoomPrev(e)
+    }
+    setTouchStart(null)
+  }
+
   const handleCopyStoreLink = () => {
-    navigator.clipboard.writeText(window.location.href)
+    const cleanUrl = `${window.location.origin}/store/${encodeURIComponent(storeData?.shopName || decodedShopName)}`
+    navigator.clipboard.writeText(cleanUrl)
     notification.success({
       message: 'Link Kopyalandı',
-      description: 'Mağaza səhifəsinin daxili ünvanı kopyalandı!'
+      description: 'Mağaza səhifəsinin linki kopyalandı!'
     })
   }
 
@@ -225,10 +351,11 @@ const StorePage = () => {
     return <LoadingSpinner text="Mağaza səhifəsi yüklənir..." fullScreen={true} />
   }
 
+  const displayShopName = storeData?.shopName || decodedShopName
   const contactPhone = storeData?.contactPhone || ''
   const contactLink = storeData?.contactLink || ''
   const formattedPhone = contactPhone ? contactPhone.replace(/[^0-9]/g, '') : ''
-  const whatsappUrl = formattedPhone ? `https://wa.me/${formattedPhone}?text=${encodeURIComponent(`Salam! ${decodedShopName} mağazasından geyim haqqında maraqlanıram.`)}` : ''
+  const whatsappUrl = formattedPhone ? `https://wa.me/${formattedPhone}?text=${encodeURIComponent(`Salam! ${displayShopName} mağazasından geyim haqqında maraqlanıram.`)}` : ''
 
   return (
     <div className="store-page-container">
@@ -253,14 +380,26 @@ const StorePage = () => {
                   <FiCheckCircle /> Təsdiqlənmiş Butik
                 </span>
                 <span className="store-count-badge">
-                  {products.length} Geyim Məhsulu
+                  <FiPackage style={{ marginRight: '4px' }} /> {products.length} Geyim Məhsulu
                 </span>
+                {storeStats.categories > 0 && (
+                  <span className="store-count-badge category-badge">
+                    <FiTag style={{ marginRight: '4px' }} /> {storeStats.categories} Kateqoriya
+                  </span>
+                )}
               </div>
 
-              <h1 className="store-title-name">{decodedShopName}</h1>
+              <h1 className="store-title-name">{displayShopName}</h1>
               <p className="store-tagline">
                 Özəl dizayn geyimlər və keyfiyyətli dəb kolleksiyaları. Ağıllı ölçü mühərriki ilə 100% dəqiq seçim edin.
               </p>
+
+              {/* Price Range Info */}
+              {storeStats.priceRange && storeStats.priceRange.min !== Infinity && (
+                <div className="store-price-range">
+                  <FiTag /> Qiymət aralığı: <strong>{storeStats.priceRange.min} ₼ — {storeStats.priceRange.max} ₼</strong>
+                </div>
+              )}
 
               {/* Action Contact Buttons */}
               <div className="store-contact-actions">
@@ -286,6 +425,40 @@ const StorePage = () => {
               </div>
             </div>
           </div>
+
+          {/* Store Stats Bar */}
+          {products.length > 0 && (
+            <div className="store-stats-bar">
+              <div className="stat-item">
+                <FiPackage className="stat-icon" />
+                <div className="stat-content">
+                  <span className="stat-value">{products.length}</span>
+                  <span className="stat-label">Məhsul</span>
+                </div>
+              </div>
+              <div className="stat-item">
+                <FiTag className="stat-icon" />
+                <div className="stat-content">
+                  <span className="stat-value">{storeStats.categories}</span>
+                  <span className="stat-label">Kateqoriya</span>
+                </div>
+              </div>
+              <div className="stat-item">
+                <FiStar className="stat-icon" />
+                <div className="stat-content">
+                  <span className="stat-value">Premium</span>
+                  <span className="stat-label">Keyfiyyət</span>
+                </div>
+              </div>
+              <div className="stat-item">
+                <FiTruck className="stat-icon" />
+                <div className="stat-content">
+                  <span className="stat-value">Sürətli</span>
+                  <span className="stat-label">Çatdırılma</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -308,28 +481,64 @@ const StorePage = () => {
             )}
           </div>
 
-          <div className="store-category-pills">
-            {categories.map((cat, idx) => (
+          <div className="store-filter-controls">
+            {/* Sort Dropdown */}
+            <select 
+              className="store-sort-select"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="newest">Ən yeni</option>
+              <option value="price-low">Qiymət: Aşağıdan</option>
+              <option value="price-high">Qiymət: Yuxarıdan</option>
+              <option value="name">Ad üzrə (A-Z)</option>
+            </select>
+
+            {/* View Mode Toggle */}
+            <div className="view-mode-toggle">
               <button 
-                key={idx}
-                className={`category-pill ${selectedCategory === cat ? 'active' : ''}`}
-                onClick={() => setSelectedCategory(cat)}
+                className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                onClick={() => setViewMode('grid')}
+                title="Grid baxışı"
               >
-                {cat}
+                <FiGrid />
               </button>
-            ))}
+              <button 
+                className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
+                onClick={() => setViewMode('list')}
+                title="Siyahı baxışı"
+              >
+                <FiList />
+              </button>
+            </div>
           </div>
+        </div>
+
+        {/* Category Pills */}
+        <div className="store-category-pills">
+          {categories.map((cat, idx) => (
+            <button 
+              key={idx}
+              className={`category-pill ${selectedCategory === cat ? 'active' : ''}`}
+              onClick={() => setSelectedCategory(cat)}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
 
         {/* Product Grid Header */}
         <div className="store-grid-header">
           <h2>Kolleksiya Geyimləri ({filteredProducts.length})</h2>
           {searchQuery && <p className="search-results-info">"{searchQuery}" üzrə nəticələr</p>}
+          {selectedCategory !== 'Hamısı' && (
+            <p className="search-results-info">Kateqoriya: {selectedCategory}</p>
+          )}
         </div>
 
         {/* Product Cards Grid */}
         {filteredProducts.length > 0 ? (
-          <div className="clothing-grid">
+          <div className={viewMode === 'grid' ? 'clothing-grid' : 'clothing-list-view'}>
             {filteredProducts.map((product) => {
               const displayPrice = product.price ? `${product.price} ₼` : "Razılaşma ilə"
               const displayImage = (product.imageUrl && product.imageUrl.trim()) 
@@ -338,13 +547,19 @@ const StorePage = () => {
                 ? product.imageUrls[0]
                 : "https://via.placeholder.com/300x400?text=Geyim+Şəkli"
 
+              const imageCount = new Set([
+                ...(product.imageUrl ? [product.imageUrl] : []),
+                ...(Array.isArray(product.imageUrls) ? product.imageUrls : [])
+              ].filter(Boolean)).size
+
               return (
-                <div key={product.id} className="clothing-card">
+                <div key={product.id} className={`clothing-card ${viewMode === 'list' ? 'list-mode' : ''}`}>
                   <div className="clothing-card-image-container">
                     <img 
                       src={displayImage} 
                       alt={product.name} 
                       className="clothing-card-image"
+                      loading="lazy"
                       onError={(e) => {
                         e.target.src = "https://via.placeholder.com/300x400?text=Şəkil+Yüklənmədi"
                       }}
@@ -355,11 +570,17 @@ const StorePage = () => {
                       </span>
                     )}
                     <span className="price-tag">{displayPrice}</span>
+                    {imageCount > 1 && (
+                      <span className="image-count-badge">{imageCount} şəkil</span>
+                    )}
                   </div>
 
                   <div className="clothing-card-content">
                     <h3 className="clothing-card-title">{product.name}</h3>
-                    <p className="clothing-card-brand">{product.brand || decodedShopName}</p>
+                    <p className="clothing-card-brand">{product.brand || displayShopName}</p>
+                    {product.description && viewMode === 'list' && (
+                      <p className="clothing-card-description">{product.description}</p>
+                    )}
 
                     <div className="clothing-card-sizes">
                       {product.sizes && product.sizes.length > 0 ? (
@@ -375,7 +596,7 @@ const StorePage = () => {
 
                     <div className="clothing-card-footer">
                       <div className="clothing-card-seller">
-                        Satıcı: <strong>{product.sellerName || decodedShopName}</strong>
+                        Satıcı: <strong>{product.sellerName || displayShopName}</strong>
                       </div>
                       <button 
                         className="try-button"
@@ -392,16 +613,35 @@ const StorePage = () => {
         ) : (
           <div className="store-empty-state">
             <FiShoppingBag className="empty-icon" />
-            <h3>Hələ ki geyim tapılmadı</h3>
-            <p>Bu mağazada axtarışınız üzrə heç bir məhsul tapılmadı. Zəhmət olmasa axtarış parametri dəyişin.</p>
+            {products.length === 0 && !searchQuery && selectedCategory === 'Hamısı' ? (
+              <>
+                <h3>Bu mağazada hələ ki geyim yoxdur</h3>
+                <p>Satıcı tezliklə yeni kolleksiya əlavə edəcək. Mağazanı izləyin!</p>
+              </>
+            ) : (
+              <>
+                <h3>Hələ ki geyim tapılmadı</h3>
+                <p>Bu mağazada axtarışınız üzrə heç bir məhsul tapılmadı. Zəhmət olmasa axtarış parametri dəyişin.</p>
+              </>
+            )}
             {(searchQuery || selectedCategory !== 'Hamısı') && (
               <button className="reset-filter-btn" onClick={() => { setSearchQuery(''); setSelectedCategory('Hamısı'); }}>
                 Filtrləri Sıfırla
               </button>
             )}
+            <button className="store-back-btn" style={{ marginTop: '16px' }} onClick={() => navigate('/')}>
+              <FiArrowLeft /> Kataloqa Qayıt
+            </button>
           </div>
         )}
       </div>
+
+      {/* Back to Top Button */}
+      {showBackToTop && (
+        <button className="back-to-top-btn" onClick={scrollToTop} title="Yuxarı qayıt">
+          <FiArrowUp />
+        </button>
+      )}
 
       {/* Try-on Size Recommendation Modal */}
       {showModal && selectedProduct && (
@@ -454,7 +694,7 @@ const StorePage = () => {
               <div className="modal-details">
                 <div className="detail-item">
                   <span className="detail-label">Brend:</span>
-                  <span className="detail-value">{selectedProduct.brand || decodedShopName}</span>
+                  <span className="detail-value">{selectedProduct.brand || displayShopName}</span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Qiymət:</span>
@@ -494,9 +734,9 @@ const StorePage = () => {
 
                 {/* Contact Actions in Modal */}
                 <div className="modal-contact-row">
-                  {selectedProduct.contactPhone && (
+                  {(selectedProduct.contactPhone || contactPhone) && (
                     <a
-                      href={`https://wa.me/${selectedProduct.contactPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Salam! ${selectedProduct.name} geyimi haqqında maraqlanıram.`)}`}
+                      href={`https://wa.me/${(selectedProduct.contactPhone || contactPhone).replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Salam! ${selectedProduct.name} geyimi haqqında maraqlanıram.`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="contact-btn whatsapp"
@@ -504,9 +744,9 @@ const StorePage = () => {
                       <FaWhatsapp /> WhatsApp İlə Sifariş
                     </a>
                   )}
-                  {selectedProduct.contactLink && (
+                  {(selectedProduct.contactLink || contactLink) && (
                     <a
-                      href={selectedProduct.contactLink}
+                      href={selectedProduct.contactLink || contactLink}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="contact-btn social"
@@ -526,6 +766,8 @@ const StorePage = () => {
         <div 
           className="zoom-lightbox-overlay" 
           onClick={handleCloseZoom}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
           style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.94)', backdropFilter: 'blur(16px)', zIndex: 100000000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
           <div className="lightbox-controls-top" onClick={(e) => e.stopPropagation()}>
@@ -533,15 +775,76 @@ const StorePage = () => {
             <span className="lightbox-scale-badge">{Math.round(zoomScale * 100)}%</span>
             <button className="lightbox-btn" onClick={handleZoomIn}><FiZoomIn /></button>
             <button className="lightbox-btn" onClick={handleResetZoom}><FiRefreshCw /></button>
+            {zoomImages.length > 1 && (
+              <span className="lightbox-scale-badge">{zoomIndex + 1}/{zoomImages.length}</span>
+            )}
             <button className="lightbox-close-btn" onClick={handleCloseZoom}><FiX /></button>
           </div>
+          
+          {/* Left/Right navigation for zoom */}
+          {zoomImages.length > 1 && (
+            <>
+              <button 
+                className="lightbox-nav-btn lightbox-nav-prev" 
+                onClick={handleZoomPrev}
+                style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', zIndex: 10, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: '48px', height: '48px', color: '#fff', fontSize: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <FiChevronLeft />
+              </button>
+              <button 
+                className="lightbox-nav-btn lightbox-nav-next" 
+                onClick={handleZoomNext}
+                style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', zIndex: 10, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: '48px', height: '48px', color: '#fff', fontSize: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <FiChevronRight />
+              </button>
+            </>
+          )}
+          
           <div className="lightbox-image-wrapper" onClick={(e) => e.stopPropagation()}>
             <img 
               src={zoomImage} 
-              alt="Böyüdülmüş baxış" 
-              style={{ maxWidth: '90vw', maxHeight: '80vh', objectFit: 'contain', borderRadius: '8px' }} 
+              alt="Böyüdülmüş baxış"
+              style={{ 
+                maxWidth: '90vw', 
+                maxHeight: '80vh', 
+                objectFit: 'contain', 
+                borderRadius: '8px',
+                transform: `scale(${zoomScale}) translate(${zoomPan.x}px, ${zoomPan.y}px)`,
+                transition: zoomOpacity < 1 ? 'opacity 0.15s ease' : 'transform 0.15s ease',
+                opacity: zoomOpacity
+              }} 
             />
           </div>
+
+          {/* Thumbnail strip */}
+          {zoomImages.length > 1 && (
+            <div className="lightbox-thumbs" onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', padding: '8px 16px', background: 'rgba(0,0,0,0.6)', borderRadius: '12px' }}>
+              {zoomImages.map((img, idx) => (
+                <img
+                  key={idx}
+                  src={img}
+                  alt={`Şəkil ${idx + 1}`}
+                  onClick={() => {
+                    setZoomIndex(idx)
+                    setZoomImage(img)
+                    setZoomScale(1)
+                    setZoomPan({ x: 0, y: 0 })
+                  }}
+                  style={{
+                    width: '50px',
+                    height: '50px',
+                    objectFit: 'cover',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    border: idx === zoomIndex ? '2px solid #c9a96e' : '2px solid transparent',
+                    opacity: idx === zoomIndex ? 1 : 0.6,
+                    transition: 'all 0.2s ease'
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </div>,
         document.body
       )}

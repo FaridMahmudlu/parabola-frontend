@@ -515,7 +515,7 @@ function Clothing() {
                           className="seller-text" 
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate(`/store/${encodeURIComponent(item.sellerName)}`);
+                            navigate(`/store/${encodeURIComponent(item.sellerName.trim())}`);
                           }}
                           style={{ cursor: 'pointer', transition: 'color 0.2s ease' }}
                           title={`${formatSellerName(item.sellerName)} mağazasına keçid et`}
