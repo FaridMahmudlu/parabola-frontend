@@ -688,7 +688,48 @@
   object-fit: contain;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
+  .lightbox-controls-top {
+    top: 12px !important;
+    right: 12px !important;
+    padding: 4px 8px !important;
+    gap: 4px !important;
+  }
+  .lightbox-btn, .lightbox-close-btn {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 16px !important;
+  }
+  .lightbox-scale-badge {
+    font-size: 10px !important;
+    padding: 2px 4px !important;
+  }
+  .lightbox-thumbnails-strip {
+    bottom: max(12px, env(safe-area-inset-bottom, 12px)) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    padding: 4px 8px !important;
+    gap: 6px !important;
+    max-width: 95vw !important;
+    border-radius: 20px !important;
+    z-index: 100005 !important;
+  }
+  .lightbox-thumbnail {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 4px !important;
+  }
+  .lightbox-nav-btn {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 22px !important;
+  }
+  .lightbox-nav-btn.prev {
+    left: 8px !important;
+  }
+  .lightbox-nav-btn.next {
+    right: 8px !important;
+  }
   .modal-image-viewer {
     height: 200px !important;
   }

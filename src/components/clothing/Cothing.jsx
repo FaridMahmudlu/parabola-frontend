@@ -85,57 +85,67 @@ function Clothing() {
   }, [showModal]);
 
   const handleOpenZoom = (imgUrl) => {
-    const imgs = getLightboxImages();
-    let initialIdx = imgs.indexOf(imgUrl);
+    const items = getLightboxItems();
+    let initialIdx = items.findIndex(it => it.url === imgUrl);
     if (initialIdx === -1) initialIdx = 0;
     setModalImageIndex(initialIdx);
-    setZoomImage(imgs[initialIdx] || imgUrl);
+    setZoomImage(items[initialIdx] ? items[initialIdx].url : imgUrl);
     setZoomScale(1);
     setZoomPan({ x: 0, y: 0 });
     setZoomOpacity(1);
   };
 
-  const handleCloseZoom = () => {
+  const handleCloseZoom = (e) => {
+    if (e) e.stopPropagation();
     setZoomOpacity(0);
     setTimeout(() => {
       setZoomImage(null);
       setZoomScale(1);
       setZoomPan({ x: 0, y: 0 });
-    }, 200);
+    }, 180);
   };
 
-  const handleLightboxNav = (direction) => {
-    const imgs = getLightboxImages();
-    if (imgs.length <= 1) return;
+  const handleLightboxNav = (e, direction) => {
+    if (e) e.stopPropagation();
+    const items = getLightboxItems();
+    if (items.length <= 1) return;
     setZoomOpacity(0.3);
     setTimeout(() => {
       let newIndex;
       if (direction === 'next') {
-        newIndex = (modalImageIndex + 1) % imgs.length;
+        newIndex = (modalImageIndex + 1) % items.length;
       } else {
-        newIndex = (modalImageIndex - 1 + imgs.length) % imgs.length;
+        newIndex = (modalImageIndex - 1 + items.length) % items.length;
       }
-      const targetImg = imgs[newIndex] || imgs[0];
+      const targetItem = items[newIndex] || items[0];
       setModalImageIndex(newIndex);
-      setZoomImage(targetImg);
+      setZoomImage(targetItem.url);
+      if (targetItem.product && (!selectedProduct || targetItem.product.id !== selectedProduct.id)) {
+        setSelectedProduct(targetItem.product);
+      }
       setZoomScale(1);
       setZoomPan({ x: 0, y: 0 });
       setZoomOpacity(1);
-    }, 150);
+    }, 120);
   };
 
-  const handleSelectLightboxThumbnail = (idx) => {
-    const imgs = getLightboxImages();
-    if (imgs.length === 0) return;
-    const validIdx = idx % imgs.length;
+  const handleSelectLightboxThumbnail = (e, idx) => {
+    if (e) e.stopPropagation();
+    const items = getLightboxItems();
+    if (items.length === 0) return;
+    const validIdx = idx % items.length;
+    const targetItem = items[validIdx] || items[0];
     setZoomOpacity(0.3);
     setTimeout(() => {
       setModalImageIndex(validIdx);
-      setZoomImage(imgs[validIdx] || imgs[0]);
+      setZoomImage(targetItem.url);
+      if (targetItem.product && (!selectedProduct || targetItem.product.id !== selectedProduct.id)) {
+        setSelectedProduct(targetItem.product);
+      }
       setZoomScale(1);
       setZoomPan({ x: 0, y: 0 });
       setZoomOpacity(1);
-    }, 150);
+    }, 120);
   };
 
   const handleZoomIn = (e) => {
@@ -354,30 +364,44 @@ function Clothing() {
     return list
   }
 
-  const getLightboxImages = () => {
-    const ownImages = getModalImages()
-    if (ownImages.length > 1) {
-      return ownImages
+  const getLightboxItems = () => {
+    const items = []
+    
+    // 1. Own images of selectedProduct
+    if (selectedProduct) {
+      const ownList = getModalImages()
+      ownList.forEach(url => {
+        items.push({ url, product: selectedProduct })
+      })
     }
 
-    // If selectedProduct has only 1 image, build a list of all images across all products in the catalog
-    // so the user can navigate through all garment photos in the store!
-    const catalogImages = [...ownImages]
+    // 2. Add all other products from catalog so user can slide through all clothing photos!
     if (Array.isArray(products)) {
       products.forEach(p => {
-        if (p.imageUrl && typeof p.imageUrl === 'string' && p.imageUrl.trim() && !catalogImages.includes(p.imageUrl.trim())) {
-          catalogImages.push(p.imageUrl.trim())
+        if (selectedProduct && p.id === selectedProduct.id) return
+        if (p.imageUrl && typeof p.imageUrl === 'string' && p.imageUrl.trim()) {
+          const u = p.imageUrl.trim()
+          if (!items.some(it => it.url === u)) {
+            items.push({ url: u, product: p })
+          }
         }
         if (Array.isArray(p.imageUrls)) {
           p.imageUrls.forEach(url => {
-            if (url && typeof url === 'string' && url.trim() && !catalogImages.includes(url.trim())) {
-              catalogImages.push(url.trim())
+            if (url && typeof url === 'string' && url.trim()) {
+              const u = url.trim()
+              if (!items.some(it => it.url === u)) {
+                items.push({ url: u, product: p })
+              }
             }
           })
         }
       })
     }
-    return catalogImages.length > 0 ? catalogImages : ownImages
+    return items
+  }
+
+  const getLightboxImages = () => {
+    return getLightboxItems().map(item => item.url)
   }
 
   const handleModalPrevImage = () => {
@@ -862,25 +886,29 @@ function Clothing() {
         {zoomImage && createPortal(
           <div 
             className="zoom-lightbox-overlay" 
-            onClick={handleCloseZoom} 
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                handleCloseZoom(e);
+              }
+            }} 
             onWheel={handleWheelZoom}
             style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.94)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', zIndex: 100000000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             {/* Top Control Toolbar */}
             <div className="lightbox-controls-top" onClick={(e) => e.stopPropagation()}>
-              <button className="lightbox-btn" onClick={handleZoomOut} title="Kiçilt (-)">
+              <button className="lightbox-btn" onClick={(e) => handleZoomOut(e)} title="Kiçilt (-)">
                 <FiZoomOut />
               </button>
-              <span className="lightbox-scale-badge" onClick={handleResetZoom} title="Əvvəlki ölçüyə qaytar">
+              <span className="lightbox-scale-badge" onClick={(e) => handleResetZoom(e)} title="Əvvəlki ölçüyə qaytar">
                 {Math.round(zoomScale * 100)}%
               </span>
-              <button className="lightbox-btn" onClick={handleZoomIn} title="Böyüt (+)">
+              <button className="lightbox-btn" onClick={(e) => handleZoomIn(e)} title="Böyüt (+)">
                 <FiZoomIn />
               </button>
-              <button className="lightbox-btn" onClick={handleResetZoom} title="Sıfırla">
+              <button className="lightbox-btn" onClick={(e) => handleResetZoom(e)} title="Sıfırla">
                 <FiRefreshCw style={{ fontSize: '15px' }} />
               </button>
-              <button className="lightbox-close-btn" onClick={handleCloseZoom} title="Bağla">
+              <button className="lightbox-close-btn" onClick={(e) => handleCloseZoom(e)} title="Bağla">
                 <FiX />
               </button>
             </div>
@@ -890,18 +918,18 @@ function Clothing() {
               <>
                 <button 
                   className="lightbox-nav-btn prev"
-                  onClick={(e) => handleLightboxNav('prev')}
-                  title="Əvvəlki şəkil"
-                  style={{ position: 'absolute', left: '24px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontSize: '28px', width: '52px', height: '52px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100002, transition: 'all 0.2s ease' }}
+                  onClick={(e) => handleLightboxNav(e, 'prev')}
+                  title="Əvvəlki şəkil / geyim"
+                  style={{ position: 'absolute', left: '24px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,255,0.25)', color: 'white', fontSize: '28px', width: '52px', height: '52px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100005, transition: 'all 0.2s ease' }}
                 >
                   <FiChevronLeft />
                 </button>
 
                 <button 
                   className="lightbox-nav-btn next"
-                  onClick={(e) => handleLightboxNav('next')}
-                  title="Növbəti şəkil"
-                  style={{ position: 'absolute', right: '24px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontSize: '28px', width: '52px', height: '52px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100002, transition: 'all 0.2s ease' }}
+                  onClick={(e) => handleLightboxNav(e, 'next')}
+                  title="Növbəti şəkil / geyim"
+                  style={{ position: 'absolute', right: '24px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,255,0.25)', color: 'white', fontSize: '28px', width: '52px', height: '52px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100005, transition: 'all 0.2s ease' }}
                 >
                   <FiChevronRight />
                 </button>
@@ -915,14 +943,14 @@ function Clothing() {
                   <div 
                     key={idx} 
                     className={`lightbox-thumbnail ${idx === modalImageIndex ? 'active' : ''}`}
-                    onClick={() => handleSelectLightboxThumbnail(idx)}
+                    onClick={(e) => handleSelectLightboxThumbnail(e, idx)}
                   >
                     <img src={imgUrl} alt={`Thumbnail ${idx + 1}`} />
                   </div>
                 ))}
               </div>
             ) : (
-              <div style={{ position: 'absolute', bottom: '24px', background: 'rgba(0,0,0,0.7)', color: '#c9a96e', padding: '6px 18px', borderRadius: '20px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', border: '1px solid rgba(201,169,110,0.3)', zIndex: 100002, letterSpacing: '1px' }}>
+              <div style={{ position: 'absolute', bottom: '24px', background: 'rgba(0,0,0,0.7)', color: '#c9a96e', padding: '6px 18px', borderRadius: '20px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', border: '1px solid rgba(201,169,110,0.3)', zIndex: 100005, letterSpacing: '1px' }}>
                 1 / 1
               </div>
             )}
