@@ -365,43 +365,12 @@ function Clothing() {
   }
 
   const getLightboxItems = () => {
-    const items = []
-    
-    // 1. Own images of selectedProduct
-    if (selectedProduct) {
-      const ownList = getModalImages()
-      ownList.forEach(url => {
-        items.push({ url, product: selectedProduct })
-      })
-    }
-
-    // 2. Add all other products from catalog so user can slide through all clothing photos!
-    if (Array.isArray(products)) {
-      products.forEach(p => {
-        if (selectedProduct && p.id === selectedProduct.id) return
-        if (p.imageUrl && typeof p.imageUrl === 'string' && p.imageUrl.trim()) {
-          const u = p.imageUrl.trim()
-          if (!items.some(it => it.url === u)) {
-            items.push({ url: u, product: p })
-          }
-        }
-        if (Array.isArray(p.imageUrls)) {
-          p.imageUrls.forEach(url => {
-            if (url && typeof url === 'string' && url.trim()) {
-              const u = url.trim()
-              if (!items.some(it => it.url === u)) {
-                items.push({ url: u, product: p })
-              }
-            }
-          })
-        }
-      })
-    }
-    return items
+    if (!selectedProduct) return []
+    return getModalImages().map(url => ({ url, product: selectedProduct }))
   }
 
   const getLightboxImages = () => {
-    return getLightboxItems().map(item => item.url)
+    return getModalImages()
   }
 
   const handleModalPrevImage = () => {
