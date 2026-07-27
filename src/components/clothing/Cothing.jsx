@@ -208,6 +208,31 @@ function Clothing() {
     setIsDragging(false);
   };
 
+  let lightboxTouchStartX = 0;
+  let lightboxTouchStartY = 0;
+
+  const handleLightboxTouchStart = (e) => {
+    if (zoomScale > 1) return;
+    lightboxTouchStartX = e.changedTouches[0].clientX;
+    lightboxTouchStartY = e.changedTouches[0].clientY;
+  };
+
+  const handleLightboxTouchEnd = (e) => {
+    if (zoomScale > 1) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const diffX = lightboxTouchStartX - touchEndX;
+    const diffY = lightboxTouchStartY - touchEndY;
+
+    if (Math.abs(diffX) > 35 && Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX > 0) {
+        handleLightboxNav(e, 'next');
+      } else {
+        handleLightboxNav(e, 'prev');
+      }
+    }
+  };
+
   useEffect(() => {
     async function getProducts() {
       try {
@@ -861,6 +886,8 @@ function Clothing() {
               }
             }} 
             onWheel={handleWheelZoom}
+            onTouchStart={handleLightboxTouchStart}
+            onTouchEnd={handleLightboxTouchEnd}
             style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.94)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', zIndex: 100000000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             {/* Top Control Toolbar */}
@@ -926,6 +953,7 @@ function Clothing() {
 
             {/* Main Lightbox Image */}
             <div 
+              className="lightbox-image-wrapper"
               onClick={(e) => e.stopPropagation()}
               onMouseDown={handleMouseDownPan}
               onMouseMove={handleMouseMovePan}
@@ -933,7 +961,7 @@ function Clothing() {
               onMouseLeave={handleMouseUpPan}
               style={{
                 maxWidth: '88vw',
-                maxHeight: '82vh',
+                maxHeight: '75vh',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

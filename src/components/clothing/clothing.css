@@ -694,6 +694,7 @@
     right: 12px !important;
     padding: 4px 8px !important;
     gap: 4px !important;
+    z-index: 100006 !important;
   }
   .lightbox-btn, .lightbox-close-btn {
     width: 32px !important;
@@ -705,19 +706,23 @@
     padding: 2px 4px !important;
   }
   .lightbox-thumbnails-strip {
-    bottom: max(12px, env(safe-area-inset-bottom, 12px)) !important;
+    position: fixed !important;
+    bottom: max(24px, env(safe-area-inset-bottom, 24px)) !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
-    padding: 4px 8px !important;
-    gap: 6px !important;
-    max-width: 95vw !important;
-    border-radius: 20px !important;
-    z-index: 100005 !important;
+    padding: 6px 14px !important;
+    gap: 8px !important;
+    max-width: 90vw !important;
+    background: rgba(12, 12, 12, 0.94) !important;
+    border: 1px solid rgba(201, 169, 110, 0.4) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9) !important;
+    border-radius: 30px !important;
+    z-index: 100006 !important;
   }
   .lightbox-thumbnail {
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 4px !important;
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 6px !important;
   }
   .lightbox-nav-btn {
     width: 44px !important;
@@ -729,6 +734,10 @@
   }
   .lightbox-nav-btn.next {
     right: 8px !important;
+  }
+  .lightbox-image-wrapper {
+    max-height: 66vh !important;
+    max-width: 94vw !important;
   }
   .modal-image-viewer {
     height: 200px !important;
