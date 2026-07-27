@@ -17,7 +17,28 @@ import {
 import { FaWhatsapp, FaInstagram, FaTiktok } from 'react-icons/fa'
 import { GoArrowRight } from "react-icons/go"
 import './StorePage.css'
-import '../../components/clothing/clothing.css'
+
+// Helper function to deduplicate and sort size badges cleanly
+const getSortedUniqueSizes = (sizes) => {
+  if (!sizes || !Array.isArray(sizes)) return []
+  const sizeOrder = ["XS", "S", "M", "L", "XL", "XXL", "3XL"]
+  
+  const uniqueMap = {}
+  sizes.forEach(s => {
+    if (s && s.sizeName) {
+      uniqueMap[s.sizeName.toUpperCase()] = s
+    }
+  })
+  
+  return Object.values(uniqueMap).sort((a, b) => {
+    const indexA = sizeOrder.indexOf(a.sizeName.toUpperCase())
+    const indexB = sizeOrder.indexOf(b.sizeName.toUpperCase())
+    
+    const valA = indexA === -1 ? 999 : indexA
+    const valB = indexB === -1 ? 999 : indexB
+    return valA - valB
+  })
+}
 
 const StorePage = () => {
   const { shopName } = useParams()
@@ -92,7 +113,6 @@ const StorePage = () => {
           headers['X-Clerk-User-Email'] = user.primaryEmailAddress.emailAddress
         }
 
-        // Trim the shopName before sending to API
         const trimmedName = decodedShopName.trim()
         const res = await axios.get(`${BASE_URL}/api/v1/products/store/${encodeURIComponent(trimmedName)}`, { headers })
         
@@ -103,7 +123,6 @@ const StorePage = () => {
           setFilteredProducts(prodList)
           setStoreFound(res.data.storeFound !== false)
           
-          // Use the corrected shopName from backend (if available)
           if (res.data.shopName && res.data.shopName !== decodedShopName) {
             document.title = `${res.data.shopName} - Parabola Butik Mağazası`
           }
@@ -111,7 +130,6 @@ const StorePage = () => {
       } catch (err) {
         console.error("Mağaza məlumatı yüklənərkən xəta:", err)
         setStoreFound(false)
-        // Only show error if it's a real network/server error
         if (err.response && err.response.status >= 500) {
           notification.error({
             message: 'Server Xətası',
@@ -132,12 +150,10 @@ const StorePage = () => {
   useEffect(() => {
     let list = [...products]
     
-    // Category filter
     if (selectedCategory !== 'Hamısı') {
       list = list.filter(p => p.category && p.category.toLowerCase() === selectedCategory.toLowerCase())
     }
     
-    // Search filter
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim()
       list = list.filter(p => 
@@ -148,7 +164,6 @@ const StorePage = () => {
       )
     }
 
-    // Sort
     switch (sortBy) {
       case 'price-low':
         list.sort((a, b) => (a.price || 0) - (b.price || 0))
@@ -161,7 +176,6 @@ const StorePage = () => {
         break
       case 'newest':
       default:
-        // Already sorted by newest from API
         break
     }
     
@@ -171,15 +185,13 @@ const StorePage = () => {
   // Extract unique categories in this store
   const categories = ['Hamısı', ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))]
 
-  // Store statistics
-  const storeStats = {
-    totalProducts: products.length,
-    categories: categories.length - 1,
-    priceRange: products.length > 0 ? {
-      min: Math.min(...products.filter(p => p.price).map(p => p.price)),
-      max: Math.max(...products.filter(p => p.price).map(p => p.price))
-    } : null
-  }
+  // Calculate Price Range strictly from valid product prices
+  const validPrices = products
+    .map(p => p.price)
+    .filter(p => typeof p === 'number' && !isNaN(p) && p > 0)
+
+  const priceMin = validPrices.length > 0 ? Math.min(...validPrices) : null
+  const priceMax = validPrices.length > 0 ? Math.max(...validPrices) : null
 
   // Size Recommendation Modal Handlers
   const handleOpenModal = async (product) => {
@@ -288,7 +300,6 @@ const StorePage = () => {
     setZoomPan({ x: 0, y: 0 })
   }
 
-  // Zoom next/prev for lightbox
   const handleZoomNext = useCallback((e) => {
     if (e) e.stopPropagation()
     if (zoomImages.length <= 1) return
@@ -321,7 +332,6 @@ const StorePage = () => {
     }, 150)
   }, [zoomImages])
 
-  // Touch swipe for zoom lightbox
   const handleTouchStart = (e) => {
     if (zoomScale > 1) return
     setTouchStart(e.touches[0].clientX)
@@ -352,10 +362,12 @@ const StorePage = () => {
   }
 
   const displayShopName = storeData?.shopName || decodedShopName
-  const contactPhone = storeData?.contactPhone || ''
-  const contactLink = storeData?.contactLink || ''
+  const contactPhone = (storeData?.contactPhone && storeData.contactPhone.trim()) ? storeData.contactPhone.trim() : ''
+  const contactLink = (storeData?.contactLink && storeData.contactLink.trim()) ? storeData.contactLink.trim() : ''
   const formattedPhone = contactPhone ? contactPhone.replace(/[^0-9]/g, '') : ''
   const whatsappUrl = formattedPhone ? `https://wa.me/${formattedPhone}?text=${encodeURIComponent(`Salam! ${displayShopName} mağazasından geyim haqqında maraqlanıram.`)}` : ''
+
+  const numCategories = categories.length - 1
 
   return (
     <div className="store-page-container">
@@ -382,43 +394,48 @@ const StorePage = () => {
                 <span className="store-count-badge">
                   <FiPackage style={{ marginRight: '4px' }} /> {products.length} Geyim Məhsulu
                 </span>
-                {storeStats.categories > 0 && (
+                {numCategories > 0 && (
                   <span className="store-count-badge category-badge">
-                    <FiTag style={{ marginRight: '4px' }} /> {storeStats.categories} Kateqoriya
+                    <FiTag style={{ marginRight: '4px' }} /> {numCategories} Kateqoriya
                   </span>
                 )}
               </div>
 
               <h1 className="store-title-name">{displayShopName}</h1>
-              <p className="store-tagline">
-                Özəl dizayn geyimlər və keyfiyyətli dəb kolleksiyaları. Ağıllı ölçü mühərriki ilə 100% dəqiq seçim edin.
-              </p>
 
-              {/* Price Range Info */}
-              {storeStats.priceRange && storeStats.priceRange.min !== Infinity && (
+              {/* Optional custom description if present */}
+              {storeData?.description && storeData.description.trim() && (
+                <p className="store-tagline">{storeData.description.trim()}</p>
+              )}
+
+              {/* Price Range Info (rendered ONLY if valid prices exist) */}
+              {priceMin !== null && (
                 <div className="store-price-range">
-                  <FiTag /> Qiymət aralığı: <strong>{storeStats.priceRange.min} ₼ — {storeStats.priceRange.max} ₼</strong>
+                  <FiTag /> {priceMin === priceMax ? `Qiymət: ${priceMin} ₼` : `Qiymət aralığı: ${priceMin} ₼ — ${priceMax} ₼`}
                 </div>
               )}
 
-              {/* Action Contact Buttons */}
+              {/* Action Contact Buttons (strictly rendered ONLY if metadata exists) */}
               <div className="store-contact-actions">
-                {whatsappUrl && (
+                {whatsappUrl ? (
                   <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="store-action-btn whatsapp">
                     <FaWhatsapp /> WhatsApp Əlaqə
                   </a>
-                )}
-                {contactLink && (
+                ) : null}
+
+                {contactLink ? (
                   <a href={contactLink} target="_blank" rel="noopener noreferrer" className="store-action-btn social">
-                    {contactLink.includes('instagram') ? <FaInstagram /> : contactLink.includes('tiktok') ? <FaTiktok /> : <FiShare2 />}
+                    {contactLink.toLowerCase().includes('instagram') ? <FaInstagram /> : contactLink.toLowerCase().includes('tiktok') ? <FaTiktok /> : <FiShare2 />}
                     Mağaza Sosial Media
                   </a>
-                )}
-                {contactPhone && (
+                ) : null}
+
+                {contactPhone ? (
                   <a href={`tel:${contactPhone}`} className="store-action-btn phone">
                     <FiPhone /> {contactPhone}
                   </a>
-                )}
+                ) : null}
+
                 <button className="store-action-btn share" onClick={handleCopyStoreLink} title="Mağaza linkini kopyala">
                   <FiShare2 /> Linki Paylaş
                 </button>
@@ -426,7 +443,7 @@ const StorePage = () => {
             </div>
           </div>
 
-          {/* Store Stats Bar */}
+          {/* Store Stats Bar (rendered ONLY if products exist) */}
           {products.length > 0 && (
             <div className="store-stats-bar">
               <div className="stat-item">
@@ -436,27 +453,26 @@ const StorePage = () => {
                   <span className="stat-label">Məhsul</span>
                 </div>
               </div>
-              <div className="stat-item">
-                <FiTag className="stat-icon" />
-                <div className="stat-content">
-                  <span className="stat-value">{storeStats.categories}</span>
-                  <span className="stat-label">Kateqoriya</span>
+
+              {numCategories > 0 && (
+                <div className="stat-item">
+                  <FiTag className="stat-icon" />
+                  <div className="stat-content">
+                    <span className="stat-value">{numCategories}</span>
+                    <span className="stat-label">Kateqoriya</span>
+                  </div>
                 </div>
-              </div>
-              <div className="stat-item">
-                <FiStar className="stat-icon" />
-                <div className="stat-content">
-                  <span className="stat-value">Premium</span>
-                  <span className="stat-label">Keyfiyyət</span>
+              )}
+
+              {priceMin !== null && (
+                <div className="stat-item">
+                  <FiTag className="stat-icon" />
+                  <div className="stat-content">
+                    <span className="stat-value">{priceMin === priceMax ? `${priceMin} ₼` : `${priceMin} - ${priceMax} ₼`}</span>
+                    <span className="stat-label">Qiymət Aralığı</span>
+                  </div>
                 </div>
-              </div>
-              <div className="stat-item">
-                <FiTruck className="stat-icon" />
-                <div className="stat-content">
-                  <span className="stat-value">Sürətli</span>
-                  <span className="stat-label">Çatdırılma</span>
-                </div>
-              </div>
+              )}
             </div>
           )}
         </div>
@@ -552,6 +568,8 @@ const StorePage = () => {
                 ...(Array.isArray(product.imageUrls) ? product.imageUrls : [])
               ].filter(Boolean)).size
 
+              const sortedSizes = getSortedUniqueSizes(product.sizes)
+
               return (
                 <div key={product.id} className={`clothing-card ${viewMode === 'list' ? 'list-mode' : ''}`}>
                   <div className="clothing-card-image-container">
@@ -583,8 +601,8 @@ const StorePage = () => {
                     )}
 
                     <div className="clothing-card-sizes">
-                      {product.sizes && product.sizes.length > 0 ? (
-                        product.sizes.map((s, i) => (
+                      {sortedSizes.length > 0 ? (
+                        sortedSizes.map((s, i) => (
                           <span key={i} className="size-badge">
                             {s.sizeName}
                           </span>
