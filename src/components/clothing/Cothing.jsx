@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { GoArrowRight } from "react-icons/go"
 import axios from "axios"
 import "./clothing.css"
@@ -360,7 +361,7 @@ function Clothing() {
           </div>
 
         </div>
-        {showModal && selectedProduct && (
+        {showModal && selectedProduct && createPortal(
           <div className="modal-overlay" onClick={(e) => { if (e.target.className === 'modal-overlay') setShowModal(false); }}>
             <div className="modal-container" ref={modalRef}>
               <div className="modal-header">
@@ -699,11 +700,12 @@ function Clothing() {
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* Zoom Lightbox fullscreen overlay */}
-        {zoomImage && (
+        {zoomImage && createPortal(
           <div 
             className="zoom-lightbox-overlay" 
             onClick={() => setZoomImage(null)} 
@@ -760,7 +762,8 @@ function Clothing() {
               onClick={(e) => e.stopPropagation()}
               style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain', borderRadius: '6px', boxShadow: '0 25px 60px rgba(0,0,0,0.8)', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }} 
             />
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </div>

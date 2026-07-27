@@ -193,45 +193,56 @@
 
 .modal-overlay {
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.88);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  z-index: 999999;
-  padding: 24px 16px;
-  overflow-y: auto;
+  z-index: 99999999;
+  padding: 16px;
+  box-sizing: border-box;
 }
 
 .modal-container {
   width: 100%;
   max-width: 880px;
-  max-height: none;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   background: #0d0d0d;
-  border: 1px solid #1a1a1a;
+  border: 1px solid #1f1f1f;
   border-radius: 8px;
-  overflow: visible;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95);
-  margin: 0 auto;
+  margin: auto;
   animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
+  overflow: hidden;
 }
 
+.modal-body::-webkit-scrollbar,
 .modal-container::-webkit-scrollbar {
   width: 6px;
 }
 
+.modal-body::-webkit-scrollbar-track,
 .modal-container::-webkit-scrollbar-track {
   background: #0a0a0a;
 }
 
+.modal-body::-webkit-scrollbar-thumb,
 .modal-container::-webkit-scrollbar-thumb {
   background: #262626;
   border-radius: 3px;
 }
 
+.modal-body::-webkit-scrollbar-thumb:hover,
 .modal-container::-webkit-scrollbar-thumb:hover {
   background: #c9a96e;
 }
@@ -240,12 +251,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 24px;
-  border-bottom: 1px solid #161616;
-  background: #0a0a0a;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  padding: 14px 20px;
+  border-bottom: 1px solid #181818;
+  background: #090909;
+  flex-shrink: 0;
+  z-index: 10;
 }
 
 .modal-title {
@@ -273,8 +283,10 @@
 .modal-body {
   display: grid;
   grid-template-columns: 1fr 1.2fr;
-  gap: 24px;
-  padding: 20px 24px 28px;
+  gap: 20px;
+  padding: 20px;
+  overflow-y: auto;
+  flex-grow: 1;
 }
 
 .modal-left {
