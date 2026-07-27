@@ -17,6 +17,7 @@ const Forgot = lazy(() => import('./pages/forgotpassword/Forgot'))
 const Profile = lazy(() => import('./pages/profile/Profile'))
 const SellerPanel = lazy(() => import('./components/Seller/SellerPanel'))
 const AdminPanel = lazy(() => import('./pages/admin/AdminPanel'))
+const StorePage = lazy(() => import('./pages/store/StorePage'))
 
 const App = () => {
   const location = useLocation()
@@ -51,6 +52,7 @@ const App = () => {
           <Route path='/profile' element={<Profile/>}/>
           <Route path='/seller' element={<SellerPanel/>}/>
           <Route path='/admin' element={<AdminPanel/>}/>
+          <Route path='/store/:shopName' element={<StorePage/>}/>
         </Routes>
       </Suspense>
     </div>

@@ -511,7 +511,17 @@ function Clothing() {
                       <p className="brand-text">{item.brand}</p>
                       <p className="price-text">{item.price ? `${item.price} AZN` : "Qiymət təyin edilməyib"}</p>
                       {item.sellerName && (
-                        <p className="seller-text">Satıcı: {formatSellerName(item.sellerName)}</p>
+                        <p 
+                          className="seller-text" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/store/${encodeURIComponent(item.sellerName)}`);
+                          }}
+                          style={{ cursor: 'pointer', transition: 'color 0.2s ease' }}
+                          title={`${formatSellerName(item.sellerName)} mağazasına keçid et`}
+                        >
+                          Satıcı: <span style={{ textDecoration: 'underline', color: '#c9a96e' }}>{formatSellerName(item.sellerName)}</span>
+                        </p>
                       )}
                     </div>
 

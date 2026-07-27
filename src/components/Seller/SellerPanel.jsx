@@ -370,11 +370,35 @@ const SellerPanel = () => {
     <>
       <Header />
       <div className="panel-wrapper">
-        <header className="panel-header">
+        <header className="panel-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
           <h1 className="panel-title">Satıcı Paneli</h1>
           <p className="panel-subtitle">
             {editingId ? "Məhsulu redaktə edin." : "Yeni geyim əlavə edin."}
           </p>
+          {sellerShopName && (
+            <div style={{ display: 'flex', gap: '10px', marginTop: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <Link 
+                to={`/store/${encodeURIComponent(sellerShopName)}`} 
+                target="_blank"
+                style={{
+                  background: 'rgba(201, 169, 110, 0.15)',
+                  border: '1px solid rgba(201, 169, 110, 0.4)',
+                  color: '#c9a96e',
+                  padding: '8px 18px',
+                  borderRadius: '20px',
+                  textDecoration: 'none',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontFamily: 'Montserrat, sans-serif'
+                }}
+              >
+                🛍️ Mağazamı Görüntülə ({sellerShopName})
+              </Link>
+            </div>
+          )}
         </header>
         {!sellerShopName ? (
           <div className="panel-card" style={{ border: '1px solid #ff4d4f', background: 'rgba(255, 77, 79, 0.05)', textAlign: 'center', padding: '40px 20px', maxWidth: '800px', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
