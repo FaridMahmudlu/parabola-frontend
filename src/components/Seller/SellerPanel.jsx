@@ -39,6 +39,7 @@ const SellerPanel = () => {
   const [deletingId, setDeletingId] = useState(null);
 
   const [status, setStatus] = useState({ loading: false, error: null, ok: false });
+  const [products, setProducts] = useState([]);
   const [sellerShopName, setSellerShopName] = useState("");
   const [userData, setUserData] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -124,8 +125,10 @@ const SellerPanel = () => {
     if (isSignedIn) {
       fetchProfile();
       fetchMyProducts();
+    } else if (isLoaded) {
+      setProfileLoading(false);
     }
-  }, [isSignedIn, getToken]);
+  }, [isSignedIn, isLoaded, getToken]);
 
   if (!isLoaded || profileLoading) {
     return <LoadingSpinner text="Satıcı paneli yüklənir..." fullScreen={true} iconType="seller" />;
