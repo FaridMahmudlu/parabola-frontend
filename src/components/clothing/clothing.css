@@ -193,32 +193,31 @@
 
 .modal-overlay {
   position: fixed;
-  top: 82px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.92);
-  backdrop-filter: blur(10px);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  z-index: 9990;
-  padding: 16px;
+  z-index: 999999;
+  padding: 20px 16px;
   overflow-y: auto;
 }
 
 .modal-container {
   width: 100%;
-  max-width: 900px;
-  max-height: calc(100vh - 110px);
+  max-width: 880px;
+  max-height: 90vh;
   background: #0d0d0d;
   border: 1px solid #1a1a1a;
-  border-radius: 6px;
+  border-radius: 8px;
   overflow-y: auto;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95);
-  margin: 0 auto;
+  margin: auto;
   animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   scroll-behavior: smooth;
+  position: relative;
 }
 
 .modal-container::-webkit-scrollbar {
@@ -595,13 +594,12 @@
 
   /* Modal Overrides for mobile viewports */
   .modal-overlay {
-    top: 70px !important;
     padding: 10px !important;
   }
   .modal-container {
-    max-height: calc(100vh - 85px) !important;
+    max-height: 92vh !important;
     overflow-y: auto !important;
-    width: 95% !important;
+    width: 96% !important;
   }
   .modal-body {
     grid-template-columns: 1fr !important;
