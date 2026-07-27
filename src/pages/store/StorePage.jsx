@@ -77,7 +77,7 @@ const StorePage = () => {
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [storeFound, setStoreFound] = useState(true)
 
-  // Size Modal State (matching Cothing.jsx)
+  // Size Modal State (100% matching Cothing.jsx)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [selectedSize, setSelectedSize] = useState('')
@@ -88,7 +88,7 @@ const StorePage = () => {
   const [loadingRecommendation, setLoadingRecommendation] = useState(false)
   const modalRef = useRef(null)
 
-  // Zoom Lightbox State (matching Cothing.jsx)
+  // Zoom Lightbox State (100% matching Cothing.jsx)
   const [zoomImage, setZoomImage] = useState(null)
   const [zoomScale, setZoomScale] = useState(1)
   const [zoomPan, setZoomPan] = useState({ x: 0, y: 0 })
@@ -299,14 +299,14 @@ const StorePage = () => {
     setTouchStart(null)
   }
 
-  // Try-On Size Analysis Modal Handler (matching Cothing.jsx)
+  // Try-On Size Analysis Modal Handler (100% matching Cothing.jsx)
   const handleTryOn = async (product) => {
     setSelectedProduct(product)
     setModalImageIndex(0)
     setImageOpacity(1)
     setShowModal(true)
     setSelectedSize('')
-    setSelectedColor(product.color || '')
+    setSelectedColor(product.color ? product.color.split(",")[0].trim() : '')
     setRecommendation(null)
     setLoadingRecommendation(true)
 
@@ -428,7 +428,7 @@ const StorePage = () => {
       if (whatsappNumber) {
         window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank')
       } else {
-        notification.info({ message: "Əlaqə Nömrəsi Məvcut Deyil" })
+        notification.info({ message: "Əlaqə Nömrəsi Mövcud Deyil" })
       }
     } else {
       navigator.clipboard.writeText(message)
@@ -467,8 +467,15 @@ const StorePage = () => {
     <div className="store-page-container">
       <Header />
 
-      {/* Store Hero Banner */}
-      <div className="store-hero-banner">
+      {/* Store Hero Banner with optional custom Cover Banner background */}
+      <div 
+        className="store-hero-banner"
+        style={storeData?.shopBannerUrl ? {
+          backgroundImage: `linear-gradient(135deg, rgba(20, 20, 20, 0.88) 0%, rgba(5, 5, 5, 0.94) 100%), url('${storeData.shopBannerUrl}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        } : {}}
+      >
         <div className="store-banner-overlay"></div>
         <div className="store-hero-content">
           <button className="store-back-btn" onClick={() => navigate('/')}>
@@ -477,7 +484,11 @@ const StorePage = () => {
           
           <div className="store-header-card">
             <div className="store-avatar-circle">
-              <FiShoppingBag />
+              {storeData?.shopAvatarUrl ? (
+                <img src={storeData.shopAvatarUrl} alt={displayShopName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+              ) : (
+                <FiShoppingBag />
+              )}
             </div>
             
             <div className="store-meta-details">
@@ -497,9 +508,9 @@ const StorePage = () => {
 
               <h1 className="store-title-name">{displayShopName}</h1>
 
-              {/* Optional Custom Description if provided by seller */}
-              {storeData?.description && storeData.description.trim() ? (
-                <p className="store-tagline">{storeData.description.trim()}</p>
+              {/* Optional Custom Description / Bio if provided by seller */}
+              {storeData?.shopBio && storeData.shopBio.trim() ? (
+                <p className="store-tagline">{storeData.shopBio.trim()}</p>
               ) : null}
 
               {/* Price Range Info (rendered ONLY if valid prices exist) */}
@@ -574,7 +585,7 @@ const StorePage = () => {
 
       {/* Main Content Section */}
       <div className="store-main-section">
-        {/* Professional Multi-Option Filter Panel */}
+        {/* Professional Multi-Option Filter Panel with Styled Dropdowns */}
         <div className="store-pro-filter-panel">
           <div className="filter-panel-header">
             <h3 className="filter-title">
@@ -883,7 +894,7 @@ const StorePage = () => {
                   )}
                 </div>
                 
-                {/* Score Circle & User Authentication Status */}
+                {/* Score Circle & User Authentication Status (100% matching Cothing.jsx) */}
                 <div style={{ position: 'relative', width: '100%', overflow: 'hidden', borderRadius: '4px' }}>
                   <div style={{ 
                     display: 'flex', 
@@ -961,61 +972,212 @@ const StorePage = () => {
                   <span className="price-badge" style={{ padding: '8px 16px', fontSize: '16px' }}>{selectedProduct.price ? `${selectedProduct.price} AZN` : "Təyin edilməyib"}</span>
                 </div>
 
-                {/* Product Specification Grid */}
+                {/* Product Specification Grid (100% matching Cothing.jsx) */}
                 <div className="product-spec-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px', marginTop: '16px', padding: '12px', border: '1px solid #1f1f1f', borderRadius: '4px', background: '#070707' }}>
                   <div style={{ fontSize: '12px' }}><span style={{ color: '#7a7570' }}>Cins:</span> <span style={{ color: 'white' }}>{selectedProduct.gender || "Təyin edilməyib"}</span></div>
                   <div style={{ fontSize: '12px' }}><span style={{ color: '#7a7570' }}>Stil:</span> <span style={{ color: 'white' }}>{selectedProduct.style || "Təyin edilməyib"}</span></div>
                   <div style={{ fontSize: '12px' }}><span style={{ color: '#7a7570' }}>Rəng:</span> <span style={{ color: 'white' }}>{selectedProduct.color || "Təyin edilməyib"}</span></div>
+                  <div style={{ fontSize: '12px' }}><span style={{ color: '#7a7570' }}>Kateqoriya:</span> <span style={{ color: 'white' }}>{selectedProduct.category || "Təyin edilməyib"}</span></div>
                 </div>
 
-                {/* Available Sizes Picker */}
-                <div style={{ marginTop: '16px' }}>
-                  <label style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Mövcud Ölçülər</label>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {getSortedUniqueSizes(selectedProduct.sizes).map(s => (
+                {/* Geyim Haqqında Description */}
+                {selectedProduct.description && (
+                  <div className="section" style={{ marginTop: '20px' }}>
+                    <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>GEYİM HAQQINDA</div>
+                    <p style={{ color: '#b0adaa', fontSize: '13px', lineHeight: '1.6', marginTop: '5px' }}>{selectedProduct.description}</p>
+                  </div>
+                )}
+
+                {/* Size Selector Swatches */}
+                {selectedProduct.sizes && selectedProduct.sizes.length > 0 && (
+                  <div className="section" style={{ marginTop: '20px' }}>
+                    <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>ÖLÇÜ SEÇİN</div>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
+                      {getSortedUniqueSizes(selectedProduct.sizes).map(s => (
+                        <button 
+                          key={s.id}
+                          onClick={() => setSelectedSize(s.sizeName)}
+                          style={{
+                            background: selectedSize === s.sizeName ? '#c9a96e' : '#141414',
+                            color: selectedSize === s.sizeName ? 'black' : '#f0ece4',
+                            border: '1px solid #1f1f1f',
+                            padding: '8px 16px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontFamily: 'Montserrat, sans-serif',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          {s.sizeName}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Color Selector Swatches */}
+                {selectedProduct.color && (
+                  <div className="section" style={{ marginTop: '20px' }}>
+                    <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>RƏNG SEÇİN</div>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
+                      {selectedProduct.color.split(",").map(c => {
+                        const colorName = c.trim();
+                        const isSelected = selectedColor === colorName;
+                        return (
+                          <button 
+                            key={colorName}
+                            onClick={() => setSelectedColor(colorName)}
+                            style={{
+                              background: isSelected ? '#c9a96e' : '#141414',
+                              color: isSelected ? 'black' : '#f0ece4',
+                              border: '1px solid #1f1f1f',
+                              padding: '8px 16px',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontFamily: 'Montserrat, sans-serif',
+                              fontSize: '12px',
+                              fontWeight: '600',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            {colorName}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Smart Size Recommendation Message */}
+                <div className="section" style={{ marginTop: '20px', position: 'relative', overflow: 'hidden', borderRadius: '4px' }}>
+                  <div className="section-label">AĞILLI ÖLÇÜ TÖVSİYƏSİ</div>
+                  <div 
+                    className="recommendation" 
+                    style={{ 
+                      color: '#c9a96e', 
+                      fontSize: '14px', 
+                      lineHeight: '1.6', 
+                      marginTop: '5px',
+                      filter: !isSignedIn ? 'blur(5px)' : 'none',
+                      pointerEvents: !isSignedIn ? 'none' : 'auto',
+                      userSelect: !isSignedIn ? 'none' : 'auto',
+                      minHeight: !isSignedIn ? '60px' : 'auto'
+                    }}
+                  >
+                    {isSignedIn ? (
+                      loadingRecommendation 
+                        ? "Analiz edilir..." 
+                        : recommendation 
+                          ? recommendation.feedbackMessage 
+                          : "Ölçü hesablana bilmədi. Zəhmət olmasa profilinizdə ölçüləri daxil etdiyinizdən əmin olun."
+                    ) : (
+                      "Bu geyimin bədən ölçülərinizə uyğun gəlib-gəlmədiyini və sizə ən uyğun olan geyim ölçüsünü öyrənmək üçün ağıllı tövsiyə sistemimizdən istifadə edin."
+                    )}
+                  </div>
+                  {!isSignedIn && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '20px',
+                      left: 0,
+                      width: '100%',
+                      height: 'calc(100% - 20px)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 2,
+                      textAlign: 'center',
+                      background: 'rgba(0,0,0,0.4)',
+                      padding: '10px'
+                    }}>
+                      <span style={{ fontSize: '11px', fontWeight: '700', color: '#c9a96e', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase', letterSpacing: '1px', textShadow: '0 2px 4px rgba(0,0,0,0.9)' }}>
+                        Ölçü tövsiyəsini görmək üçün
+                      </span>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                        <a href="/login" style={{ fontSize: '10px', fontWeight: '700', color: '#000', background: '#c9a96e', padding: '4px 12px', borderRadius: '4px', textDecoration: 'none', transition: 'all 0.2s', fontFamily: 'Montserrat, sans-serif' }}>Daxil Ol</a>
+                        <a href="/register" style={{ fontSize: '10px', fontWeight: '700', color: '#c9a96e', border: '1px solid #c9a96e', padding: '3px 11px', borderRadius: '4px', textDecoration: 'none', transition: 'all 0.2s', fontFamily: 'Montserrat, sans-serif' }}>Qeydiyyat</a>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Geyim Kəsimi və Manken Uyğunluğu (100% matching Cothing.jsx) */}
+                {selectedProduct.sizes && selectedProduct.sizes.length > 0 && (
+                  <div className="section" style={{ marginTop: '20px' }}>
+                    <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>GEYİM KƏSİMİ VƏ ÖLÇÜ DETALLARI</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                      {getSortedUniqueSizes(selectedProduct.sizes).map(s => (
+                        <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', borderBottom: '1px solid #1a1a1a', paddingBottom: '6px' }}>
+                          <span style={{ color: '#c9a96e', fontWeight: '500' }}>{s.sizeName} Ölçüsü</span>
+                          <span style={{ color: '#888' }}>
+                            Kəsim (Fit): {s.clothingFit || 'Standart'} • Manken Tipi: {s.modelBodyType || 'Normal'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Direct Order Actions (WhatsApp / Sosyal Media Butik DM) */}
+                {(selectedProduct.contactPhone || selectedProduct.contactLink || storeData?.contactPhone || storeData?.contactLink) && (
+                  <div className="section" style={{ marginTop: '25px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>SİFARİŞ VƏ ƏLAQƏ</div>
+                    {(selectedProduct.contactPhone || storeData?.contactPhone) && (
                       <button 
-                        key={s.id}
-                        onClick={() => setSelectedSize(s.sizeName)}
+                        onClick={() => handleOrderMessage('whatsapp')}
+                        className="contact-seller-btn whatsapp-btn"
                         style={{
-                          background: selectedSize === s.sizeName ? '#c9a96e' : 'transparent',
-                          color: selectedSize === s.sizeName ? '#000' : '#7a7570',
-                          border: `1px solid ${selectedSize === s.sizeName ? '#c9a96e' : '#1f1f1f'}`,
-                          padding: '6px 14px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '10px',
+                          border: 'none',
+                          color: 'white',
+                          textDecoration: 'none',
+                          padding: '14px 24px',
+                          fontWeight: 'bold',
                           borderRadius: '4px',
-                          cursor: 'pointer',
+                          textAlign: 'center',
+                          fontSize: '14px',
                           fontFamily: 'Montserrat, sans-serif',
-                          fontSize: '12px',
-                          fontWeight: '600',
-                          transition: 'all 0.2s'
+                          cursor: 'pointer',
+                          width: '100%',
+                          background: '#25d366'
                         }}
                       >
-                        {s.sizeName}
+                        <FaWhatsapp style={{ fontSize: '18px' }} /> WhatsApp ilə Sifariş
                       </button>
-                    ))}
+                    )}
+                    {(selectedProduct.contactLink || storeData?.contactLink) && (
+                      <button 
+                        onClick={() => handleOrderMessage('social')}
+                        className={`contact-seller-btn ${(selectedProduct.contactLink || storeData?.contactLink || '').toLowerCase().includes('tiktok') ? 'tiktok-btn' : 'instagram-btn'}`}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '10px',
+                          border: 'none',
+                          color: 'white',
+                          textDecoration: 'none',
+                          padding: '14px 24px',
+                          fontWeight: 'bold',
+                          borderRadius: '4px',
+                          textAlign: 'center',
+                          fontSize: '14px',
+                          fontFamily: 'Montserrat, sans-serif',
+                          cursor: 'pointer',
+                          width: '100%',
+                          background: 'linear-gradient(135deg, #e1306c, #f56040)'
+                        }}
+                      >
+                        <FaInstagram style={{ fontSize: '18px' }} /> Sosyal Media (Butik DM)
+                      </button>
+                    )}
                   </div>
-                </div>
-
-                {/* Direct Order Actions */}
-                <div className="contact-seller-wrapper" style={{ marginTop: '24px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                  {(selectedProduct.contactPhone || contactPhone) && (
-                    <button 
-                      className="contact-seller-btn whatsapp-btn"
-                      onClick={() => handleOrderMessage('whatsapp')}
-                      style={{ flex: 1, minWidth: '160px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#25d366', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', fontFamily: 'Montserrat, sans-serif' }}
-                    >
-                      <FaWhatsapp style={{ fontSize: '18px' }} /> WhatsApp Sifariş
-                    </button>
-                  )}
-                  {(selectedProduct.contactLink || contactLink) && (
-                    <button 
-                      className={`contact-seller-btn ${(selectedProduct.contactLink || contactLink).toLowerCase().includes('tiktok') ? 'tiktok-btn' : 'instagram-btn'}`}
-                      onClick={() => handleOrderMessage('social')}
-                      style={{ flex: 1, minWidth: '160px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'linear-gradient(135deg, #e1306c, #f56040)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', fontFamily: 'Montserrat, sans-serif' }}
-                    >
-                      <FaInstagram style={{ fontSize: '18px' }} /> Sosyal Media Sifariş
-                    </button>
-                  )}
-                </div>
+                )}
               </div>
             </div>
           </div>

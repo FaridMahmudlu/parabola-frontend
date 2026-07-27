@@ -39,9 +39,21 @@ const SellerPanel = () => {
   const [deletingId, setDeletingId] = useState(null);
 
   const [status, setStatus] = useState({ loading: false, error: null, ok: false });
-  const [products, setProducts] = useState([]);
   const [sellerShopName, setSellerShopName] = useState("");
+  const [userData, setUserData] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
+
+  // Store Profile Edit Modal State
+  const [showStoreEditModal, setShowStoreEditModal] = useState(false);
+  const [editShopName, setEditShopName] = useState("");
+  const [editShopPhone, setEditShopPhone] = useState("");
+  const [editShopLink, setEditShopLink] = useState("");
+  const [editShopBio, setEditShopBio] = useState("");
+  const [editAvatarFile, setEditAvatarFile] = useState(null);
+  const [editBannerFile, setEditBannerFile] = useState(null);
+  const [editAvatarPreview, setEditAvatarPreview] = useState(null);
+  const [editBannerPreview, setEditBannerPreview] = useState(null);
+  const [savingStoreProfile, setSavingStoreProfile] = useState(false);
 
   const fetchMyProducts = async () => {
     if (!isSignedIn) return;
@@ -95,6 +107,13 @@ const SellerPanel = () => {
         } else {
           setSellerShopName("");
         }
+        setUserData(data);
+        setEditShopName(data.shopName || "");
+        setEditShopPhone(data.shopPhone || "");
+        setEditShopLink(data.shopLink || "");
+        setEditShopBio(data.shopBio || "");
+        setEditAvatarPreview(data.shopAvatarUrl || null);
+        setEditBannerPreview(data.shopBannerUrl || null);
       } catch (error) {
         console.error("Profil məlumatları yüklənmədi:", error);
       } finally {
@@ -397,6 +416,25 @@ const SellerPanel = () => {
               >
                 🛍️ Mağazamı Görüntülə ({sellerShopName})
               </Link>
+              <button 
+                onClick={() => setShowStoreEditModal(true)}
+                style={{
+                  background: 'linear-gradient(135deg, #c9a96e 0%, #8a6d3b 100%)',
+                  border: 'none',
+                  color: '#000',
+                  padding: '8px 18px',
+                  borderRadius: '20px',
+                  fontSize: '13px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontFamily: 'Montserrat, sans-serif'
+                }}
+              >
+                🎨 Mağaza Profilini və Səhifəsini Redaktə Et
+              </button>
             </div>
           )}
         </header>
@@ -737,6 +775,169 @@ const SellerPanel = () => {
           </section>
         </div>
       </div>
+
+      {/* Store Profile Customization Modal */}
+      {showStoreEditModal && (
+        <div className="modal-overlay" onClick={() => setShowStoreEditModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '650px', width: '90%' }}>
+            <button className="modal-close" onClick={() => setShowStoreEditModal(false)} aria-label="Bağla">&times;</button>
+            <h2 className="modal-title">🎨 Mağaza Profilini Redaktə Et</h2>
+            
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              setSavingStoreProfile(true);
+              try {
+                const token = await getToken();
+                const clerkRoleHeader = user?.publicMetadata?.role || "";
+                const userEmailHeader = user?.primaryEmailAddress?.emailAddress || "";
+                
+                const formData = new FormData();
+                formData.append("shopName", editShopName);
+                formData.append("shopPhone", editShopPhone);
+                formData.append("shopLink", editShopLink);
+                formData.append("shopBio", editShopBio);
+                if (editAvatarFile) formData.append("avatarFile", editAvatarFile);
+                if (editBannerFile) formData.append("bannerFile", editBannerFile);
+
+                const res = await axios.put(`${BASE_URL}/api/v1/users/store-profile`, formData, {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {}),
+                    ...(userEmailHeader ? { "X-Clerk-User-Email": userEmailHeader } : {})
+                  }
+                });
+
+                if (res.data) {
+                  setSellerShopName(res.data.shopName || editShopName);
+                  notification.success({
+                    message: "Mağaza Profili Yeniləndi",
+                    description: "Mağaza adınız, profil logonuz, baner şəkliniz və əlaqə məlumatlarınız uğurla saxlanıldı!"
+                  });
+                  setShowStoreEditModal(false);
+                  fetchMyProducts();
+                }
+              } catch (err) {
+                console.error("Mağaza profili yadda saxlanılarkən xəta:", err);
+                notification.error({
+                  message: "Xəta Baş Verdi",
+                  description: err.response?.data?.message || err.message || "Mağaza profili yenilənə bilmədi."
+                });
+              } finally {
+                setSavingStoreProfile(false);
+              }
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600', display: 'block', marginBottom: '6px' }}>🛍️ Mağaza Adı</label>
+                  <input 
+                    type="text" 
+                    value={editShopName} 
+                    onChange={(e) => setEditShopName(e.target.value)}
+                    placeholder="Məs: Parabola Luxury"
+                    required
+                    style={{ width: '100%', background: '#0e0e0e', border: '1px solid #262626', color: '#fff', padding: '10px 14px', borderRadius: '4px', fontSize: '14px', fontFamily: 'Montserrat, sans-serif' }}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label style={{ fontSize: '12px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600', display: 'block', marginBottom: '6px' }}>📞 Əlaqə Telefonu</label>
+                    <input 
+                      type="text" 
+                      value={editShopPhone} 
+                      onChange={(e) => setEditShopPhone(e.target.value)}
+                      placeholder="+994 50 123 45 67"
+                      style={{ width: '100%', background: '#0e0e0e', border: '1px solid #262626', color: '#fff', padding: '10px 14px', borderRadius: '4px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '12px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600', display: 'block', marginBottom: '6px' }}>🔗 Sosial Media / Keçid</label>
+                    <input 
+                      type="text" 
+                      value={editShopLink} 
+                      onChange={(e) => setEditShopLink(e.target.value)}
+                      placeholder="https://instagram.com/shopname"
+                      style={{ width: '100%', background: '#0e0e0e', border: '1px solid #262626', color: '#fff', padding: '10px 14px', borderRadius: '4px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif' }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '12px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600', display: 'block', marginBottom: '6px' }}>📝 Mağaza Haqqında Açıqlama (Bio)</label>
+                  <textarea 
+                    rows="3"
+                    value={editShopBio} 
+                    onChange={(e) => setEditShopBio(e.target.value)}
+                    placeholder="Mağazanınız haqqında müştərilərə məlumat verin..."
+                    style={{ width: '100%', background: '#0e0e0e', border: '1px solid #262626', color: '#fff', padding: '10px 14px', borderRadius: '4px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', resize: 'vertical' }}
+                  />
+                </div>
+
+                {/* File Uploads for Logo Avatar & Cover Banner */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '4px' }}>
+                  <div>
+                    <label style={{ fontSize: '12px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600', display: 'block', marginBottom: '6px' }}>🖼️ Profil Logosu / Şəkli</label>
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files[0]) {
+                          setEditAvatarFile(e.target.files[0]);
+                          setEditAvatarPreview(URL.createObjectURL(e.target.files[0]));
+                        }
+                      }}
+                      style={{ fontSize: '12px', color: '#888' }}
+                    />
+                    {editAvatarPreview && (
+                      <div style={{ marginTop: '8px', width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #c9a96e' }}>
+                        <img src={editAvatarPreview} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '12px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600', display: 'block', marginBottom: '6px' }}>🏞️ Arxa Fon (Banner) Şəkli</label>
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files[0]) {
+                          setEditBannerFile(e.target.files[0]);
+                          setEditBannerPreview(URL.createObjectURL(e.target.files[0]));
+                        }
+                      }}
+                      style={{ fontSize: '12px', color: '#888' }}
+                    />
+                    {editBannerPreview && (
+                      <div style={{ marginTop: '8px', width: '100px', height: '50px', borderRadius: '4px', overflow: 'hidden', border: '1px solid #c9a96e' }}>
+                        <img src={editBannerPreview} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                  <button 
+                    type="button"
+                    onClick={() => setShowStoreEditModal(false)}
+                    style={{ background: 'transparent', border: '1px solid #333', color: '#aaa', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer', fontFamily: 'Montserrat, sans-serif', fontSize: '13px' }}
+                  >
+                    Ləğv Et
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={savingStoreProfile}
+                    style={{ background: 'linear-gradient(135deg, #c9a96e 0%, #8a6d3b 100%)', border: 'none', color: '#000', padding: '10px 24px', borderRadius: '4px', cursor: 'pointer', fontWeight: '700', fontFamily: 'Montserrat, sans-serif', fontSize: '13px' }}
+                  >
+                    {savingStoreProfile ? "Yadda Saxlanılır..." : "Yadda Saxla"}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 };
