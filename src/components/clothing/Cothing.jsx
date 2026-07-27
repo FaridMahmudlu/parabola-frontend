@@ -8,7 +8,7 @@ import { BASE_URL } from '../../pages/config'
 import { useUser, useAuth } from '@clerk/clerk-react'
 import { notification } from 'antd'
 import { FiChevronLeft, FiChevronRight, FiMaximize2, FiX } from 'react-icons/fi'
-import { FaWhatsapp, FaInstagram, FaTiktok, FaPhone } from 'react-icons/fa'
+import { FaWhatsapp, FaInstagram, FaTiktok } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
 import { trackTryOnOpen, trackTryOnCalculate, trackContactClick } from '../../utils/analytics'
 
@@ -278,6 +278,10 @@ function Clothing() {
     })
   }, [])
 
+  const matchPct = recommendation ? recommendation.matchPercentage : 0;
+  const strokeDash = 251.2;
+  const strokeOffset = strokeDash - (strokeDash * (isSignedIn ? matchPct : 0)) / 100;
+
   return (
     <div className="cothingcontainer">
       <div data-aos="fade-up" className="box">
@@ -360,9 +364,13 @@ function Clothing() {
           </div>
 
         </div>
+
+        {/* ====== PRODUCT DETAIL MODAL ====== */}
         {showModal && selectedProduct && (
           <div className="modal-overlay" onClick={(e) => { if (e.target.className === 'modal-overlay') setShowModal(false); }}>
             <div className="modal-container" ref={modalRef}>
+
+              {/* Sticky Header */}
               <div className="modal-header">
                 <h2 className="modal-title">Geyim Detalları və Ölçü Analizi</h2>
                 <button 
@@ -375,31 +383,32 @@ function Clothing() {
               </div>
 
               <div className="modal-body">
+
+                {/* === LEFT PANEL: Image + Score === */}
                 <div className="modal-left">
-                  {/* Image Viewer inside modal with Zoom and Slider */}
+
+                  {/* Image Viewer */}
                   <div 
-                    className="modal-image-viewer" 
-                    style={{ position: 'relative', width: '100%', height: '280px', borderRadius: '4px', overflow: 'hidden', border: '1px solid #1f1f1f', background: '#0e0e0e' }}
+                    className="modal-image-viewer"
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleModalTouchEnd}
                   >
                     <img 
                       src={getModalImages()[modalImageIndex] || "https://gunnandmoore.playwiththebest.com/media/catalog/product/cache/ec4e4c8893a2305e77afd20d2909bacb/7/0/7047_teknik_slipover_white_1.png"}
                       alt={selectedProduct.name}
-                      style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'zoom-in', opacity: imageOpacity }}
+                      style={{ opacity: imageOpacity }}
                       onClick={() => setZoomImage(getModalImages()[modalImageIndex])}
                     />
                     <button 
                       className="zoom-btn" 
                       onClick={(e) => { 
                         e.stopPropagation(); 
-                        const img = getModalImages()[modalImageIndex] || (selectedProduct ? selectedProduct.imageUrl : null);
+                        const img = getModalImages()[modalImageIndex] || selectedProduct.imageUrl;
                         if (img) setZoomImage(img);
                       }} 
-                      title="Böyütmək üçün klikləyin" 
-                      style={{ position: 'absolute', bottom: '12px', right: '12px', background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '8px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10 }}
+                      title="Böyütmək üçün klikləyin"
                     >
-                      <FiMaximize2 style={{ fontSize: '16px' }} />
+                      <FiMaximize2 size={15} />
                     </button>
                     {getModalImages().length > 1 && (
                       <>
@@ -413,119 +422,87 @@ function Clothing() {
                     )}
                   </div>
                   
-                  <div style={{ position: 'relative', width: '100%', overflow: 'hidden', borderRadius: '4px' }}>
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '24px', 
-                      width: '100%', 
-                      justifyContent: 'space-between', 
-                      padding: '16px', 
-                      background: '#090909', 
-                      border: '1px solid #1a1a1a', 
-                      borderRadius: '4px',
-                      filter: !isSignedIn ? 'blur(5px)' : 'none',
-                      pointerEvents: !isSignedIn ? 'none' : 'auto',
-                      userSelect: !isSignedIn ? 'none' : 'auto'
-                    }}>
-                      <div style={{ position: 'relative', width: '76px', height: '76px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="76" height="76" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-                          <circle cx="50" cy="50" r="40" stroke="#141414" strokeWidth="8" fill="transparent" />
-                          <circle cx="50" cy="50" r="40" stroke="#c9a96e" strokeWidth="8" fill="transparent" 
-                                  strokeDasharray="251.2" 
-                                  strokeDashoffset={251.2 - (251.2 * (!isSignedIn ? 0 : (recommendation ? recommendation.matchPercentage : 0))) / 100}
-                                  strokeLinecap="round"
-                                  style={{ transition: 'stroke-dashoffset 0.8s ease-in-out', filter: 'drop-shadow(0 0 4px rgba(201, 169, 110, 0.4))' }} />
-                        </svg>
-                        <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                          <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#c9a96e', fontFamily: 'Montserrat, sans-serif' }}>
-                            {!isSignedIn ? "?" : (loadingRecommendation ? "..." : (recommendation ? `${recommendation.matchPercentage}%` : "0%"))}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="score" style={{ flexGrow: 1 }}>
-                        <div className="score-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570', textTransform: 'uppercase', marginBottom: '4px' }}>
-                          Ağıllı Uyğunluq
-                        </div>
-                        <div className="score-status" style={{ fontSize: '16px', fontWeight: '500', color: !isSignedIn ? '#7a7570' : (recommendation && recommendation.matchPercentage > 75 ? '#c9a96e' : '#f0ece4'), fontFamily: 'Cormorant Garamond, serif', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                          {!isSignedIn ? "Daxil olun" : (loadingRecommendation ? "Hesablanır..." : (recommendation && recommendation.matchPercentage > 0 ? "Bədəninizə Uyğundur" : "Tam Uyğun Deyil"))}
-                        </div>
+                  {/* Score Ring */}
+                  <div className="score-ring-container" style={{
+                    filter: !isSignedIn ? 'blur(5px)' : 'none',
+                    pointerEvents: !isSignedIn ? 'none' : 'auto',
+                    userSelect: !isSignedIn ? 'none' : 'auto'
+                  }}>
+                    <div className="score-ring-circle">
+                      <svg width="64" height="64" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
+                        <circle cx="50" cy="50" r="40" stroke="#141414" strokeWidth="8" fill="transparent" />
+                        <circle cx="50" cy="50" r="40" stroke="#c9a96e" strokeWidth="8" fill="transparent" 
+                                strokeDasharray={strokeDash} 
+                                strokeDashoffset={strokeOffset}
+                                strokeLinecap="round"
+                                style={{ transition: 'stroke-dashoffset 0.8s ease-in-out', filter: 'drop-shadow(0 0 4px rgba(201, 169, 110, 0.4))' }} />
+                      </svg>
+                      <span className="score-ring-value">
+                        {!isSignedIn ? "?" : (loadingRecommendation ? "..." : `${matchPct}%`)}
+                      </span>
+                    </div>
+                    <div className="score-ring-info">
+                      <div className="score-ring-label">Ağıllı Uyğunluq</div>
+                      <div className="score-ring-status" style={{
+                        color: !isSignedIn ? '#7a7570' : (matchPct > 75 ? '#c9a96e' : '#f0ece4')
+                      }}>
+                        {!isSignedIn ? "Daxil olun" : (loadingRecommendation ? "Hesablanır..." : (matchPct > 0 ? "Bədəninizə Uyğundur" : "Tam Uyğun Deyil"))}
                       </div>
                     </div>
-                    {!isSignedIn && (
-                      <div style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 2,
-                        textAlign: 'center',
-                        padding: '10px',
-                        background: 'rgba(0,0,0,0.4)'
-                      }}>
-                        <span style={{ fontSize: '11px', fontWeight: '700', color: '#c9a96e', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase', letterSpacing: '1px', textShadow: '0 2px 4px rgba(0,0,0,0.9)' }}>
-                          Uyğunluq faizini görmək üçün
-                        </span>
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
-                          <a href="/login" style={{ fontSize: '10px', fontWeight: '700', color: '#000', background: '#c9a96e', padding: '4px 12px', borderRadius: '4px', textDecoration: 'none', transition: 'all 0.2s', fontFamily: 'Montserrat, sans-serif' }}>Daxil Ol</a>
-                          <a href="/register" style={{ fontSize: '10px', fontWeight: '700', color: '#c9a96e', border: '1px solid #c9a96e', padding: '3px 11px', borderRadius: '4px', textDecoration: 'none', transition: 'all 0.2s', fontFamily: 'Montserrat, sans-serif' }}>Qeydiyyat</a>
-                        </div>
-                      </div>
-                    )}
                   </div>
+
+                  {/* Auth lock overlay for score */}
+                  {!isSignedIn && (
+                    <div className="auth-lock-overlay" style={{ position: 'relative', background: 'transparent', marginTop: '-76px', height: '68px' }}>
+                      <span className="auth-lock-label">Uyğunluq faizini görmək üçün</span>
+                      <div className="auth-lock-buttons">
+                        <a href="/login" className="auth-lock-btn-primary">Daxil Ol</a>
+                        <a href="/register" className="auth-lock-btn-secondary">Qeydiyyat</a>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
+                {/* === RIGHT PANEL: Product Details === */}
                 <div className="modal-right">
-                  <h3 className="product-title" style={{ fontSize: '28px' }}>{selectedProduct.name}</h3>
-                  <p className="product-brand" style={{ fontSize: '13px', color: '#7a7570' }}>
+
+                  {/* Title & Brand */}
+                  <h3 className="product-title">{selectedProduct.name}</h3>
+                  <p className="product-brand">
                     {selectedProduct.brand} • {selectedProduct.category} {selectedProduct.sellerName && `• Satıcı: ${formatSellerName(selectedProduct.sellerName)}`}
                   </p>
 
-                  <div className="filter-buttons" style={{ marginTop: '10px' }}>
-                    <span className="price-badge" style={{ padding: '8px 16px', fontSize: '16px' }}>{selectedProduct.price ? `${selectedProduct.price} AZN` : ""}</span>
+                  {/* Price */}
+                  <div className="price-badge">
+                    {selectedProduct.price ? `${selectedProduct.price} AZN` : ""}
                   </div>
 
-                  {/* Product Specification Grid */}
-                  <div className="product-spec-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '20px', padding: '12px', border: '1px solid #1f1f1f', borderRadius: '4px', background: '#070707' }}>
-                    <div style={{ fontSize: '12px' }}><span style={{ color: '#7a7570' }}>Cins:</span> <span style={{ color: 'white' }}>{selectedProduct.gender || "Təyin edilməyib"}</span></div>
-                    <div style={{ fontSize: '12px' }}><span style={{ color: '#7a7570' }}>Stil:</span> <span style={{ color: 'white' }}>{selectedProduct.style || "Təyin edilməyib"}</span></div>
-                    <div style={{ fontSize: '12px' }}><span style={{ color: '#7a7570' }}>Rəng:</span> <span style={{ color: 'white' }}>{selectedProduct.color || "Təyin edilməyib"}</span></div>
-                    <div style={{ fontSize: '12px' }}><span style={{ color: '#7a7570' }}>Kateqoriya:</span> <span style={{ color: 'white' }}>{selectedProduct.category || "Təyin edilməyib"}</span></div>
+                  {/* Spec Grid */}
+                  <div className="product-spec-grid">
+                    <div className="spec-item"><span className="spec-label">Cins:</span><span className="spec-value">{selectedProduct.gender || "Təyin edilməyib"}</span></div>
+                    <div className="spec-item"><span className="spec-label">Stil:</span><span className="spec-value">{selectedProduct.style || "Təyin edilməyib"}</span></div>
+                    <div className="spec-item"><span className="spec-label">Rəng:</span><span className="spec-value">{selectedProduct.color || "Təyin edilməyib"}</span></div>
+                    <div className="spec-item"><span className="spec-label">Kateqoriya:</span><span className="spec-value">{selectedProduct.category || "Təyin edilməyib"}</span></div>
                   </div>
 
+                  {/* Description */}
                   {selectedProduct.description && (
-                    <div className="section" style={{ marginTop: '20px' }}>
-                      <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>GEYİM HAQQINDA</div>
-                      <p style={{ color: '#b0adaa', fontSize: '13px', lineHeight: '1.6', marginTop: '5px' }}>{selectedProduct.description}</p>
+                    <div className="modal-section">
+                      <div className="section-label">GEYİM HAQQINDA</div>
+                      <p className="product-description">{selectedProduct.description}</p>
                     </div>
                   )}
 
-                  {/* Size Selector Swatches */}
+                  {/* Size Selector */}
                   {selectedProduct.sizes && selectedProduct.sizes.length > 0 && (
-                    <div className="section" style={{ marginTop: '20px' }}>
-                      <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>ÖLÇÜ SEÇİN</div>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
+                    <div className="modal-section">
+                      <div className="section-label">ÖLÇÜ SEÇİN</div>
+                      <div className="size-color-grid">
                         {getSortedUniqueSizes(selectedProduct.sizes).map(s => (
                           <button 
                             key={s.id}
+                            className={`size-color-btn ${selectedSize === s.sizeName ? 'active' : ''}`}
                             onClick={() => setSelectedSize(s.sizeName)}
-                            style={{
-                              background: selectedSize === s.sizeName ? '#c9a96e' : '#141414',
-                              color: selectedSize === s.sizeName ? 'black' : '#f0ece4',
-                              border: '1px solid #1f1f1f',
-                              padding: '8px 16px',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
-                              fontFamily: 'Montserrat, sans-serif',
-                              fontSize: '12px',
-                              fontWeight: '600',
-                              transition: 'all 0.2s ease'
-                            }}
                           >
                             {s.sizeName}
                           </button>
@@ -534,30 +511,18 @@ function Clothing() {
                     </div>
                   )}
 
-                  {/* Color Selector Swatches */}
+                  {/* Color Selector */}
                   {selectedProduct.color && (
-                    <div className="section" style={{ marginTop: '20px' }}>
-                      <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>RƏNG SEÇİN</div>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
+                    <div className="modal-section">
+                      <div className="section-label">RƏNG SEÇİN</div>
+                      <div className="size-color-grid">
                         {selectedProduct.color.split(",").map(c => {
                           const colorName = c.trim();
-                          const isSelected = selectedColor === colorName;
                           return (
                             <button 
                               key={colorName}
+                              className={`size-color-btn ${selectedColor === colorName ? 'active' : ''}`}
                               onClick={() => setSelectedColor(colorName)}
-                              style={{
-                                background: isSelected ? '#c9a96e' : '#141414',
-                                color: isSelected ? 'black' : '#f0ece4',
-                                border: '1px solid #1f1f1f',
-                                padding: '8px 16px',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontFamily: 'Montserrat, sans-serif',
-                                fontSize: '12px',
-                                fontWeight: '600',
-                                transition: 'all 0.2s ease'
-                              }}
                             >
                               {colorName}
                             </button>
@@ -567,19 +532,16 @@ function Clothing() {
                     </div>
                   )}
 
-                  <div className="section" style={{ marginTop: '20px', position: 'relative', overflow: 'hidden', borderRadius: '4px' }}>
+                  {/* Smart Size Recommendation */}
+                  <div className="modal-section" style={{ position: 'relative', overflow: 'hidden', borderRadius: '4px' }}>
                     <div className="section-label">AĞILLI ÖLÇÜ TÖVSİYƏSİ</div>
                     <div 
                       className="recommendation" 
                       style={{ 
-                        color: '#c9a96e', 
-                        fontSize: '14px', 
-                        lineHeight: '1.6', 
-                        marginTop: '5px',
                         filter: !isSignedIn ? 'blur(5px)' : 'none',
                         pointerEvents: !isSignedIn ? 'none' : 'auto',
                         userSelect: !isSignedIn ? 'none' : 'auto',
-                        minHeight: !isSignedIn ? '60px' : 'auto'
+                        minHeight: !isSignedIn ? '50px' : 'auto'
                       }}
                     >
                       {isSignedIn ? (
@@ -593,42 +555,26 @@ function Clothing() {
                       )}
                     </div>
                     {!isSignedIn && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '20px',
-                        left: 0,
-                        width: '100%',
-                        height: 'calc(100% - 20px)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 2,
-                        textAlign: 'center',
-                        background: 'rgba(0,0,0,0.4)',
-                        padding: '10px'
-                      }}>
-                        <span style={{ fontSize: '11px', fontWeight: '700', color: '#c9a96e', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase', letterSpacing: '1px', textShadow: '0 2px 4px rgba(0,0,0,0.9)' }}>
-                          Ölçü tövsiyəsini görmək üçün
-                        </span>
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
-                          <a href="/login" style={{ fontSize: '10px', fontWeight: '700', color: '#000', background: '#c9a96e', padding: '4px 12px', borderRadius: '4px', textDecoration: 'none', transition: 'all 0.2s', fontFamily: 'Montserrat, sans-serif' }}>Daxil Ol</a>
-                          <a href="/register" style={{ fontSize: '10px', fontWeight: '700', color: '#c9a96e', border: '1px solid #c9a96e', padding: '3px 11px', borderRadius: '4px', textDecoration: 'none', transition: 'all 0.2s', fontFamily: 'Montserrat, sans-serif' }}>Qeydiyyat</a>
+                      <div className="auth-lock-overlay">
+                        <span className="auth-lock-label">Ölçü tövsiyəsini görmək üçün</span>
+                        <div className="auth-lock-buttons">
+                          <a href="/login" className="auth-lock-btn-primary">Daxil Ol</a>
+                          <a href="/register" className="auth-lock-btn-secondary">Qeydiyyat</a>
                         </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Geyim Kəsimi və Manken Uyğunluğu */}
+                  {/* Size Details (Fit & Model) */}
                   {selectedProduct.sizes && selectedProduct.sizes.length > 0 && (
-                    <div className="section" style={{ marginTop: '20px' }}>
-                      <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>GEYİM KƏSİMİ VƏ ÖLÇÜ DETALLARI</div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                    <div className="modal-section">
+                      <div className="section-label">GEYİM KƏSİMİ VƏ ÖLÇÜ DETALLARI</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
                         {getSortedUniqueSizes(selectedProduct.sizes).map(s => (
-                          <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', borderBottom: '1px solid #1a1a1a', paddingBottom: '6px' }}>
-                            <span style={{ color: '#c9a96e', fontWeight: '500' }}>{s.sizeName} Ölçüsü</span>
-                            <span style={{ color: '#888' }}>
-                              Kəsim (Fit): {s.clothingFit || 'Standart'} • Manken Tipi: {s.modelBodyType || 'Normal'}
+                          <div key={s.id} className="size-detail-row">
+                            <span className="size-detail-name">{s.sizeName} Ölçüsü</span>
+                            <span className="size-detail-info">
+                              Kəsim: {s.clothingFit || 'Standart'} • Manken: {s.modelBodyType || 'Normal'}
                             </span>
                           </div>
                         ))}
@@ -636,60 +582,27 @@ function Clothing() {
                     </div>
                   )}
 
+                  {/* Contact & Order Buttons */}
                   {(selectedProduct.contactPhone || selectedProduct.contactLink) && (
-                    <div className="section" style={{ marginTop: '25px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>SİFARİŞ VƏ ƏLAQƏ</div>
+                    <div className="contact-section">
+                      <div className="section-label">SİFARİŞ VƏ ƏLAQƏ</div>
                       {selectedProduct.contactPhone && (
                         <button 
                           onClick={() => handleOrderMessage('whatsapp')}
                           className="contact-seller-btn whatsapp-btn"
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '10px',
-                            border: 'none',
-                            color: 'white',
-                            textDecoration: 'none',
-                            padding: '14px 24px',
-                            fontWeight: 'bold',
-                            borderRadius: '4px',
-                            textAlign: 'center',
-                            fontSize: '14px',
-                            fontFamily: 'Montserrat, sans-serif',
-                            cursor: 'pointer',
-                            width: '100%'
-                          }}
                         >
-                          <FaWhatsapp style={{ fontSize: '18px' }} /> WhatsApp ilə Sifariş
+                          <FaWhatsapp size={18} /> WhatsApp ilə Sifariş
                         </button>
                       )}
                       {selectedProduct.contactLink && (
                         <button 
                           onClick={() => handleOrderMessage('social')}
                           className={`contact-seller-btn ${selectedProduct.contactLink.toLowerCase().includes('tiktok') ? 'tiktok-btn' : 'instagram-btn'}`}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '10px',
-                            border: 'none',
-                            color: 'white',
-                            textDecoration: 'none',
-                            padding: '14px 24px',
-                            fontWeight: 'bold',
-                            borderRadius: '4px',
-                            textAlign: 'center',
-                            fontSize: '14px',
-                            fontFamily: 'Montserrat, sans-serif',
-                            cursor: 'pointer',
-                            width: '100%'
-                          }}
                         >
                           {selectedProduct.contactLink.toLowerCase().includes('tiktok') ? (
-                            <FaTiktok style={{ fontSize: '16px' }} />
+                            <FaTiktok size={16} />
                           ) : (
-                            <FaInstagram style={{ fontSize: '18px' }} />
+                            <FaInstagram size={18} />
                           )}
                           Sosial Media (Butik DM)
                         </button>
@@ -702,18 +615,16 @@ function Clothing() {
           </div>
         )}
 
-        {/* Zoom Lightbox fullscreen overlay */}
+        {/* ====== ZOOM LIGHTBOX ====== */}
         {zoomImage && (
           <div 
             className="zoom-lightbox-overlay" 
             onClick={() => setZoomImage(null)} 
-            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.96)', zIndex: 100000, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out' }}
           >
             <button 
               className="lightbox-close" 
               onClick={(e) => { e.stopPropagation(); setZoomImage(null); }} 
               title="Bağla"
-              style={{ position: 'absolute', top: '24px', right: '24px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontSize: '24px', width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100001, transition: 'all 0.2s ease' }}
             >
               <FiX />
             </button>
@@ -729,7 +640,6 @@ function Clothing() {
                     setZoomImage(getModalImages()[newIndex]);
                   }}
                   title="Əvvəlki şəkil"
-                  style={{ position: 'absolute', left: '24px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontSize: '28px', width: '52px', height: '52px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100001, transition: 'all 0.2s ease' }}
                 >
                   <FiChevronLeft />
                 </button>
@@ -743,22 +653,21 @@ function Clothing() {
                     setZoomImage(getModalImages()[newIndex]);
                   }}
                   title="Növbəti şəkil"
-                  style={{ position: 'absolute', right: '24px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontSize: '28px', width: '52px', height: '52px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100001, transition: 'all 0.2s ease' }}
                 >
                   <FiChevronRight />
                 </button>
 
-                <div style={{ position: 'absolute', bottom: '24px', background: 'rgba(0,0,0,0.7)', color: '#c9a96e', padding: '6px 18px', borderRadius: '20px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', border: '1px solid rgba(201,169,110,0.3)', zIndex: 100001, letterSpacing: '1px' }}>
+                <div className="lightbox-counter">
                   {modalImageIndex + 1} / {getModalImages().length}
                 </div>
               </>
             )}
 
             <img 
+              className="lightbox-image"
               src={zoomImage} 
               alt="Böyüdülmüş baxış" 
               onClick={(e) => e.stopPropagation()}
-              style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain', borderRadius: '6px', boxShadow: '0 25px 60px rgba(0,0,0,0.8)', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }} 
             />
           </div>
         )}
