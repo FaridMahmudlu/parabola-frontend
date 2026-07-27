@@ -12,13 +12,14 @@ import {
   FiArrowLeft, FiShare2, FiChevronLeft, FiChevronRight, 
   FiMaximize2, FiX, FiZoomIn, FiZoomOut, FiRefreshCw,
   FiGrid, FiList, FiArrowUp, FiFilter, FiStar, FiTruck,
-  FiPackage, FiTag, FiClock
+  FiPackage, FiTag, FiClock, FiRotateCcw, FiSliders
 } from 'react-icons/fi'
 import { FaWhatsapp, FaInstagram, FaTiktok } from 'react-icons/fa'
 import { GoArrowRight } from "react-icons/go"
 import './StorePage.css'
+import '../../components/clothing/clothing.css'
 
-// Helper function to deduplicate and sort size badges cleanly
+// Helper function to deduplicate and sort size badges cleanly (matching Cothing.jsx)
 const getSortedUniqueSizes = (sizes) => {
   if (!sizes || !Array.isArray(sizes)) return []
   const sizeOrder = ["XS", "S", "M", "L", "XL", "XXL", "3XL"]
@@ -40,6 +41,16 @@ const getSortedUniqueSizes = (sizes) => {
   })
 }
 
+// Format seller name helper (matching Cothing.jsx)
+const formatSellerName = (sellerName) => {
+  if (!sellerName) return ""
+  const nameStr = String(sellerName).trim()
+  if (nameStr.toLowerCase().includes("mleykmahmudlu")) {
+    return "Parabola Admin"
+  }
+  return nameStr
+}
+
 const StorePage = () => {
   const { shopName } = useParams()
   const navigate = useNavigate()
@@ -50,21 +61,34 @@ const StorePage = () => {
   const [storeData, setStoreData] = useState(null)
   const [products, setProducts] = useState([])
   const [filteredProducts, setFilteredProducts] = useState([])
+  
+  // Card image slider index per product ID (matching Cothing.jsx)
+  const [activeImageIndexes, setActiveImageIndexes] = useState({})
+
+  // Multi-Option Professional Filter States
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('Hamısı')
+  const [selectedGender, setSelectedGender] = useState('Hamısı')
+  const [selectedSizeFilter, setSelectedSizeFilter] = useState('Hamısı')
+  const [minPrice, setMinPrice] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
   const [sortBy, setSortBy] = useState('newest')
-  const [viewMode, setViewMode] = useState('grid')
+  
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [storeFound, setStoreFound] = useState(true)
 
-  // Size Modal State
+  // Size Modal State (matching Cothing.jsx)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [showModal, setShowModal] = useState(false)
+  const [selectedSize, setSelectedSize] = useState('')
+  const [selectedColor, setSelectedColor] = useState('')
   const [modalImageIndex, setModalImageIndex] = useState(0)
   const [imageOpacity, setImageOpacity] = useState(1)
-  const [sizeRecommendation, setSizeRecommendation] = useState(null)
+  const [recommendation, setRecommendation] = useState(null)
+  const [loadingRecommendation, setLoadingRecommendation] = useState(false)
+  const modalRef = useRef(null)
 
-  // Zoom Lightbox State
+  // Zoom Lightbox State (matching Cothing.jsx)
   const [zoomImage, setZoomImage] = useState(null)
   const [zoomScale, setZoomScale] = useState(1)
   const [zoomPan, setZoomPan] = useState({ x: 0, y: 0 })
@@ -73,14 +97,12 @@ const StorePage = () => {
   const [zoomOpacity, setZoomOpacity] = useState(1)
   const [zoomImages, setZoomImages] = useState([])
   const [zoomIndex, setZoomIndex] = useState(0)
-
-  // Touch support for zoom swipe
   const [touchStart, setTouchStart] = useState(null)
 
-  // Decode and trim the shopName from URL
+  // Decode and trim shopName
   const decodedShopName = shopName ? decodeURIComponent(shopName).trim() : ''
 
-  // Back to top scroll listener
+  // Scroll listener for back-to-top button
   useEffect(() => {
     const handleScroll = () => {
       setShowBackToTop(window.scrollY > 600)
@@ -93,8 +115,8 @@ const StorePage = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  // Fetch Store Data
   useEffect(() => {
-    // Dynamic SEO & Document Title
     document.title = decodedShopName ? `${decodedShopName} - Parabola Butik Mağazası` : 'Parabola Store'
     
     const fetchStore = async () => {
@@ -146,14 +168,45 @@ const StorePage = () => {
     }
   }, [decodedShopName, isSignedIn, user])
 
-  // Search, Category & Sort Filter
+  // Professional Multi-Option Filter Logic
   useEffect(() => {
     let list = [...products]
     
+    // 1. Category Filter
     if (selectedCategory !== 'Hamısı') {
       list = list.filter(p => p.category && p.category.toLowerCase() === selectedCategory.toLowerCase())
     }
+
+    // 2. Gender Filter
+    if (selectedGender !== 'Hamısı') {
+      list = list.filter(p => p.gender && p.gender.toLowerCase() === selectedGender.toLowerCase())
+    }
+
+    // 3. Size Filter
+    if (selectedSizeFilter !== 'Hamısı') {
+      list = list.filter(p => {
+        if (!p.sizes || !Array.isArray(p.sizes)) return false
+        return p.sizes.some(s => s.sizeName && s.sizeName.toUpperCase() === selectedSizeFilter.toUpperCase())
+      })
+    }
+
+    // 4. Min Price Filter
+    if (minPrice !== '') {
+      const minVal = parseFloat(minPrice)
+      if (!isNaN(minVal)) {
+        list = list.filter(p => (p.price || 0) >= minVal)
+      }
+    }
+
+    // 5. Max Price Filter
+    if (maxPrice !== '') {
+      const maxVal = parseFloat(maxPrice)
+      if (!isNaN(maxVal)) {
+        list = list.filter(p => (p.price || 0) <= maxVal)
+      }
+    }
     
+    // 6. Keyword Search
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim()
       list = list.filter(p => 
@@ -164,6 +217,7 @@ const StorePage = () => {
       )
     }
 
+    // 7. Sort Options
     switch (sortBy) {
       case 'price-low':
         list.sort((a, b) => (a.price || 0) - (b.price || 0))
@@ -180,26 +234,81 @@ const StorePage = () => {
     }
     
     setFilteredProducts(list)
-  }, [searchQuery, selectedCategory, sortBy, products])
+  }, [searchQuery, selectedCategory, selectedGender, selectedSizeFilter, minPrice, maxPrice, sortBy, products])
 
-  // Extract unique categories in this store
+  // Count active filters
+  const activeFilterCount = [
+    selectedCategory !== 'Hamısı',
+    selectedGender !== 'Hamısı',
+    selectedSizeFilter !== 'Hamısı',
+    minPrice !== '',
+    maxPrice !== '',
+    searchQuery.trim() !== ''
+  ].filter(Boolean).length
+
+  // Reset all filters handler
+  const handleResetAllFilters = () => {
+    setSearchQuery('')
+    setSelectedCategory('Hamısı')
+    setSelectedGender('Hamısı')
+    setSelectedSizeFilter('Hamısı')
+    setMinPrice('')
+    setMaxPrice('')
+    setSortBy('newest')
+  }
+
+  // Extract metadata options
   const categories = ['Hamısı', ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))]
+  const sizesList = ['Hamısı', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL']
+  const gendersList = ['Hamısı', 'Kişi', 'Qadın', 'Unisex']
 
-  // Calculate Price Range strictly from valid product prices
-  const validPrices = products
-    .map(p => p.price)
-    .filter(p => typeof p === 'number' && !isNaN(p) && p > 0)
-
+  // Price Range Calculation
+  const validPrices = products.map(p => p.price).filter(p => typeof p === 'number' && !isNaN(p) && p > 0)
   const priceMin = validPrices.length > 0 ? Math.min(...validPrices) : null
   const priceMax = validPrices.length > 0 ? Math.max(...validPrices) : null
 
-  // Size Recommendation Modal Handlers
-  const handleOpenModal = async (product) => {
+  // Card Image Navigation (matching Cothing.jsx)
+  const handlePrevImage = (e, item) => {
+    e.stopPropagation()
+    const imgs = item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls : [item.imageUrl].filter(Boolean)
+    const currentIndex = activeImageIndexes[item.id] || 0
+    const nextIndex = (currentIndex - 1 + imgs.length) % imgs.length
+    setActiveImageIndexes(prev => ({ ...prev, [item.id]: nextIndex }))
+  }
+
+  const handleNextImage = (e, item) => {
+    e.stopPropagation()
+    const imgs = item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls : [item.imageUrl].filter(Boolean)
+    const currentIndex = activeImageIndexes[item.id] || 0
+    const nextIndex = (currentIndex + 1) % imgs.length
+    setActiveImageIndexes(prev => ({ ...prev, [item.id]: nextIndex }))
+  }
+
+  const handleTouchStart = (e) => {
+    setTouchStart(e.touches[0].clientX)
+  }
+
+  const handleTouchEnd = (e, item) => {
+    if (touchStart === null) return
+    const touchEnd = e.changedTouches[0].clientX
+    const diff = touchStart - touchEnd
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) handleNextImage(e, item)
+      else handlePrevImage(e, item)
+    }
+    setTouchStart(null)
+  }
+
+  // Try-On Size Analysis Modal Handler (matching Cothing.jsx)
+  const handleTryOn = async (product) => {
     setSelectedProduct(product)
     setModalImageIndex(0)
     setImageOpacity(1)
     setShowModal(true)
-    setSizeRecommendation(null)
+    setSelectedSize('')
+    setSelectedColor(product.color || '')
+    setRecommendation(null)
+    setLoadingRecommendation(true)
 
     try {
       let headers = {}
@@ -210,19 +319,19 @@ const StorePage = () => {
       if (user && user.primaryEmailAddress?.emailAddress) {
         headers['X-Clerk-User-Email'] = user.primaryEmailAddress.emailAddress
       }
+
       const res = await axios.get(`${BASE_URL}/api/v1/products/${product.id}`, { headers })
       if (res.data && res.data.sizeRecommendation) {
-        setSizeRecommendation(res.data.sizeRecommendation)
+        setRecommendation(res.data.sizeRecommendation)
+        if (res.data.sizeRecommendation.bestSizeName) {
+          setSelectedSize(res.data.sizeRecommendation.bestSizeName)
+        }
       }
-    } catch (e) {
-      console.warn("Ölçü tövsiyəsi alınarkən xəta:", e)
+    } catch (err) {
+      console.warn("Ölçü tövsiyəsi alınarkən xəta:", err)
+    } finally {
+      setLoadingRecommendation(false)
     }
-  }
-
-  const handleCloseModal = () => {
-    setShowModal(false)
-    setSelectedProduct(null)
-    setSizeRecommendation(null)
   }
 
   const getModalImages = () => {
@@ -238,14 +347,14 @@ const StorePage = () => {
         }
       })
     }
-    return list.length > 0 ? list : ['https://via.placeholder.com/400x500?text=Geyim+Şəkli']
+    return list.length > 0 ? list : ["https://gunnandmoore.playwiththebest.com/media/catalog/product/cache/ec4e4c8893a2305e77afd20d2909bacb/7/0/7047_teknik_slipover_white_1.png"]
   }
 
   const handleModalNextImage = () => {
     setImageOpacity(0)
     setTimeout(() => {
       const imgs = getModalImages()
-      setModalImageIndex((prev) => (prev + 1) % imgs.length)
+      setModalImageIndex(prev => (prev + 1) % imgs.length)
       setImageOpacity(1)
     }, 150)
   }
@@ -254,12 +363,12 @@ const StorePage = () => {
     setImageOpacity(0)
     setTimeout(() => {
       const imgs = getModalImages()
-      setModalImageIndex((prev) => (prev - 1 + imgs.length) % imgs.length)
+      setModalImageIndex(prev => (prev - 1 + imgs.length) % imgs.length)
       setImageOpacity(1)
     }, 150)
   }
 
-  // Zoom Handlers
+  // Lightbox Zoom Handlers
   const handleOpenZoom = (imgUrl) => {
     const images = getModalImages()
     let initialIdx = images.indexOf(imgUrl)
@@ -300,52 +409,37 @@ const StorePage = () => {
     setZoomPan({ x: 0, y: 0 })
   }
 
-  const handleZoomNext = useCallback((e) => {
-    if (e) e.stopPropagation()
-    if (zoomImages.length <= 1) return
-    setZoomOpacity(0)
-    setTimeout(() => {
-      setZoomIndex(prev => {
-        const next = (prev + 1) % zoomImages.length
-        setZoomImage(zoomImages[next])
-        return next
+  // WhatsApp / Social Direct Order Message (matching Cothing.jsx)
+  const handleOrderMessage = (platform) => {
+    const message = `Salam! ${displayShopName} mağazasından bu geyim haqqında maraqlanıram:\n\n` +
+                    `- Məhsul: ${selectedProduct.name}\n` +
+                    `- Brend: ${selectedProduct.brand || displayShopName}\n` +
+                    `- Kateqoriya: ${selectedProduct.category}\n` +
+                    `- Ölçü: ${selectedSize || 'Seçilməyib'}\n` +
+                    `- Rəng: ${selectedColor || 'Seçilməyib'}\n` +
+                    `- Qiymət: ${selectedProduct.price ? selectedProduct.price + ' AZN' : 'Razılaşma ilə'}\n\n` +
+                    `Bu geyimi sifariş etmək istəyirəm.`;
+    
+    const contactP = selectedProduct.contactPhone || storeData?.contactPhone || ''
+    const contactL = selectedProduct.contactLink || storeData?.contactLink || ''
+
+    if (platform === 'whatsapp') {
+      const whatsappNumber = contactP.replace(/\D/g, "")
+      if (whatsappNumber) {
+        window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank')
+      } else {
+        notification.info({ message: "Əlaqə Nömrəsi Məvcut Deyil" })
+      }
+    } else {
+      navigator.clipboard.writeText(message)
+      notification.success({
+        message: "Sifariş Mətni Kopyalandı",
+        description: "Məhsul haqqında detallı sifariş mətni kopyalandı! Satıcıya mesaj bölməsində birbaşa yapışdıraraq (paste) göndərə bilərsiniz."
       })
-      setZoomScale(1)
-      setZoomPan({ x: 0, y: 0 })
-      setZoomOpacity(1)
-    }, 150)
-  }, [zoomImages])
-
-  const handleZoomPrev = useCallback((e) => {
-    if (e) e.stopPropagation()
-    if (zoomImages.length <= 1) return
-    setZoomOpacity(0)
-    setTimeout(() => {
-      setZoomIndex(prev => {
-        const next = (prev - 1 + zoomImages.length) % zoomImages.length
-        setZoomImage(zoomImages[next])
-        return next
-      })
-      setZoomScale(1)
-      setZoomPan({ x: 0, y: 0 })
-      setZoomOpacity(1)
-    }, 150)
-  }, [zoomImages])
-
-  const handleTouchStart = (e) => {
-    if (zoomScale > 1) return
-    setTouchStart(e.touches[0].clientX)
-  }
-
-  const handleTouchEnd = (e) => {
-    if (touchStart === null || zoomScale > 1) return
-    const touchEnd = e.changedTouches[0].clientX
-    const diff = touchStart - touchEnd
-    if (Math.abs(diff) > 60) {
-      if (diff > 0) handleZoomNext(e)
-      else handleZoomPrev(e)
+      if (contactL) {
+        window.open(contactL, '_blank')
+      }
     }
-    setTouchStart(null)
   }
 
   const handleCopyStoreLink = () => {
@@ -353,7 +447,7 @@ const StorePage = () => {
     navigator.clipboard.writeText(cleanUrl)
     notification.success({
       message: 'Link Kopyalandı',
-      description: 'Mağaza səhifəsinin linki kopyalandı!'
+      description: 'Mağaza səhifəsinin daxili keçidi kopyalandı!'
     })
   }
 
@@ -403,19 +497,19 @@ const StorePage = () => {
 
               <h1 className="store-title-name">{displayShopName}</h1>
 
-              {/* Optional custom description if present */}
-              {storeData?.description && storeData.description.trim() && (
+              {/* Optional Custom Description if provided by seller */}
+              {storeData?.description && storeData.description.trim() ? (
                 <p className="store-tagline">{storeData.description.trim()}</p>
-              )}
+              ) : null}
 
               {/* Price Range Info (rendered ONLY if valid prices exist) */}
-              {priceMin !== null && (
+              {priceMin !== null ? (
                 <div className="store-price-range">
                   <FiTag /> {priceMin === priceMax ? `Qiymət: ${priceMin} ₼` : `Qiymət aralığı: ${priceMin} ₼ — ${priceMax} ₼`}
                 </div>
-              )}
+              ) : null}
 
-              {/* Action Contact Buttons (strictly rendered ONLY if metadata exists) */}
+              {/* Contact Actions (rendered ONLY if metadata exists) */}
               <div className="store-contact-actions">
                 {whatsappUrl ? (
                   <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="store-action-btn whatsapp">
@@ -444,7 +538,7 @@ const StorePage = () => {
           </div>
 
           {/* Store Stats Bar (rendered ONLY if products exist) */}
-          {products.length > 0 && (
+          {products.length > 0 ? (
             <div className="store-stats-bar">
               <div className="stat-item">
                 <FiPackage className="stat-icon" />
@@ -454,7 +548,7 @@ const StorePage = () => {
                 </div>
               </div>
 
-              {numCategories > 0 && (
+              {numCategories > 0 ? (
                 <div className="stat-item">
                   <FiTag className="stat-icon" />
                   <div className="stat-content">
@@ -462,9 +556,9 @@ const StorePage = () => {
                     <span className="stat-label">Kateqoriya</span>
                   </div>
                 </div>
-              )}
+              ) : null}
 
-              {priceMin !== null && (
+              {priceMin !== null ? (
                 <div className="stat-item">
                   <FiTag className="stat-icon" />
                   <div className="stat-content">
@@ -472,154 +566,231 @@ const StorePage = () => {
                     <span className="stat-label">Qiymət Aralığı</span>
                   </div>
                 </div>
-              )}
+              ) : null}
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main Content Section */}
       <div className="store-main-section">
-        {/* Filters & Search Bar */}
-        <div className="store-filter-bar">
-          <div className="store-search-box">
-            <FiSearch className="search-icon" />
-            <input 
-              type="text" 
-              placeholder="Bu mağazada geyim axtarın..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && (
-              <button className="search-clear-btn" onClick={() => setSearchQuery('')}>
-                <FiX />
+        {/* Professional Multi-Option Filter Panel */}
+        <div className="store-pro-filter-panel">
+          <div className="filter-panel-header">
+            <h3 className="filter-title">
+              <FiSliders className="filter-title-icon" /> Profesional Filtrləmə Sistemləri
+              {activeFilterCount > 0 && (
+                <span className="active-filter-badge">{activeFilterCount} filtr aktivdir</span>
+              )}
+            </h3>
+            {activeFilterCount > 0 && (
+              <button className="reset-all-btn" onClick={handleResetAllFilters}>
+                <FiRotateCcw /> Filtrləri Sıfırla
               </button>
             )}
           </div>
 
-          <div className="store-filter-controls">
-            {/* Sort Dropdown */}
-            <select 
-              className="store-sort-select"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-            >
-              <option value="newest">Ən yeni</option>
-              <option value="price-low">Qiymət: Aşağıdan</option>
-              <option value="price-high">Qiymət: Yuxarıdan</option>
-              <option value="name">Ad üzrə (A-Z)</option>
-            </select>
+          <div className="filter-grid-rows">
+            {/* 1. Keyword Search */}
+            <div className="filter-group">
+              <label>Axtarış</label>
+              <div className="filter-input-wrap">
+                <FiSearch className="search-icon" />
+                <input 
+                  type="text" 
+                  placeholder="Geyim adı, brend və ya rəng..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button className="clear-icon" onClick={() => setSearchQuery('')}>
+                    <FiX />
+                  </button>
+                )}
+              </div>
+            </div>
 
-            {/* View Mode Toggle */}
-            <div className="view-mode-toggle">
-              <button 
-                className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
-                onClick={() => setViewMode('grid')}
-                title="Grid baxışı"
+            {/* 2. Category Select */}
+            <div className="filter-group">
+              <label>Kateqoriya</label>
+              <select 
+                className="filter-select"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
               >
-                <FiGrid />
-              </button>
-              <button 
-                className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
-                onClick={() => setViewMode('list')}
-                title="Siyahı baxışı"
+                {categories.map((cat, idx) => (
+                  <option key={idx} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* 3. Gender Select */}
+            <div className="filter-group">
+              <label>Cins</label>
+              <select 
+                className="filter-select"
+                value={selectedGender}
+                onChange={(e) => setSelectedGender(e.target.value)}
               >
-                <FiList />
-              </button>
+                {gendersList.map((g, idx) => (
+                  <option key={idx} value={g}>{g}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* 4. Size Select */}
+            <div className="filter-group">
+              <label>Ölçü</label>
+              <select 
+                className="filter-select"
+                value={selectedSizeFilter}
+                onChange={(e) => setSelectedSizeFilter(e.target.value)}
+              >
+                {sizesList.map((sz, idx) => (
+                  <option key={idx} value={sz}>{sz}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* 5. Price Min & Max */}
+            <div className="filter-group">
+              <label>Qiymət Aralığı (AZN)</label>
+              <div className="price-range-inputs">
+                <input 
+                  type="number" 
+                  placeholder="Min ₼" 
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  min="0"
+                />
+                <span className="price-separator">—</span>
+                <input 
+                  type="number" 
+                  placeholder="Max ₼" 
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  min="0"
+                />
+              </div>
+            </div>
+
+            {/* 6. Sorting */}
+            <div className="filter-group">
+              <label>Sıralama</label>
+              <select 
+                className="filter-select"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="newest">Ən yeni geyimlər</option>
+                <option value="price-low">Qiymət: Aşağıdan yuxarı</option>
+                <option value="price-high">Qiymət: Yuxarıdan aşağı</option>
+                <option value="name">Ad üzrə (A-Z)</option>
+              </select>
             </div>
           </div>
-        </div>
 
-        {/* Category Pills */}
-        <div className="store-category-pills">
-          {categories.map((cat, idx) => (
-            <button 
-              key={idx}
-              className={`category-pill ${selectedCategory === cat ? 'active' : ''}`}
-              onClick={() => setSelectedCategory(cat)}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* Product Grid Header */}
-        <div className="store-grid-header">
-          <h2>Kolleksiya Geyimləri ({filteredProducts.length})</h2>
-          {searchQuery && <p className="search-results-info">"{searchQuery}" üzrə nəticələr</p>}
-          {selectedCategory !== 'Hamısı' && (
-            <p className="search-results-info">Kateqoriya: {selectedCategory}</p>
+          {/* Quick Category Pills Scroll */}
+          {categories.length > 1 && (
+            <div className="filter-pills-scroll">
+              {categories.map((cat, idx) => (
+                <button 
+                  key={idx}
+                  className={`filter-pill-btn ${selectedCategory === cat ? 'active' : ''}`}
+                  onClick={() => setSelectedCategory(cat)}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
-        {/* Product Cards Grid */}
+        {/* Product Section Title Header */}
+        <div className="store-grid-header">
+          <h2>Kolleksiya Geyimləri ({filteredProducts.length})</h2>
+          {activeFilterCount > 0 && (
+            <span style={{ fontSize: '13px', color: '#c9a96e', fontFamily: 'Montserrat, sans-serif' }}>
+              Filtrelənmiş nəticələr göstərilir
+            </span>
+          )}
+        </div>
+
+        {/* Clothing Cards Grid (100% MATCHING Cothing.jsx structure & styling) */}
         {filteredProducts.length > 0 ? (
-          <div className={viewMode === 'grid' ? 'clothing-grid' : 'clothing-list-view'}>
-            {filteredProducts.map((product) => {
-              const displayPrice = product.price ? `${product.price} ₼` : "Razılaşma ilə"
-              const displayImage = (product.imageUrl && product.imageUrl.trim()) 
-                ? product.imageUrl 
-                : (Array.isArray(product.imageUrls) && product.imageUrls[0])
-                ? product.imageUrls[0]
-                : "https://via.placeholder.com/300x400?text=Geyim+Şəkli"
-
-              const imageCount = new Set([
-                ...(product.imageUrl ? [product.imageUrl] : []),
-                ...(Array.isArray(product.imageUrls) ? product.imageUrls : [])
-              ].filter(Boolean)).size
-
-              const sortedSizes = getSortedUniqueSizes(product.sizes)
+          <div className="cothingboxcontainer">
+            {filteredProducts.map((item, index) => {
+              const cardImages = item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls : [item.imageUrl].filter(Boolean)
+              const activeIdx = activeImageIndexes[item.id] || 0
+              const activeImg = cardImages[activeIdx] || "https://gunnandmoore.playwiththebest.com/media/catalog/product/cache/ec4e4c8893a2305e77afd20d2909bacb/7/0/7047_teknik_slipover_white_1.png"
+              const isPng = activeImg.toLowerCase().split('?')[0].endsWith('.png')
+              const isLcp = index < 2;
 
               return (
-                <div key={product.id} className={`clothing-card ${viewMode === 'list' ? 'list-mode' : ''}`}>
-                  <div className="clothing-card-image-container">
+                <div key={item.id} className="cothingbox">
+                  <div 
+                    className="cothingimg" 
+                    style={{ position: 'relative' }}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={(e) => handleTouchEnd(e, item)}
+                  >
                     <img 
-                      src={displayImage} 
-                      alt={product.name} 
-                      className="clothing-card-image"
-                      loading="lazy"
-                      onError={(e) => {
-                        e.target.src = "https://via.placeholder.com/300x400?text=Şəkil+Yüklənmədi"
+                      key={activeImg}
+                      src={activeImg} 
+                      alt={item.name} 
+                      onClick={() => handleTryOn(item)}
+                      fetchPriority={isLcp ? "high" : undefined}
+                      loading={isLcp ? "eager" : "lazy"}
+                      style={{ 
+                        cursor: 'pointer',
+                        objectFit: isPng ? 'contain' : 'cover',
+                        padding: isPng ? '16px' : '0',
+                        boxSizing: 'border-box'
                       }}
                     />
-                    {product.gender && (
-                      <span className={`gender-tag ${product.gender.toLowerCase()}`}>
-                        {product.gender}
-                      </span>
-                    )}
-                    <span className="price-tag">{displayPrice}</span>
-                    {imageCount > 1 && (
-                      <span className="image-count-badge">{imageCount} şəkil</span>
+                    {cardImages.length > 1 && (
+                      <>
+                        <button className="slider-arrow prev" onClick={(e) => handlePrevImage(e, item)}>
+                          <FiChevronLeft />
+                        </button>
+                        <button className="slider-arrow next" onClick={(e) => handleNextImage(e, item)}>
+                          <FiChevronRight />
+                        </button>
+                        <div className="slider-indicators">
+                          {cardImages.map((_, idx) => (
+                            <span 
+                              key={idx} 
+                              className={`indicator-dot ${activeIdx === idx ? 'active' : ''}`}
+                            />
+                          ))}
+                        </div>
+                      </>
                     )}
                   </div>
 
-                  <div className="clothing-card-content">
-                    <h3 className="clothing-card-title">{product.name}</h3>
-                    <p className="clothing-card-brand">{product.brand || displayShopName}</p>
-                    {product.description && viewMode === 'list' && (
-                      <p className="clothing-card-description">{product.description}</p>
-                    )}
-
-                    <div className="clothing-card-sizes">
-                      {sortedSizes.length > 0 ? (
-                        sortedSizes.map((s, i) => (
-                          <span key={i} className="size-badge">
-                            {s.sizeName}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="size-badge empty">Standart Ölçü</span>
+                  <div className="cothingtext">
+                    <div className="cothingtoptext">
+                      <h3>{item.name}</h3>
+                      <p className="brand-text">{item.brand || displayShopName}</p>
+                      <p className="price-text">{item.price ? `${item.price} AZN` : "Qiymət təyin edilməyib"}</p>
+                      {item.sellerName && (
+                        <p 
+                          className="seller-text" 
+                          style={{ cursor: 'default' }}
+                        >
+                          Satıcı: <span style={{ color: '#c9a96e' }}>{formatSellerName(item.sellerName)}</span>
+                        </p>
                       )}
                     </div>
 
-                    <div className="clothing-card-footer">
-                      <div className="clothing-card-seller">
-                        Satıcı: <strong>{product.sellerName || displayShopName}</strong>
-                      </div>
-                      <button 
-                        className="try-button"
-                        onClick={() => handleOpenModal(product)}
-                      >
+                    <div className="cothingbtn">
+                      {getSortedUniqueSizes(item.sizes).map(s => (
+                        <button key={s.id}>{s.sizeName}</button>
+                      ))}
+                    </div>
+                    
+                    <div className="cothingbutton">
+                      <button onClick={() => handleTryOn(item)}>
                         Sına <GoArrowRight />
                       </button>
                     </div>
@@ -631,7 +802,7 @@ const StorePage = () => {
         ) : (
           <div className="store-empty-state">
             <FiShoppingBag className="empty-icon" />
-            {products.length === 0 && !searchQuery && selectedCategory === 'Hamısı' ? (
+            {products.length === 0 && activeFilterCount === 0 ? (
               <>
                 <h3>Bu mağazada hələ ki geyim yoxdur</h3>
                 <p>Satıcı tezliklə yeni kolleksiya əlavə edəcək. Mağazanı izləyin!</p>
@@ -639,17 +810,14 @@ const StorePage = () => {
             ) : (
               <>
                 <h3>Hələ ki geyim tapılmadı</h3>
-                <p>Bu mağazada axtarışınız üzrə heç bir məhsul tapılmadı. Zəhmət olmasa axtarış parametri dəyişin.</p>
+                <p>Seçdiyiniz filtrlər üzrə heç bir məhsul tapılmadı. Zəhmət olmasa axtarış parametrlərini dəyişin.</p>
               </>
             )}
-            {(searchQuery || selectedCategory !== 'Hamısı') && (
-              <button className="reset-filter-btn" onClick={() => { setSearchQuery(''); setSelectedCategory('Hamısı'); }}>
-                Filtrləri Sıfırla
+            {activeFilterCount > 0 && (
+              <button className="reset-all-btn" style={{ marginTop: '16px' }} onClick={handleResetAllFilters}>
+                <FiRotateCcw /> Filtrləri Sıfırla
               </button>
             )}
-            <button className="store-back-btn" style={{ marginTop: '16px' }} onClick={() => navigate('/')}>
-              <FiArrowLeft /> Kataloqa Qayıt
-            </button>
           </div>
         )}
       </div>
@@ -661,122 +829,198 @@ const StorePage = () => {
         </button>
       )}
 
-      {/* Try-on Size Recommendation Modal */}
-      {showModal && selectedProduct && (
-        <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={handleCloseModal} aria-label="Bağla">
-              &times;
-            </button>
-            <h2 className="modal-title">{selectedProduct.name}</h2>
+      {/* Try-On Size Analysis Modal (100% MATCHING Cothing.jsx modal portal) */}
+      {showModal && selectedProduct && createPortal(
+        <div className="modal-overlay" onClick={(e) => { if (e.target.className === 'modal-overlay') setShowModal(false); }}>
+          <div className="modal-container" ref={modalRef}>
+            <div className="modal-header">
+              <h2 className="modal-title">Geyim Detalları və Ölçü Analizi</h2>
+              <button 
+                className="modal-close"  
+                aria-label="Bağla"
+                onClick={() => setShowModal(false)}
+              >
+                ×
+              </button>
+            </div>
 
             <div className="modal-body">
-              <div className="modal-image-viewer">
-                <img
-                  src={getModalImages()[modalImageIndex]}
-                  alt={selectedProduct.name}
-                  className="modal-image"
-                  style={{ opacity: imageOpacity, transition: 'opacity 0.2s ease-in-out' }}
-                />
-                
-                {/* Maximize Zoom Button */}
-                <button
-                  className="modal-zoom-btn"
-                  onClick={() => handleOpenZoom(getModalImages()[modalImageIndex])}
-                  title="Şəkli tam ekranda böyüt"
+              <div className="modal-left">
+                {/* Image Viewer inside modal with Zoom and Slider */}
+                <div 
+                  className="modal-image-viewer" 
+                  style={{ position: 'relative', width: '100%', height: '280px', borderRadius: '4px', overflow: 'hidden', border: '1px solid #1f1f1f', background: '#0e0e0e' }}
+                  onTouchStart={handleTouchStart}
+                  onTouchEnd={(e) => handleTouchEnd(e, selectedProduct)}
                 >
-                  <FiMaximize2 />
-                </button>
-
-                {getModalImages().length > 1 && (
-                  <>
-                    <button className="carousel-control prev" onClick={handleModalPrevImage} aria-label="Əvvəlki şəkil">
-                      &#10094;
-                    </button>
-                    <button className="carousel-control next" onClick={handleModalNextImage} aria-label="Növbəti şəkil">
-                      &#10095;
-                    </button>
-                    <div className="carousel-dots">
-                      {getModalImages().map((_, idx) => (
-                        <span
-                          key={idx}
-                          className={`dot ${idx === modalImageIndex ? 'active' : ''}`}
-                          onClick={() => setModalImageIndex(idx)}
-                        />
-                      ))}
+                  <img 
+                    src={getModalImages()[modalImageIndex] || "https://gunnandmoore.playwiththebest.com/media/catalog/product/cache/ec4e4c8893a2305e77afd20d2909bacb/7/0/7047_teknik_slipover_white_1.png"}
+                    alt={selectedProduct.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'zoom-in', opacity: imageOpacity }}
+                    onClick={() => handleOpenZoom(getModalImages()[modalImageIndex])}
+                  />
+                  <button 
+                    className="zoom-btn" 
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      const img = getModalImages()[modalImageIndex] || (selectedProduct ? selectedProduct.imageUrl : null);
+                      if (img) handleOpenZoom(img);
+                    }} 
+                    title="Böyütmək üçün klikləyin" 
+                    style={{ position: 'absolute', bottom: '12px', right: '12px', background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '8px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10 }}
+                  >
+                    <FiMaximize2 style={{ fontSize: '16px' }} />
+                  </button>
+                  {getModalImages().length > 1 && (
+                    <>
+                      <button className="slider-arrow prev" onClick={handleModalPrevImage} style={{ opacity: 1 }}>
+                        <FiChevronLeft />
+                      </button>
+                      <button className="slider-arrow next" onClick={handleModalNextImage} style={{ opacity: 1 }}>
+                        <FiChevronRight />
+                      </button>
+                    </>
+                  )}
+                </div>
+                
+                {/* Score Circle & User Authentication Status */}
+                <div style={{ position: 'relative', width: '100%', overflow: 'hidden', borderRadius: '4px' }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '16px', 
+                    width: '100%', 
+                    justifyContent: 'space-between', 
+                    padding: '14px', 
+                    background: '#090909', 
+                    border: '1px solid #1a1a1a', 
+                    borderRadius: '4px',
+                    filter: !isSignedIn ? 'blur(5px)' : 'none',
+                    pointerEvents: !isSignedIn ? 'none' : 'auto',
+                    userSelect: !isSignedIn ? 'none' : 'auto'
+                  }}>
+                    <div style={{ position: 'relative', width: '64px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <svg width="64" height="64" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
+                        <circle cx="50" cy="50" r="40" stroke="#141414" strokeWidth="8" fill="transparent" />
+                        <circle cx="50" cy="50" r="40" stroke="#c9a96e" strokeWidth="8" fill="transparent" 
+                                strokeDasharray="251.2" 
+                                strokeDashoffset={251.2 - (251.2 * (!isSignedIn ? 0 : (recommendation ? recommendation.matchPercentage : 0))) / 100}
+                                strokeLinecap="round"
+                                style={{ transition: 'stroke-dashoffset 0.8s ease-in-out', filter: 'drop-shadow(0 0 4px rgba(201, 169, 110, 0.4))' }} />
+                      </svg>
+                      <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#c9a96e', fontFamily: 'Montserrat, sans-serif' }}>
+                          {!isSignedIn ? "?" : (loadingRecommendation ? "..." : (recommendation ? `${recommendation.matchPercentage}%` : "0%"))}
+                        </span>
+                      </div>
                     </div>
-                  </>
-                )}
+                    <div className="score" style={{ flexGrow: 1 }}>
+                      <div className="score-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570', textTransform: 'uppercase', marginBottom: '4px' }}>
+                        Ağıllı Uyğunluq
+                      </div>
+                      <div className="score-status" style={{ fontSize: '16px', fontWeight: '500', color: !isSignedIn ? '#7a7570' : (recommendation && recommendation.matchPercentage > 75 ? '#c9a96e' : '#f0ece4'), fontFamily: 'Cormorant Garamond, serif', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        {!isSignedIn ? "Daxil olun" : (loadingRecommendation ? "Hesablanır..." : (recommendation && recommendation.matchPercentage > 0 ? "Bədəninizə Uyğundur" : "Tam Uyğun Deyil"))}
+                      </div>
+                    </div>
+                  </div>
+                  {!isSignedIn && (
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 2,
+                      textAlign: 'center',
+                      padding: '10px',
+                      background: 'rgba(0,0,0,0.4)'
+                    }}>
+                      <span style={{ fontSize: '11px', fontWeight: '700', color: '#c9a96e', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase', letterSpacing: '1px', textShadow: '0 2px 4px rgba(0,0,0,0.9)' }}>
+                        Uyğunluq faizini görmək üçün
+                      </span>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                        <a href="/login" style={{ fontSize: '10px', fontWeight: '700', color: '#000', background: '#c9a96e', padding: '4px 12px', borderRadius: '4px', textDecoration: 'none', transition: 'all 0.2s', fontFamily: 'Montserrat, sans-serif' }}>Daxil Ol</a>
+                        <a href="/register" style={{ fontSize: '10px', fontWeight: '700', color: '#c9a96e', border: '1px solid #c9a96e', padding: '3px 11px', borderRadius: '4px', textDecoration: 'none', transition: 'all 0.2s', fontFamily: 'Montserrat, sans-serif' }}>Qeydiyyat</a>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div className="modal-details">
-                <div className="detail-item">
-                  <span className="detail-label">Brend:</span>
-                  <span className="detail-value">{selectedProduct.brand || displayShopName}</span>
-                </div>
-                <div className="detail-item">
-                  <span className="detail-label">Qiymət:</span>
-                  <span className="detail-value highlight">{selectedProduct.price ? `${selectedProduct.price} ₼` : 'Razılaşma ilə'}</span>
-                </div>
-                <div className="detail-item">
-                  <span className="detail-label">Cins:</span>
-                  <span className="detail-value">{selectedProduct.gender || 'Unisex'}</span>
-                </div>
-                {selectedProduct.color && (
-                  <div className="detail-item">
-                    <span className="detail-label">Rəng:</span>
-                    <span className="detail-value">{selectedProduct.color}</span>
-                  </div>
-                )}
-                {selectedProduct.description && (
-                  <div className="detail-item full-width">
-                    <span className="detail-label">Haqqında:</span>
-                    <p className="detail-description">{selectedProduct.description}</p>
-                  </div>
-                )}
+              <div className="modal-right">
+                <h3 className="product-title">{selectedProduct.name}</h3>
+                <p className="product-brand" style={{ fontSize: '13px', color: '#7a7570' }}>
+                  {selectedProduct.brand} • {selectedProduct.category} {selectedProduct.sellerName && `• Satıcı: ${formatSellerName(selectedProduct.sellerName)}`}
+                </p>
 
-                {/* Size Engine Recommendation Result */}
-                {sizeRecommendation ? (
-                  <div className="size-recommendation-card">
-                    <div className="rec-header">
-                      <span className="rec-badge">{sizeRecommendation.bestSizeName || 'M'}</span>
-                      <span className="rec-percentage">{sizeRecommendation.matchPercentage || 95}% Uyğunluq</span>
-                    </div>
-                    <p className="rec-explanation">{sizeRecommendation.explanation}</p>
-                  </div>
-                ) : (
-                  <div className="size-recommendation-card loading">
-                    <p>Ağıllı Ölçü Alqoritmi Hesablanır...</p>
-                  </div>
-                )}
+                <div className="filter-buttons" style={{ marginTop: '10px' }}>
+                  <span className="price-badge" style={{ padding: '8px 16px', fontSize: '16px' }}>{selectedProduct.price ? `${selectedProduct.price} AZN` : "Təyin edilməyib"}</span>
+                </div>
 
-                {/* Contact Actions in Modal */}
-                <div className="modal-contact-row">
+                {/* Product Specification Grid */}
+                <div className="product-spec-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px', marginTop: '16px', padding: '12px', border: '1px solid #1f1f1f', borderRadius: '4px', background: '#070707' }}>
+                  <div style={{ fontSize: '12px' }}><span style={{ color: '#7a7570' }}>Cins:</span> <span style={{ color: 'white' }}>{selectedProduct.gender || "Təyin edilməyib"}</span></div>
+                  <div style={{ fontSize: '12px' }}><span style={{ color: '#7a7570' }}>Stil:</span> <span style={{ color: 'white' }}>{selectedProduct.style || "Təyin edilməyib"}</span></div>
+                  <div style={{ fontSize: '12px' }}><span style={{ color: '#7a7570' }}>Rəng:</span> <span style={{ color: 'white' }}>{selectedProduct.color || "Təyin edilməyib"}</span></div>
+                </div>
+
+                {/* Available Sizes Picker */}
+                <div style={{ marginTop: '16px' }}>
+                  <label style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Mövcud Ölçülər</label>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {getSortedUniqueSizes(selectedProduct.sizes).map(s => (
+                      <button 
+                        key={s.id}
+                        onClick={() => setSelectedSize(s.sizeName)}
+                        style={{
+                          background: selectedSize === s.sizeName ? '#c9a96e' : 'transparent',
+                          color: selectedSize === s.sizeName ? '#000' : '#7a7570',
+                          border: `1px solid ${selectedSize === s.sizeName ? '#c9a96e' : '#1f1f1f'}`,
+                          padding: '6px 14px',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontFamily: 'Montserrat, sans-serif',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        {s.sizeName}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Direct Order Actions */}
+                <div className="contact-seller-wrapper" style={{ marginTop: '24px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   {(selectedProduct.contactPhone || contactPhone) && (
-                    <a
-                      href={`https://wa.me/${(selectedProduct.contactPhone || contactPhone).replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Salam! ${selectedProduct.name} geyimi haqqında maraqlanıram.`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="contact-btn whatsapp"
+                    <button 
+                      className="contact-seller-btn whatsapp-btn"
+                      onClick={() => handleOrderMessage('whatsapp')}
+                      style={{ flex: 1, minWidth: '160px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#25d366', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', fontFamily: 'Montserrat, sans-serif' }}
                     >
-                      <FaWhatsapp /> WhatsApp İlə Sifariş
-                    </a>
+                      <FaWhatsapp style={{ fontSize: '18px' }} /> WhatsApp Sifariş
+                    </button>
                   )}
                   {(selectedProduct.contactLink || contactLink) && (
-                    <a
-                      href={selectedProduct.contactLink || contactLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="contact-btn social"
+                    <button 
+                      className={`contact-seller-btn ${(selectedProduct.contactLink || contactLink).toLowerCase().includes('tiktok') ? 'tiktok-btn' : 'instagram-btn'}`}
+                      onClick={() => handleOrderMessage('social')}
+                      style={{ flex: 1, minWidth: '160px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'linear-gradient(135deg, #e1306c, #f56040)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', fontFamily: 'Montserrat, sans-serif' }}
                     >
-                      <FaInstagram /> Sosyal Media
-                    </a>
+                      <FaInstagram style={{ fontSize: '18px' }} /> Sosyal Media Sifariş
+                    </button>
                   )}
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Lightbox Zoom Portal */}
@@ -784,8 +1028,6 @@ const StorePage = () => {
         <div 
           className="zoom-lightbox-overlay" 
           onClick={handleCloseZoom}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
           style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.94)', backdropFilter: 'blur(16px)', zIndex: 100000000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
           <div className="lightbox-controls-top" onClick={(e) => e.stopPropagation()}>
@@ -798,26 +1040,6 @@ const StorePage = () => {
             )}
             <button className="lightbox-close-btn" onClick={handleCloseZoom}><FiX /></button>
           </div>
-          
-          {/* Left/Right navigation for zoom */}
-          {zoomImages.length > 1 && (
-            <>
-              <button 
-                className="lightbox-nav-btn lightbox-nav-prev" 
-                onClick={handleZoomPrev}
-                style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', zIndex: 10, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: '48px', height: '48px', color: '#fff', fontSize: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <FiChevronLeft />
-              </button>
-              <button 
-                className="lightbox-nav-btn lightbox-nav-next" 
-                onClick={handleZoomNext}
-                style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', zIndex: 10, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: '48px', height: '48px', color: '#fff', fontSize: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <FiChevronRight />
-              </button>
-            </>
-          )}
           
           <div className="lightbox-image-wrapper" onClick={(e) => e.stopPropagation()}>
             <img 
@@ -834,35 +1056,6 @@ const StorePage = () => {
               }} 
             />
           </div>
-
-          {/* Thumbnail strip */}
-          {zoomImages.length > 1 && (
-            <div className="lightbox-thumbs" onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', padding: '8px 16px', background: 'rgba(0,0,0,0.6)', borderRadius: '12px' }}>
-              {zoomImages.map((img, idx) => (
-                <img
-                  key={idx}
-                  src={img}
-                  alt={`Şəkil ${idx + 1}`}
-                  onClick={() => {
-                    setZoomIndex(idx)
-                    setZoomImage(img)
-                    setZoomScale(1)
-                    setZoomPan({ x: 0, y: 0 })
-                  }}
-                  style={{
-                    width: '50px',
-                    height: '50px',
-                    objectFit: 'cover',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    border: idx === zoomIndex ? '2px solid #c9a96e' : '2px solid transparent',
-                    opacity: idx === zoomIndex ? 1 : 0.6,
-                    transition: 'all 0.2s ease'
-                  }}
-                />
-              ))}
-            </div>
-          )}
         </div>,
         document.body
       )}
