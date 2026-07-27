@@ -238,6 +238,16 @@ const StorePage = () => {
       })
 
       if (res.data) {
+        setStoreData(prev => ({
+          ...prev,
+          shopName: res.data.shopName || prev?.shopName,
+          shopAvatarUrl: res.data.shopAvatarUrl || prev?.shopAvatarUrl,
+          shopBannerUrl: res.data.shopBannerUrl || prev?.shopBannerUrl,
+          shopBio: res.data.shopBio || prev?.shopBio,
+          contactPhone: res.data.shopPhone || prev?.contactPhone,
+          contactLink: res.data.shopLink || prev?.contactLink
+        }))
+
         notification.success({
           message: "Mağaza Profili Yeniləndi",
           description: "Mağaza adınız, profil logonuz, baner şəkliniz və əlaqə məlumatlarınız uğurla saxlanıldı və canlıya tətbiq olundu!"
@@ -564,9 +574,7 @@ const StorePage = () => {
       <div 
         className="store-hero-banner"
         style={storeData?.shopBannerUrl ? {
-          backgroundImage: `linear-gradient(135deg, rgba(20, 20, 20, 0.88) 0%, rgba(5, 5, 5, 0.94) 100%), url('${storeData.shopBannerUrl}')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
+          background: `linear-gradient(135deg, rgba(20, 20, 20, 0.88) 0%, rgba(5, 5, 5, 0.94) 100%), url('${storeData.shopBannerUrl}') center / cover no-repeat`
         } : {}}
       >
         <div className="store-banner-overlay"></div>
