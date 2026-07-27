@@ -12,12 +12,19 @@ import {
   FiArrowLeft, FiShare2, FiChevronLeft, FiChevronRight, 
   FiMaximize2, FiX, FiZoomIn, FiZoomOut, FiRefreshCw,
   FiGrid, FiList, FiArrowUp, FiFilter, FiStar, FiTruck,
-  FiPackage, FiTag, FiClock, FiRotateCcw, FiSliders
+  FiPackage, FiTag, FiClock, FiRotateCcw, FiSliders, FiEdit3
 } from 'react-icons/fi'
 import { FaWhatsapp, FaInstagram, FaTiktok } from 'react-icons/fa'
 import { GoArrowRight } from "react-icons/go"
 import './StorePage.css'
 import '../../components/clothing/clothing.css'
+
+// Allowed admin emails list
+const ALLOWED_ADMIN_EMAILS = [
+  'mleykmahmudlu@gmail.com',
+  'fariddmahmudlu2008@gmail.com',
+  'qeyisovli@gmail.com'
+]
 
 // Helper function to deduplicate and sort size badges cleanly (matching Cothing.jsx)
 const getSortedUniqueSizes = (sizes) => {
@@ -77,6 +84,18 @@ const StorePage = () => {
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [storeFound, setStoreFound] = useState(true)
 
+  // Store Customization Edit Modal State
+  const [showStoreEditModal, setShowStoreEditModal] = useState(false)
+  const [editShopName, setEditShopName] = useState('')
+  const [editShopPhone, setEditShopPhone] = useState('')
+  const [editShopLink, setEditShopLink] = useState('')
+  const [editShopBio, setEditShopBio] = useState('')
+  const [editAvatarFile, setEditAvatarFile] = useState(null)
+  const [editBannerFile, setEditBannerFile] = useState(null)
+  const [editAvatarPreview, setEditAvatarPreview] = useState(null)
+  const [editBannerPreview, setEditBannerPreview] = useState(null)
+  const [savingStoreProfile, setSavingStoreProfile] = useState(false)
+
   // Size Modal State (100% matching Cothing.jsx)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [showModal, setShowModal] = useState(false)
@@ -92,9 +111,6 @@ const StorePage = () => {
   const [zoomImage, setZoomImage] = useState(null)
   const [zoomScale, setZoomScale] = useState(1)
   const [zoomPan, setZoomPan] = useState({ x: 0, y: 0 })
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-  const [zoomOpacity, setZoomOpacity] = useState(1)
   const [zoomImages, setZoomImages] = useState([])
   const [zoomIndex, setZoomIndex] = useState(0)
   const [touchStart, setTouchStart] = useState(null)
@@ -116,57 +132,135 @@ const StorePage = () => {
   }
 
   // Fetch Store Data
+  const fetchStore = useCallback(async () => {
+    setLoading(true)
+    try {
+      let headers = {}
+      if (isSignedIn) {
+        try {
+          const token = await getToken()
+          if (token) headers['Authorization'] = `Bearer ${token}`
+        } catch (e) {
+          console.warn("Token alma xətası:", e)
+        }
+      }
+      if (user && user.primaryEmailAddress?.emailAddress) {
+        headers['X-Clerk-User-Email'] = user.primaryEmailAddress.emailAddress
+      }
+
+      const trimmedName = decodedShopName.trim()
+      const res = await axios.get(`${BASE_URL}/api/v1/products/store/${encodeURIComponent(trimmedName)}`, { headers })
+      
+      if (res.data) {
+        setStoreData(res.data)
+        const prodList = res.data.products || []
+        setProducts(prodList)
+        setFilteredProducts(prodList)
+        setStoreFound(res.data.storeFound !== false)
+        
+        // Pre-fill edit modal form
+        setEditShopName(res.data.shopName || decodedShopName)
+        setEditShopPhone(res.data.contactPhone || '')
+        setEditShopLink(res.data.contactLink || '')
+        setEditShopBio(res.data.shopBio || '')
+        setEditAvatarPreview(res.data.shopAvatarUrl || null)
+        setEditBannerPreview(res.data.shopBannerUrl || null)
+
+        if (res.data.shopName) {
+          document.title = `${res.data.shopName} - Parabola Butik Mağazası`
+        }
+      }
+    } catch (err) {
+      console.error("Mağaza məlumatı yüklənərkən xəta:", err)
+      setStoreFound(false)
+      if (err.response && err.response.status >= 500) {
+        notification.error({
+          message: 'Server Xətası',
+          description: 'Mağaza yüklənərkən server xətası baş verdi. Bir az sonra yenidən cəhd edin.'
+        })
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [decodedShopName, isSignedIn, user, getToken])
+
   useEffect(() => {
     document.title = decodedShopName ? `${decodedShopName} - Parabola Butik Mağazası` : 'Parabola Store'
-    
-    const fetchStore = async () => {
-      setLoading(true)
-      try {
-        let headers = {}
-        if (isSignedIn) {
-          try {
-            const token = await getToken()
-            if (token) headers['Authorization'] = `Bearer ${token}`
-          } catch (e) {
-            console.warn("Token alma xətası:", e)
-          }
-        }
-        if (user && user.primaryEmailAddress?.emailAddress) {
-          headers['X-Clerk-User-Email'] = user.primaryEmailAddress.emailAddress
-        }
-
-        const trimmedName = decodedShopName.trim()
-        const res = await axios.get(`${BASE_URL}/api/v1/products/store/${encodeURIComponent(trimmedName)}`, { headers })
-        
-        if (res.data) {
-          setStoreData(res.data)
-          const prodList = res.data.products || []
-          setProducts(prodList)
-          setFilteredProducts(prodList)
-          setStoreFound(res.data.storeFound !== false)
-          
-          if (res.data.shopName && res.data.shopName !== decodedShopName) {
-            document.title = `${res.data.shopName} - Parabola Butik Mağazası`
-          }
-        }
-      } catch (err) {
-        console.error("Mağaza məlumatı yüklənərkən xəta:", err)
-        setStoreFound(false)
-        if (err.response && err.response.status >= 500) {
-          notification.error({
-            message: 'Server Xətası',
-            description: 'Mağaza yüklənərkən server xətası baş verdi. Bir az sonra yenidən cəhd edin.'
-          })
-        }
-      } finally {
-        setLoading(false)
-      }
-    }
-
     if (decodedShopName) {
       fetchStore()
     }
-  }, [decodedShopName, isSignedIn, user])
+  }, [decodedShopName, fetchStore])
+
+  // Check authorization for store editing (Owner or Admin)
+  const currentUserEmail = user?.primaryEmailAddress?.emailAddress?.toLowerCase().trim() || ''
+  const isUserAdmin = ALLOWED_ADMIN_EMAILS.includes(currentUserEmail) || user?.publicMetadata?.role === 'ROLE_ADMIN'
+  const isStoreOwner = storeData?.sellerEmail && currentUserEmail === storeData.sellerEmail.toLowerCase().trim()
+  const isShopNameMatch = storeData?.shopName && user?.publicMetadata?.shopName && storeData.shopName.toLowerCase().trim() === user.publicMetadata.shopName.toLowerCase().trim()
+  
+  const canEditStore = isSignedIn && (isUserAdmin || isStoreOwner || isShopNameMatch)
+
+  // Open store edit modal
+  const handleOpenStoreEditModal = () => {
+    if (storeData) {
+      setEditShopName(storeData.shopName || decodedShopName)
+      setEditShopPhone(storeData.contactPhone || '')
+      setEditShopLink(storeData.contactLink || '')
+      setEditShopBio(storeData.shopBio || '')
+      setEditAvatarPreview(storeData.shopAvatarUrl || null)
+      setEditBannerPreview(storeData.shopBannerUrl || null)
+    }
+    setShowStoreEditModal(true)
+  }
+
+  // Save Store Profile Handler
+  const handleSaveStoreProfile = async (e) => {
+    e.preventDefault()
+    setSavingStoreProfile(true)
+    try {
+      const token = await getToken()
+      const clerkRoleHeader = user?.publicMetadata?.role || ""
+      const userEmailHeader = user?.primaryEmailAddress?.emailAddress || ""
+      
+      const formData = new FormData()
+      formData.append("shopName", editShopName)
+      formData.append("shopPhone", editShopPhone)
+      formData.append("shopLink", editShopLink)
+      formData.append("shopBio", editShopBio)
+      if (editAvatarFile) formData.append("avatarFile", editAvatarFile)
+      if (editBannerFile) formData.append("bannerFile", editBannerFile)
+
+      const res = await axios.put(`${BASE_URL}/api/v1/users/store-profile`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          ...(clerkRoleHeader ? { "X-Clerk-Role": clerkRoleHeader } : {}),
+          ...(userEmailHeader ? { "X-Clerk-User-Email": userEmailHeader } : {})
+        }
+      })
+
+      if (res.data) {
+        notification.success({
+          message: "Mağaza Profili Yeniləndi",
+          description: "Mağaza adınız, profil logonuz, baner şəkliniz və əlaqə məlumatlarınız uğurla saxlanıldı və canlıya tətbiq olundu!"
+        })
+        setShowStoreEditModal(false)
+
+        const newShopName = res.data.shopName || editShopName
+        if (newShopName && newShopName.trim() !== decodedShopName) {
+          navigate(`/store/${encodeURIComponent(newShopName.trim())}`, { replace: true })
+        } else {
+          fetchStore()
+        }
+      }
+    } catch (err) {
+      console.error("Mağaza profili yenilənərkən xəta:", err)
+      notification.error({
+        message: "Xəta Baş Verdi",
+        description: err.response?.data?.message || err.message || "Mağaza profili yenilənə bilmədi."
+      })
+    } finally {
+      setSavingStoreProfile(false)
+    }
+  }
 
   // Professional Multi-Option Filter Logic
   useEffect(() => {
@@ -378,7 +472,6 @@ const StorePage = () => {
     setZoomImage(imgUrl || images[0])
     setZoomScale(1)
     setZoomPan({ x: 0, y: 0 })
-    setZoomOpacity(1)
   }
 
   const handleCloseZoom = (e) => {
@@ -483,6 +576,17 @@ const StorePage = () => {
           </button>
           
           <div className="store-header-card">
+            {/* Owner/Admin Edit Store Pencil Button */}
+            {canEditStore && (
+              <button 
+                className="store-owner-edit-btn" 
+                onClick={handleOpenStoreEditModal}
+                title="Mağaza profilini və şəkillərini redaktə et"
+              >
+                <FiEdit3 /> Redaktə Et
+              </button>
+            )}
+
             <div className="store-avatar-circle">
               {storeData?.shopAvatarUrl ? (
                 <img src={storeData.shopAvatarUrl} alt={displayShopName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
@@ -508,7 +612,7 @@ const StorePage = () => {
 
               <h1 className="store-title-name">{displayShopName}</h1>
 
-              {/* Optional Custom Description / Bio if provided by seller */}
+              {/* Custom Description / Bio if provided by seller */}
               {storeData?.shopBio && storeData.shopBio.trim() ? (
                 <p className="store-tagline">{storeData.shopBio.trim()}</p>
               ) : null}
@@ -840,6 +944,129 @@ const StorePage = () => {
         </button>
       )}
 
+      {/* Store Profile Edit Modal (Opened by Pencil Edit Button) */}
+      {showStoreEditModal && (
+        <div className="modal-overlay" onClick={() => setShowStoreEditModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '650px', width: '90%', background: '#0a0a0a', border: '1px solid rgba(201, 169, 110, 0.4)', borderRadius: '8px', padding: '24px', color: '#fff', position: 'relative' }}>
+            <button className="modal-close" onClick={() => setShowStoreEditModal(false)} aria-label="Bağla" style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: '#aaa', fontSize: '24px', cursor: 'pointer' }}>&times;</button>
+            <h2 className="modal-title" style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '24px', color: '#c9a96e', margin: '0 0 20px 0', borderBottom: '1px solid #1a1a1a', paddingBottom: '10px' }}>
+              ✏️ Mağaza Profilini və Şəkillərini Redaktə Et
+            </h2>
+            
+            <form onSubmit={handleSaveStoreProfile}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600', display: 'block', marginBottom: '6px' }}>🛍️ Mağaza Adı</label>
+                  <input 
+                    type="text" 
+                    value={editShopName} 
+                    onChange={(e) => setEditShopName(e.target.value)}
+                    placeholder="Məs: Parabola Luxury"
+                    required
+                    style={{ width: '100%', background: '#0e0e0e', border: '1px solid #262626', color: '#fff', padding: '10px 14px', borderRadius: '4px', fontSize: '14px', fontFamily: 'Montserrat, sans-serif' }}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label style={{ fontSize: '12px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600', display: 'block', marginBottom: '6px' }}>📞 Əlaqə Telefonu</label>
+                    <input 
+                      type="text" 
+                      value={editShopPhone} 
+                      onChange={(e) => setEditShopPhone(e.target.value)}
+                      placeholder="+994 50 123 45 67"
+                      style={{ width: '100%', background: '#0e0e0e', border: '1px solid #262626', color: '#fff', padding: '10px 14px', borderRadius: '4px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '12px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600', display: 'block', marginBottom: '6px' }}>🔗 Sosial Media / Keçid</label>
+                    <input 
+                      type="text" 
+                      value={editShopLink} 
+                      onChange={(e) => setEditShopLink(e.target.value)}
+                      placeholder="https://instagram.com/shopname"
+                      style={{ width: '100%', background: '#0e0e0e', border: '1px solid #262626', color: '#fff', padding: '10px 14px', borderRadius: '4px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif' }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '12px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600', display: 'block', marginBottom: '6px' }}>📝 Mağaza Haqqında Açıqlama (Bio)</label>
+                  <textarea 
+                    rows="3"
+                    value={editShopBio} 
+                    onChange={(e) => setEditShopBio(e.target.value)}
+                    placeholder="Mağazanız haqqında müştərilərə məlumat verin..."
+                    style={{ width: '100%', background: '#0e0e0e', border: '1px solid #262626', color: '#fff', padding: '10px 14px', borderRadius: '4px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', resize: 'vertical' }}
+                  />
+                </div>
+
+                {/* File Uploads for Logo Avatar & Cover Banner */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '4px' }}>
+                  <div>
+                    <label style={{ fontSize: '12px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600', display: 'block', marginBottom: '6px' }}>🖼️ Profil Logosu / Şəkli</label>
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files[0]) {
+                          setEditAvatarFile(e.target.files[0]);
+                          setEditAvatarPreview(URL.createObjectURL(e.target.files[0]));
+                        }
+                      }}
+                      style={{ fontSize: '12px', color: '#888' }}
+                    />
+                    {editAvatarPreview && (
+                      <div style={{ marginTop: '8px', width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #c9a96e' }}>
+                        <img src={editAvatarPreview} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '12px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600', display: 'block', marginBottom: '6px' }}>🏞️ Arxa Fon (Banner) Şəkli</label>
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files[0]) {
+                          setEditBannerFile(e.target.files[0]);
+                          setEditBannerPreview(URL.createObjectURL(e.target.files[0]));
+                        }
+                      }}
+                      style={{ fontSize: '12px', color: '#888' }}
+                    />
+                    {editBannerPreview && (
+                      <div style={{ marginTop: '8px', width: '100px', height: '50px', borderRadius: '4px', overflow: 'hidden', border: '1px solid #c9a96e' }}>
+                        <img src={editBannerPreview} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                  <button 
+                    type="button"
+                    onClick={() => setShowStoreEditModal(false)}
+                    style={{ background: 'transparent', border: '1px solid #333', color: '#aaa', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer', fontFamily: 'Montserrat, sans-serif', fontSize: '13px' }}
+                  >
+                    Ləğv Et
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={savingStoreProfile}
+                    style={{ background: 'linear-gradient(135deg, #c9a96e 0%, #8a6d3b 100%)', border: 'none', color: '#000', padding: '10px 24px', borderRadius: '4px', cursor: 'pointer', fontWeight: '700', fontFamily: 'Montserrat, sans-serif', fontSize: '13px' }}
+                  >
+                    {savingStoreProfile ? "Yadda Saxlanılır..." : "Yadda Saxla"}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Try-On Size Analysis Modal (100% MATCHING Cothing.jsx modal portal) */}
       {showModal && selectedProduct && createPortal(
         <div className="modal-overlay" onClick={(e) => { if (e.target.className === 'modal-overlay') setShowModal(false); }}>
@@ -972,7 +1199,7 @@ const StorePage = () => {
                   <span className="price-badge" style={{ padding: '8px 16px', fontSize: '16px' }}>{selectedProduct.price ? `${selectedProduct.price} AZN` : "Təyin edilməyib"}</span>
                 </div>
 
-                {/* Product Specification Grid (100% matching Cothing.jsx) */}
+                {/* Product Specification Grid */}
                 <div className="product-spec-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px', marginTop: '16px', padding: '12px', border: '1px solid #1f1f1f', borderRadius: '4px', background: '#070707' }}>
                   <div style={{ fontSize: '12px' }}><span style={{ color: '#7a7570' }}>Cins:</span> <span style={{ color: 'white' }}>{selectedProduct.gender || "Təyin edilməyib"}</span></div>
                   <div style={{ fontSize: '12px' }}><span style={{ color: '#7a7570' }}>Stil:</span> <span style={{ color: 'white' }}>{selectedProduct.style || "Təyin edilməyib"}</span></div>
@@ -1103,7 +1330,7 @@ const StorePage = () => {
                   )}
                 </div>
 
-                {/* Geyim Kəsimi və Manken Uyğunluğu (100% matching Cothing.jsx) */}
+                {/* Geyim Kəsimi və Manken Uyğunluğu */}
                 {selectedProduct.sizes && selectedProduct.sizes.length > 0 && (
                   <div className="section" style={{ marginTop: '20px' }}>
                     <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>GEYİM KƏSİMİ VƏ ÖLÇÜ DETALLARI</div>
@@ -1120,7 +1347,7 @@ const StorePage = () => {
                   </div>
                 )}
 
-                {/* Direct Order Actions (WhatsApp / Sosyal Media Butik DM) */}
+                {/* Direct Order Actions */}
                 {(selectedProduct.contactPhone || selectedProduct.contactLink || storeData?.contactPhone || storeData?.contactLink) && (
                   <div className="section" style={{ marginTop: '25px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <div className="section-label" style={{ fontSize: '11px', letterSpacing: '1.5px', color: '#7a7570' }}>SİFARİŞ VƏ ƏLAQƏ</div>
@@ -1213,8 +1440,7 @@ const StorePage = () => {
                 objectFit: 'contain', 
                 borderRadius: '8px',
                 transform: `scale(${zoomScale}) translate(${zoomPan.x}px, ${zoomPan.y}px)`,
-                transition: zoomOpacity < 1 ? 'opacity 0.15s ease' : 'transform 0.15s ease',
-                opacity: zoomOpacity
+                transition: 'transform 0.15s ease'
               }} 
             />
           </div>
