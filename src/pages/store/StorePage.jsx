@@ -12,7 +12,8 @@ import {
   FiArrowLeft, FiShare2, FiChevronLeft, FiChevronRight, 
   FiMaximize2, FiX, FiZoomIn, FiZoomOut, FiRefreshCw,
   FiGrid, FiList, FiArrowUp, FiFilter, FiStar, FiTruck,
-  FiPackage, FiTag, FiClock, FiRotateCcw, FiSliders, FiEdit3
+  FiPackage, FiTag, FiClock, FiRotateCcw, FiSliders, FiEdit3,
+  FiCamera, FiImage, FiLink, FiType, FiAlignLeft
 } from 'react-icons/fi'
 import { FaWhatsapp, FaInstagram, FaTiktok } from 'react-icons/fa'
 import { GoArrowRight } from "react-icons/go"
@@ -545,13 +546,30 @@ const StorePage = () => {
     }
   }
 
-  const handleCopyStoreLink = () => {
+  const handleShareStore = async () => {
     const cleanUrl = `${window.location.origin}/store/${encodeURIComponent(storeData?.shopName || decodedShopName)}`
-    navigator.clipboard.writeText(cleanUrl)
-    notification.success({
-      message: 'Link Kopyalandı',
-      description: 'Mağaza səhifəsinin daxili keçidi kopyalandı!'
-    })
+    const shareData = {
+      title: `${displayShopName} — Parabola`,
+      text: `${displayShopName} mağazasına baxın!`,
+      url: cleanUrl
+    }
+    
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData)
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          navigator.clipboard.writeText(cleanUrl)
+          notification.success({ message: 'Link Kopyalandı' })
+        }
+      }
+    } else {
+      navigator.clipboard.writeText(cleanUrl)
+      notification.success({
+        message: 'Link Kopyalandı',
+        description: 'Mağaza səhifəsinin keçidi kopyalandı!'
+      })
+    }
   }
 
   if (loading) {
@@ -559,8 +577,12 @@ const StorePage = () => {
   }
 
   const displayShopName = storeData?.shopName || decodedShopName
-  const contactPhone = (storeData?.contactPhone && storeData.contactPhone.trim()) ? storeData.contactPhone.trim() : ''
-  const contactLink = (storeData?.contactLink && storeData.contactLink.trim()) ? storeData.contactLink.trim() : ''
+  
+  // Derive contact info from PRODUCT DATA first, then fallback to store profile
+  const productPhone = products.find(p => p.contactPhone && p.contactPhone.trim())?.contactPhone?.trim() || ''
+  const productLink = products.find(p => p.contactLink && p.contactLink.trim())?.contactLink?.trim() || ''
+  const contactPhone = productPhone || ((storeData?.contactPhone && storeData.contactPhone.trim()) ? storeData.contactPhone.trim() : '')
+  const contactLink = productLink || ((storeData?.contactLink && storeData.contactLink.trim()) ? storeData.contactLink.trim() : '')
   const formattedPhone = contactPhone ? contactPhone.replace(/[^0-9]/g, '') : ''
   const whatsappUrl = formattedPhone ? `https://wa.me/${formattedPhone}?text=${encodeURIComponent(`Salam! ${displayShopName} mağazasından geyim haqqında maraqlanıram.`)}` : ''
 
@@ -574,7 +596,7 @@ const StorePage = () => {
       <div 
         className="store-hero-banner"
         style={storeData?.shopBannerUrl ? {
-          background: `linear-gradient(135deg, rgba(20, 20, 20, 0.88) 0%, rgba(5, 5, 5, 0.94) 100%), url('${storeData.shopBannerUrl}') center / cover no-repeat`
+          background: `linear-gradient(135deg, rgba(10, 10, 10, 0.82) 0%, rgba(0, 0, 0, 0.92) 100%), url('${storeData.shopBannerUrl}') center / cover no-repeat`
         } : {}}
       >
         <div className="store-banner-overlay"></div>
@@ -584,20 +606,29 @@ const StorePage = () => {
           </button>
           
           <div className="store-header-card">
-            {/* Owner/Admin Edit Store Pencil Button */}
-            {canEditStore && (
+            {/* Top-right Action Icons */}
+            <div className="store-top-actions">
+              {canEditStore && (
+                <button 
+                  className="store-icon-btn" 
+                  onClick={handleOpenStoreEditModal}
+                  title="Mağaza profilini redaktə et"
+                >
+                  <FiEdit3 />
+                </button>
+              )}
               <button 
-                className="store-owner-edit-btn" 
-                onClick={handleOpenStoreEditModal}
-                title="Mağaza profilini və şəkillərini redaktə et"
+                className="store-icon-btn" 
+                onClick={handleShareStore}
+                title="Mağazanı paylaş"
               >
-                <FiEdit3 /> Redaktə Et
+                <FiShare2 />
               </button>
-            )}
+            </div>
 
             <div className="store-avatar-circle">
               {storeData?.shopAvatarUrl ? (
-                <img src={storeData.shopAvatarUrl} alt={displayShopName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                <img src={storeData.shopAvatarUrl} alt={displayShopName} />
               ) : (
                 <FiShoppingBag />
               )}
@@ -609,7 +640,7 @@ const StorePage = () => {
                   <FiCheckCircle /> Təsdiqlənmiş Butik
                 </span>
                 <span className="store-count-badge">
-                  <FiPackage style={{ marginRight: '4px' }} /> {products.length} Geyim Məhsulu
+                  <FiPackage style={{ marginRight: '4px' }} /> {products.length} Məhsul
                 </span>
                 {numCategories > 0 && (
                   <span className="store-count-badge category-badge">
@@ -620,30 +651,30 @@ const StorePage = () => {
 
               <h1 className="store-title-name">{displayShopName}</h1>
 
-              {/* Custom Description / Bio if provided by seller */}
+              {/* Bio / Description */}
               {storeData?.shopBio && storeData.shopBio.trim() ? (
                 <p className="store-tagline">{storeData.shopBio.trim()}</p>
               ) : null}
 
-              {/* Price Range Info (rendered ONLY if valid prices exist) */}
+              {/* Price Range */}
               {priceMin !== null ? (
                 <div className="store-price-range">
                   <FiTag /> {priceMin === priceMax ? `Qiymət: ${priceMin} ₼` : `Qiymət aralığı: ${priceMin} ₼ — ${priceMax} ₼`}
                 </div>
               ) : null}
 
-              {/* Contact Actions (rendered ONLY if metadata exists) */}
+              {/* Contact Actions — only rendered if product data has them */}
               <div className="store-contact-actions">
                 {whatsappUrl ? (
                   <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="store-action-btn whatsapp">
-                    <FaWhatsapp /> WhatsApp Əlaqə
+                    <FaWhatsapp /> WhatsApp
                   </a>
                 ) : null}
 
                 {contactLink ? (
                   <a href={contactLink} target="_blank" rel="noopener noreferrer" className="store-action-btn social">
-                    {contactLink.toLowerCase().includes('instagram') ? <FaInstagram /> : contactLink.toLowerCase().includes('tiktok') ? <FaTiktok /> : <FiShare2 />}
-                    Mağaza Sosial Media
+                    {contactLink.toLowerCase().includes('instagram') ? <FaInstagram /> : contactLink.toLowerCase().includes('tiktok') ? <FaTiktok /> : <FiLink />}
+                    Sosial Media
                   </a>
                 ) : null}
 
@@ -652,15 +683,11 @@ const StorePage = () => {
                     <FiPhone /> {contactPhone}
                   </a>
                 ) : null}
-
-                <button className="store-action-btn share" onClick={handleCopyStoreLink} title="Mağaza linkini kopyala">
-                  <FiShare2 /> Linki Paylaş
-                </button>
               </div>
             </div>
           </div>
 
-          {/* Store Stats Bar (rendered ONLY if products exist) */}
+          {/* Store Stats Bar */}
           {products.length > 0 ? (
             <div className="store-stats-bar">
               <div className="stat-item">
@@ -697,18 +724,18 @@ const StorePage = () => {
 
       {/* Main Content Section */}
       <div className="store-main-section">
-        {/* Professional Multi-Option Filter Panel with Styled Dropdowns */}
+        {/* Minimalist Premium Filter Panel */}
         <div className="store-pro-filter-panel">
           <div className="filter-panel-header">
             <h3 className="filter-title">
-              <FiSliders className="filter-title-icon" /> Profesional Filtrləmə Sistemləri
+              <FiSliders className="filter-title-icon" /> Filtrlər
               {activeFilterCount > 0 && (
-                <span className="active-filter-badge">{activeFilterCount} filtr aktivdir</span>
+                <span className="active-filter-badge">{activeFilterCount}</span>
               )}
             </h3>
             {activeFilterCount > 0 && (
               <button className="reset-all-btn" onClick={handleResetAllFilters}>
-                <FiRotateCcw /> Filtrləri Sıfırla
+                <FiRotateCcw /> Sıfırla
               </button>
             )}
           </div>
@@ -952,123 +979,140 @@ const StorePage = () => {
         </button>
       )}
 
-      {/* Store Profile Edit Modal (Opened by Pencil Edit Button) */}
+      {/* Premium Store Profile Edit Modal */}
       {showStoreEditModal && (
-        <div className="modal-overlay" onClick={() => setShowStoreEditModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '650px', width: '90%', background: '#0a0a0a', border: '1px solid rgba(201, 169, 110, 0.4)', borderRadius: '8px', padding: '24px', color: '#fff', position: 'relative' }}>
-            <button className="modal-close" onClick={() => setShowStoreEditModal(false)} aria-label="Bağla" style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: '#aaa', fontSize: '24px', cursor: 'pointer' }}>&times;</button>
-            <h2 className="modal-title" style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '24px', color: '#c9a96e', margin: '0 0 20px 0', borderBottom: '1px solid #1a1a1a', paddingBottom: '10px' }}>
-              ✏️ Mağaza Profilini və Şəkillərini Redaktə Et
-            </h2>
+        <div className="store-edit-overlay" onClick={() => setShowStoreEditModal(false)}>
+          <div className="store-edit-modal" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="edit-modal-header">
+              <div className="edit-modal-header-left">
+                <div className="edit-modal-header-icon"><FiEdit3 /></div>
+                <h2 className="edit-modal-title">Mağaza Profilini Redaktə Et</h2>
+              </div>
+              <button className="edit-modal-close" onClick={() => setShowStoreEditModal(false)} aria-label="Bağla">
+                <FiX />
+              </button>
+            </div>
             
             <form onSubmit={handleSaveStoreProfile}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div>
-                  <label style={{ fontSize: '12px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600', display: 'block', marginBottom: '6px' }}>🛍️ Mağaza Adı</label>
+              <div className="edit-modal-body">
+                {/* Shop Name */}
+                <div className="edit-field">
+                  <label className="edit-field-label"><FiType /> Mağaza Adı</label>
                   <input 
                     type="text" 
                     value={editShopName} 
                     onChange={(e) => setEditShopName(e.target.value)}
                     placeholder="Məs: Parabola Luxury"
                     required
-                    style={{ width: '100%', background: '#0e0e0e', border: '1px solid #262626', color: '#fff', padding: '10px 14px', borderRadius: '4px', fontSize: '14px', fontFamily: 'Montserrat, sans-serif' }}
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div>
-                    <label style={{ fontSize: '12px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600', display: 'block', marginBottom: '6px' }}>📞 Əlaqə Telefonu</label>
+                {/* Phone + Social Link Row */}
+                <div className="edit-field-row">
+                  <div className="edit-field">
+                    <label className="edit-field-label"><FiPhone /> Əlaqə Telefonu</label>
                     <input 
                       type="text" 
                       value={editShopPhone} 
                       onChange={(e) => setEditShopPhone(e.target.value)}
                       placeholder="+994 50 123 45 67"
-                      style={{ width: '100%', background: '#0e0e0e', border: '1px solid #262626', color: '#fff', padding: '10px 14px', borderRadius: '4px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif' }}
                     />
                   </div>
-
-                  <div>
-                    <label style={{ fontSize: '12px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600', display: 'block', marginBottom: '6px' }}>🔗 Sosial Media / Keçid</label>
+                  <div className="edit-field">
+                    <label className="edit-field-label"><FiLink /> Sosial Media</label>
                     <input 
                       type="text" 
                       value={editShopLink} 
                       onChange={(e) => setEditShopLink(e.target.value)}
-                      placeholder="https://instagram.com/shopname"
-                      style={{ width: '100%', background: '#0e0e0e', border: '1px solid #262626', color: '#fff', padding: '10px 14px', borderRadius: '4px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif' }}
+                      placeholder="https://instagram.com/..."
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label style={{ fontSize: '12px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600', display: 'block', marginBottom: '6px' }}>📝 Mağaza Haqqında Açıqlama (Bio)</label>
+                {/* Bio / Description */}
+                <div className="edit-field">
+                  <label className="edit-field-label"><FiAlignLeft /> Açıqlama</label>
                   <textarea 
                     rows="3"
                     value={editShopBio} 
                     onChange={(e) => setEditShopBio(e.target.value)}
                     placeholder="Mağazanız haqqında müştərilərə məlumat verin..."
-                    style={{ width: '100%', background: '#0e0e0e', border: '1px solid #262626', color: '#fff', padding: '10px 14px', borderRadius: '4px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', resize: 'vertical' }}
                   />
                 </div>
 
-                {/* File Uploads for Logo Avatar & Cover Banner */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '4px' }}>
-                  <div>
-                    <label style={{ fontSize: '12px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600', display: 'block', marginBottom: '6px' }}>🖼️ Profil Logosu / Şəkli</label>
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      onChange={(e) => {
-                        if (e.target.files[0]) {
-                          setEditAvatarFile(e.target.files[0]);
-                          setEditAvatarPreview(URL.createObjectURL(e.target.files[0]));
-                        }
-                      }}
-                      style={{ fontSize: '12px', color: '#888' }}
-                    />
-                    {editAvatarPreview && (
-                      <div style={{ marginTop: '8px', width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #c9a96e' }}>
-                        <img src={editAvatarPreview} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      </div>
-                    )}
+                {/* Premium File Uploads — Drag-Drop Style */}
+                <div className="edit-field-row">
+                  <div className="edit-upload-area">
+                    <label className="edit-field-label"><FiCamera /> Profil Şəkli</label>
+                    <div className={`edit-upload-zone ${editAvatarPreview ? 'has-preview' : ''}`}>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files[0]) {
+                            setEditAvatarFile(e.target.files[0])
+                            setEditAvatarPreview(URL.createObjectURL(e.target.files[0]))
+                          }
+                        }}
+                      />
+                      {editAvatarPreview ? (
+                        <img src={editAvatarPreview} alt="Profil" className="edit-avatar-preview" />
+                      ) : (
+                        <>
+                          <FiCamera className="edit-upload-icon" />
+                          <div className="edit-upload-text"><span>Şəkil seçin</span></div>
+                          <div className="edit-upload-hint">Maks. 5MB</div>
+                        </>
+                      )}
+                    </div>
                   </div>
 
-                  <div>
-                    <label style={{ fontSize: '12px', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600', display: 'block', marginBottom: '6px' }}>🏞️ Arxa Fon (Banner) Şəkli</label>
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      onChange={(e) => {
-                        if (e.target.files[0]) {
-                          setEditBannerFile(e.target.files[0]);
-                          setEditBannerPreview(URL.createObjectURL(e.target.files[0]));
-                        }
-                      }}
-                      style={{ fontSize: '12px', color: '#888' }}
-                    />
-                    {editBannerPreview && (
-                      <div style={{ marginTop: '8px', width: '100px', height: '50px', borderRadius: '4px', overflow: 'hidden', border: '1px solid #c9a96e' }}>
-                        <img src={editBannerPreview} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      </div>
-                    )}
+                  <div className="edit-upload-area">
+                    <label className="edit-field-label"><FiImage /> Arxa Fon (Banner)</label>
+                    <div className={`edit-upload-zone ${editBannerPreview ? 'has-preview' : ''}`}>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files[0]) {
+                            setEditBannerFile(e.target.files[0])
+                            setEditBannerPreview(URL.createObjectURL(e.target.files[0]))
+                          }
+                        }}
+                      />
+                      {editBannerPreview ? (
+                        <img src={editBannerPreview} alt="Banner" className="edit-banner-preview" />
+                      ) : (
+                        <>
+                          <FiImage className="edit-upload-icon" />
+                          <div className="edit-upload-text"><span>Banner seçin</span></div>
+                          <div className="edit-upload-hint">Maks. 5MB</div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
+              </div>
 
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                  <button 
-                    type="button"
-                    onClick={() => setShowStoreEditModal(false)}
-                    style={{ background: 'transparent', border: '1px solid #333', color: '#aaa', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer', fontFamily: 'Montserrat, sans-serif', fontSize: '13px' }}
-                  >
-                    Ləğv Et
-                  </button>
-                  <button 
-                    type="submit"
-                    disabled={savingStoreProfile}
-                    style={{ background: 'linear-gradient(135deg, #c9a96e 0%, #8a6d3b 100%)', border: 'none', color: '#000', padding: '10px 24px', borderRadius: '4px', cursor: 'pointer', fontWeight: '700', fontFamily: 'Montserrat, sans-serif', fontSize: '13px' }}
-                  >
-                    {savingStoreProfile ? "Yadda Saxlanılır..." : "Yadda Saxla"}
-                  </button>
-                </div>
+              {/* Modal Footer */}
+              <div className="edit-modal-footer">
+                <button 
+                  type="button"
+                  className="edit-cancel-btn"
+                  onClick={() => setShowStoreEditModal(false)}
+                >
+                  Ləğv Et
+                </button>
+                <button 
+                  type="submit"
+                  className="edit-save-btn"
+                  disabled={savingStoreProfile}
+                >
+                  {savingStoreProfile ? (
+                    <><span className="edit-saving-spinner"></span>Saxlanılır...</>
+                  ) : 'Yadda Saxla'}
+                </button>
               </div>
             </form>
           </div>
