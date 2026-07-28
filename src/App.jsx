@@ -6,6 +6,7 @@ import Home from './pages/Home/Home'
 import LoadingSpinner from './components/Loading/LoadingSpinner'
 import { initGA, trackPageView, trackEvent } from './utils/analytics'
 import { useUser } from '@clerk/clerk-react'
+import { Analytics } from '@vercel/analytics/react'
 
 notification.config({
   maxCount: 1
@@ -55,6 +56,7 @@ const App = () => {
           <Route path='/store/:shopName' element={<StorePage/>}/>
         </Routes>
       </Suspense>
+      <Analytics />
     </div>
   )
 }

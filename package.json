@@ -13,6 +13,7 @@
     "@clerk/clerk-react": "^5.61.8",
     "@clerk/themes": "^2.4.57",
     "@reduxjs/toolkit": "^2.12.0",
+    "@vercel/analytics": "^2.0.1",
     "antd": "^6.4.3",
     "aos": "^2.3.4",
     "axios": "^1.16.1",
