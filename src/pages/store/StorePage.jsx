@@ -223,6 +223,7 @@ const StorePage = () => {
       const userEmailHeader = user?.primaryEmailAddress?.emailAddress || ""
       
       const formData = new FormData()
+      formData.append("originalShopName", storeData?.shopName || decodedShopName || "")
       formData.append("shopName", editShopName)
       formData.append("shopPhone", editShopPhone)
       formData.append("shopLink", editShopLink)
@@ -578,11 +579,14 @@ const StorePage = () => {
 
   const displayShopName = storeData?.shopName || decodedShopName
   
-  // Derive contact info from PRODUCT DATA first, then fallback to store profile
+  // Contact info: store profile contacts take priority! Fallback to products if store profile contact is empty.
+  const storePhone = (storeData?.contactPhone && storeData.contactPhone.trim()) ? storeData.contactPhone.trim() : ''
+  const storeLink = (storeData?.contactLink && storeData.contactLink.trim()) ? storeData.contactLink.trim() : ''
   const productPhone = products.find(p => p.contactPhone && p.contactPhone.trim())?.contactPhone?.trim() || ''
   const productLink = products.find(p => p.contactLink && p.contactLink.trim())?.contactLink?.trim() || ''
-  const contactPhone = productPhone || ((storeData?.contactPhone && storeData.contactPhone.trim()) ? storeData.contactPhone.trim() : '')
-  const contactLink = productLink || ((storeData?.contactLink && storeData.contactLink.trim()) ? storeData.contactLink.trim() : '')
+
+  const contactPhone = storePhone || productPhone
+  const contactLink = storeLink || productLink
   const formattedPhone = contactPhone ? contactPhone.replace(/[^0-9]/g, '') : ''
   const whatsappUrl = formattedPhone ? `https://wa.me/${formattedPhone}?text=${encodeURIComponent(`Salam! ${displayShopName} mağazasından geyim haqqında maraqlanıram.`)}` : ''
 
