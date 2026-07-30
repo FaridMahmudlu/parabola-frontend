@@ -596,22 +596,23 @@ const StorePage = () => {
     <div className="store-page-container">
       <Header />
 
-      {/* Store Hero Banner with optional custom Cover Banner background */}
-      <div 
-        className="store-hero-banner"
-        style={storeData?.shopBannerUrl ? {
-          background: `linear-gradient(135deg, rgba(10, 10, 10, 0.82) 0%, rgba(0, 0, 0, 0.92) 100%), url('${storeData.shopBannerUrl}') center / cover no-repeat`
-        } : {}}
-      >
-        <div className="store-banner-overlay"></div>
-        <div className="store-hero-content">
-          <button className="store-back-btn" onClick={() => navigate('/')}>
-            <FiArrowLeft /> Ana Səhifəyə Qayıt
-          </button>
-          
-          <div className="store-header-card">
-            {/* Top-right Action Icons */}
-            <div className="store-top-actions">
+      {/* FULL-WIDTH BANNER SECTION */}
+      <div className="store-hero-banner">
+        {storeData?.shopBannerUrl && (
+          <div 
+            className="store-banner-bg" 
+            style={{ backgroundImage: `url('${storeData.shopBannerUrl}')` }} 
+          />
+        )}
+        <div className="store-banner-gradient" />
+        
+        <div className="store-banner-content">
+          {/* Navigation Row */}
+          <div className="store-nav-row">
+            <button className="store-back-btn" onClick={() => navigate('/')}>
+              <FiArrowLeft /> Ana Səhifəyə Qayıt
+            </button>
+            <div className="store-nav-actions">
               {canEditStore && (
                 <button 
                   className="store-icon-btn" 
@@ -629,7 +630,10 @@ const StorePage = () => {
                 <FiShare2 />
               </button>
             </div>
+          </div>
 
+          {/* Profile Section */}
+          <div className="store-profile-section">
             <div className="store-avatar-circle">
               {storeData?.shopAvatarUrl ? (
                 <img src={storeData.shopAvatarUrl} alt={displayShopName} />
@@ -638,227 +642,165 @@ const StorePage = () => {
               )}
             </div>
             
-            <div className="store-meta-details">
-              <div className="store-badge-row">
-                <span className="store-verified-badge">
+            <div className="store-profile-info">
+              <h1 className="store-title-name">{displayShopName}</h1>
+              {storeData?.shopBio && storeData.shopBio.trim() && (
+                <p className="store-tagline">{storeData.shopBio.trim()}</p>
+              )}
+              <div className="store-badges-row">
+                <span className="store-badge verified">
                   <FiCheckCircle /> Təsdiqlənmiş Butik
                 </span>
-                <span className="store-count-badge">
+                <span className="store-badge count">
                   <FiPackage style={{ marginRight: '4px' }} /> {products.length} Məhsul
                 </span>
                 {numCategories > 0 && (
-                  <span className="store-count-badge category-badge">
+                  <span className="store-badge count">
                     <FiTag style={{ marginRight: '4px' }} /> {numCategories} Kateqoriya
                   </span>
                 )}
               </div>
-
-              <h1 className="store-title-name">{displayShopName}</h1>
-
-              {/* Bio / Description */}
-              {storeData?.shopBio && storeData.shopBio.trim() ? (
-                <p className="store-tagline">{storeData.shopBio.trim()}</p>
-              ) : null}
-
-              {/* Price Range */}
-              {priceMin !== null ? (
-                <div className="store-price-range">
-                  <FiTag /> {priceMin === priceMax ? `Qiymət: ${priceMin} ₼` : `Qiymət aralığı: ${priceMin} ₼ — ${priceMax} ₼`}
-                </div>
-              ) : null}
-
-              {/* Contact Actions — only rendered if product data has them */}
-              <div className="store-contact-actions">
-                {whatsappUrl ? (
-                  <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="store-action-btn whatsapp">
-                    <FaWhatsapp /> WhatsApp
-                  </a>
-                ) : null}
-
-                {contactLink ? (
-                  <a href={contactLink} target="_blank" rel="noopener noreferrer" className="store-action-btn social">
-                    {contactLink.toLowerCase().includes('instagram') ? <FaInstagram /> : contactLink.toLowerCase().includes('tiktok') ? <FaTiktok /> : <FiLink />}
-                    Sosial Media
-                  </a>
-                ) : null}
-
-                {contactPhone ? (
-                  <a href={`tel:${contactPhone}`} className="store-action-btn phone">
-                    <FiPhone /> {contactPhone}
-                  </a>
-                ) : null}
-              </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Store Stats Bar */}
-          {products.length > 0 ? (
-            <div className="store-stats-bar">
-              <div className="stat-item">
-                <FiPackage className="stat-icon" />
-                <div className="stat-content">
-                  <span className="stat-value">{products.length}</span>
-                  <span className="stat-label">Məhsul</span>
-                </div>
-              </div>
-
-              {numCategories > 0 ? (
-                <div className="stat-item">
-                  <FiTag className="stat-icon" />
-                  <div className="stat-content">
-                    <span className="stat-value">{numCategories}</span>
-                    <span className="stat-label">Kateqoriya</span>
-                  </div>
-                </div>
-              ) : null}
-
-              {priceMin !== null ? (
-                <div className="stat-item">
-                  <FiTag className="stat-icon" />
-                  <div className="stat-content">
-                    <span className="stat-value">{priceMin === priceMax ? `${priceMin} ₼` : `${priceMin} - ${priceMax} ₼`}</span>
-                    <span className="stat-label">Qiymət Aralığı</span>
-                  </div>
-                </div>
-              ) : null}
+      {/* Info Bar (Stats + Contacts) */}
+      <div className="store-info-bar">
+        <div className="store-stats-row">
+          {products.length > 0 && (
+            <div className="store-stat">
+              <span className="store-stat-value">{products.length}</span> məhsul
             </div>
-          ) : null}
+          )}
+          {numCategories > 0 && (
+            <>
+              <div className="store-stat-divider" />
+              <div className="store-stat">
+                <span className="store-stat-value">{numCategories}</span> kateqoriya
+              </div>
+            </>
+          )}
+          {priceMin !== null && (
+            <>
+              <div className="store-stat-divider" />
+              <div className="store-stat">
+                <span className="store-stat-value">
+                  {priceMin === priceMax ? `${priceMin} ₼` : `${priceMin} - ${priceMax} ₼`}
+                </span>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="store-contact-row">
+          {whatsappUrl && (
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="store-contact-btn whatsapp">
+              <FaWhatsapp /> WhatsApp
+            </a>
+          )}
+          {contactLink && (
+            <a href={contactLink} target="_blank" rel="noopener noreferrer" className="store-contact-btn social">
+              {contactLink.toLowerCase().includes('instagram') ? <FaInstagram /> : contactLink.toLowerCase().includes('tiktok') ? <FaTiktok /> : <FiLink />} Sosial Media
+            </a>
+          )}
+          {contactPhone && (
+            <a href={`tel:${contactPhone}`} className="store-contact-btn phone">
+              <FiPhone /> Zəng Et
+            </a>
+          )}
         </div>
       </div>
 
       {/* Main Content Section */}
       <div className="store-main-section">
-        {/* Minimalist Premium Filter Panel */}
-        <div className="store-pro-filter-panel">
-          <div className="filter-panel-header">
-            <h3 className="filter-title">
-              <FiSliders className="filter-title-icon" /> Filtrlər
-              {activeFilterCount > 0 && (
-                <span className="active-filter-badge">{activeFilterCount}</span>
-              )}
-            </h3>
-            {activeFilterCount > 0 && (
-              <button className="reset-all-btn" onClick={handleResetAllFilters}>
-                <FiRotateCcw /> Sıfırla
+        {/* Compact Filter Bar */}
+        <div className="store-filter-bar">
+          <div className="filter-search-box">
+            <FiSearch className="search-icon" />
+            <input 
+              type="text" 
+              placeholder="Geyim axtar..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button className="clear-icon" onClick={() => setSearchQuery('')}>
+                <FiX />
               </button>
             )}
           </div>
 
-          <div className="filter-grid-rows">
-            {/* 1. Keyword Search */}
-            <div className="filter-group">
-              <label>Axtarış</label>
-              <div className="filter-input-wrap">
-                <FiSearch className="search-icon" />
-                <input 
-                  type="text" 
-                  placeholder="Geyim adı, brend və ya rəng..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                {searchQuery && (
-                  <button className="clear-icon" onClick={() => setSearchQuery('')}>
-                    <FiX />
-                  </button>
-                )}
-              </div>
-            </div>
+          <select 
+            className="filter-select-compact"
+            value={selectedGender}
+            onChange={(e) => setSelectedGender(e.target.value)}
+          >
+            {gendersList.map((g, idx) => (
+              <option key={idx} value={g}>{g === 'Hamısı' ? 'Bütün Cinslər' : g}</option>
+            ))}
+          </select>
 
-            {/* 2. Category Select */}
-            <div className="filter-group">
-              <label>Kateqoriya</label>
-              <select 
-                className="filter-select"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-              >
-                {categories.map((cat, idx) => (
-                  <option key={idx} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
+          <select 
+            className="filter-select-compact"
+            value={selectedSizeFilter}
+            onChange={(e) => setSelectedSizeFilter(e.target.value)}
+          >
+            {sizesList.map((sz, idx) => (
+              <option key={idx} value={sz}>{sz === 'Hamısı' ? 'Bütün Ölçülər' : sz}</option>
+            ))}
+          </select>
 
-            {/* 3. Gender Select */}
-            <div className="filter-group">
-              <label>Cins</label>
-              <select 
-                className="filter-select"
-                value={selectedGender}
-                onChange={(e) => setSelectedGender(e.target.value)}
-              >
-                {gendersList.map((g, idx) => (
-                  <option key={idx} value={g}>{g}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* 4. Size Select */}
-            <div className="filter-group">
-              <label>Ölçü</label>
-              <select 
-                className="filter-select"
-                value={selectedSizeFilter}
-                onChange={(e) => setSelectedSizeFilter(e.target.value)}
-              >
-                {sizesList.map((sz, idx) => (
-                  <option key={idx} value={sz}>{sz}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* 5. Price Min & Max */}
-            <div className="filter-group">
-              <label>Qiymət Aralığı (AZN)</label>
-              <div className="price-range-inputs">
-                <input 
-                  type="number" 
-                  placeholder="Min ₼" 
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value)}
-                  min="0"
-                />
-                <span className="price-separator">—</span>
-                <input 
-                  type="number" 
-                  placeholder="Max ₼" 
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
-                  min="0"
-                />
-              </div>
-            </div>
-
-            {/* 6. Sorting */}
-            <div className="filter-group">
-              <label>Sıralama</label>
-              <select 
-                className="filter-select"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-              >
-                <option value="newest">Ən yeni geyimlər</option>
-                <option value="price-low">Qiymət: Aşağıdan yuxarı</option>
-                <option value="price-high">Qiymət: Yuxarıdan aşağı</option>
-                <option value="name">Ad üzrə (A-Z)</option>
-              </select>
-            </div>
+          <div className="filter-price-compact">
+            <input 
+              type="number" 
+              placeholder="Min ₼" 
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              min="0"
+            />
+            <span className="price-sep">-</span>
+            <input 
+              type="number" 
+              placeholder="Max ₼" 
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              min="0"
+            />
           </div>
 
-          {/* Quick Category Pills Scroll */}
-          {categories.length > 1 && (
-            <div className="filter-pills-scroll">
-              {categories.map((cat, idx) => (
-                <button 
-                  key={idx}
-                  className={`filter-pill-btn ${selectedCategory === cat ? 'active' : ''}`}
-                  onClick={() => setSelectedCategory(cat)}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
+          <select 
+            className="filter-select-compact"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="newest">Ən yeni</option>
+            <option value="price-low">Ucuzdan</option>
+            <option value="price-high">Bahadan</option>
+            <option value="name">A-Z</option>
+          </select>
+
+          {activeFilterCount > 0 && (
+            <button className="filter-reset-btn" onClick={handleResetAllFilters}>
+              <FiRotateCcw /> Sıfırla
+            </button>
           )}
         </div>
+
+        {/* Category Pills */}
+        {categories.length > 1 && (
+          <div className="store-category-pills">
+            {categories.map((cat, idx) => (
+              <button 
+                key={idx}
+                className={`category-pill ${selectedCategory === cat ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(cat)}
+              >
+                {cat === 'Hamısı' ? 'Bütün Kateqoriyalar' : cat}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Product Section Title Header */}
         <div className="store-grid-header">
