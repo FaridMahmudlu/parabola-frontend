@@ -301,6 +301,13 @@
   transform: translateY(-1px);
 }
 
+.feedback-later:disabled,
+.feedback-submit:disabled {
+  cursor: wait;
+  opacity: 0.62;
+  transform: none;
+}
+
 .feedback-success {
   display: flex;
   min-height: 290px;

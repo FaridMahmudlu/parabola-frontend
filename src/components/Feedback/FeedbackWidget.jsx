@@ -3,7 +3,9 @@ import { createPortal } from 'react-dom'
 import { FaStar } from 'react-icons/fa'
 import { FiCheck, FiMessageSquare, FiSend, FiX } from 'react-icons/fi'
 import { track } from '@vercel/analytics/react'
+import axios from 'axios'
 import { trackEvent } from '../../utils/analytics'
+import { BASE_URL } from '../../pages/config'
 import './feedback.css'
 
 const FEEDBACK_DELAY = 20_000
@@ -47,6 +49,7 @@ function FeedbackWidget({ isSignedIn = false }) {
   const [comment, setComment] = useState('')
   const [validationMessage, setValidationMessage] = useState('')
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     const alreadySubmitted = getStoredValue(window.localStorage, FEEDBACK_STORAGE_KEY)
@@ -101,7 +104,7 @@ function FeedbackWidget({ isSignedIn = false }) {
     ))
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
     if (!rating) {
@@ -120,30 +123,47 @@ function FeedbackWidget({ isSignedIn = false }) {
       `signed_in=${isSignedIn}`,
     ].join('; ').slice(0, 255)
 
+    setIsSubmitting(true)
+    setValidationMessage('')
+
     try {
-      track('Feedback submitted', { rating, details: feedbackDetails })
-      trackEvent(
-        'Feedback',
-        'submit_feedback',
-        topicLabels.join(', ') || 'Mövzu seçilməyib',
+      await axios.post(`${BASE_URL}/api/v1/feedback`, {
         rating,
-        {
-          feedback_rating: rating,
-          feedback_topics: selectedTopics.join(',') || 'none',
-          feedback_comment: cleanComment || 'none',
-          page_path: window.location.pathname,
-          signed_in: isSignedIn,
-        },
-      )
+        topics: selectedTopics,
+        comment: cleanComment,
+        pagePath: window.location.pathname,
+        signedIn: isSignedIn,
+      }, { timeout: 30_000 })
+
+      try {
+        track('Feedback submitted', { rating, details: feedbackDetails })
+        trackEvent(
+          'Feedback',
+          'submit_feedback',
+          topicLabels.join(', ') || 'Mövzu seçilməyib',
+          rating,
+          {
+            feedback_rating: rating,
+            feedback_topics: selectedTopics.join(',') || 'none',
+            feedback_comment: cleanComment || 'none',
+            page_path: window.location.pathname,
+            signed_in: isSignedIn,
+          },
+        )
+      } catch (error) {
+        console.warn('Feedback analytics event could not be sent:', error)
+      }
+
+      setStoredValue(window.localStorage, FEEDBACK_STORAGE_KEY, new Date().toISOString())
+      setStoredValue(window.sessionStorage, FEEDBACK_SESSION_KEY, 'true')
+      setIsSubmitted(true)
+      window.setTimeout(() => setIsOpen(false), 1800)
     } catch (error) {
-      console.warn('Feedback analytics event could not be sent:', error)
+      console.warn('Feedback could not be saved:', error)
+      setValidationMessage('Rəy göndərilmədi. İnternet bağlantınızı yoxlayıb yenidən cəhd edin.')
+    } finally {
+      setIsSubmitting(false)
     }
-
-    setStoredValue(window.localStorage, FEEDBACK_STORAGE_KEY, new Date().toISOString())
-    setStoredValue(window.sessionStorage, FEEDBACK_SESSION_KEY, 'true')
-    setIsSubmitted(true)
-
-    window.setTimeout(() => setIsOpen(false), 1800)
   }
 
   if (!hasPrompted || (!isOpen && isSubmitted)) return null
@@ -258,11 +278,11 @@ function FeedbackWidget({ isSignedIn = false }) {
               )}
 
               <div className="feedback-actions">
-                <button className="feedback-later" type="button" onClick={handleClose}>
+                <button className="feedback-later" type="button" onClick={handleClose} disabled={isSubmitting}>
                   Sonra
                 </button>
-                <button className="feedback-submit" type="submit">
-                  <span>Rəyi göndər</span>
+                <button className="feedback-submit" type="submit" disabled={isSubmitting} aria-busy={isSubmitting}>
+                  <span>{isSubmitting ? 'Göndərilir...' : 'Rəyi göndər'}</span>
                   <FiSend aria-hidden="true" />
                 </button>
               </div>
