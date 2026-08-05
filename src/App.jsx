@@ -1,9 +1,10 @@
-import React, { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { notification } from 'antd'
 
 import { Routes, Route, useLocation } from "react-router-dom"
 import Home from './pages/Home/Home'
 import LoadingSpinner from './components/Loading/LoadingSpinner'
+import FeedbackWidget from './components/Feedback/FeedbackWidget'
 import { initGA, trackPageView, trackEvent } from './utils/analytics'
 import { useUser } from '@clerk/clerk-react'
 import { Analytics } from '@vercel/analytics/react'
@@ -56,6 +57,7 @@ const App = () => {
           <Route path='/store/:shopName' element={<StorePage/>}/>
         </Routes>
       </Suspense>
+      <FeedbackWidget isSignedIn={isSignedIn} />
       <Analytics />
     </div>
   )
